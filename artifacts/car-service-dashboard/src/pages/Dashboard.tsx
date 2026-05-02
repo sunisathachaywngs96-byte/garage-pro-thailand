@@ -1,4 +1,285 @@
+import { useEffect, useState } from "react";
 import {
+  collection,
+  onSnapshot,
+  query
+} from "firebase/firestore";
+
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell
+} from "recharts";
+
+import {
+  Calendar,
+  Wrench,
+  CheckCircle,
+  Users,
+  Car,
+  TrendingUp,
+  HardHat,
+  Clock
+} from "lucide-react";
+
+import { db } from "@/firebase";
+import { useLang } from "@/lib/i18n";
+
+const COLORS = [
+  "#f59e0b",
+  "#3b82f6",
+  "#10b981",
+  "#8b5cf6",
+  "#ef4444",
+  "#f97316"
+];
+
+function KpiCard({
+  title,
+  value,
+  icon: Icon,
+  color,
+  sub
+}: any) {
+  return (
+    <div className="bg-slate-900 rounded-xl p-4 border border-slate-800">
+      <div className="flex items-center gap-3">
+        <div className={`p-3 rounded-lg ${color}`}>
+          <Icon className="w-5 h-5 text-white" />
+        </div>
+
+        <div>
+          <p className="text-sm text-slate-400">{title}</p>
+          <h2 className="text-2xl font-bold text-white">{value}</h2>
+          {sub && <p className="text-xs text-slate-500">{sub}</p>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function Dashboard() {
+  const { lang } = useLang();
+
+  const [jobs, setJobs] = useState<any[]>([]);
+  const [customers, setCustomers] = useState<any[]>([]);
+  const [money, setMoney] = useState<any[]>([]);
+  const [stock, setStock] = useState<any[]>([]);
+
+  useEffect(() => {
+    const unsub1 = onSnapshot(
+      query(collection(db, "jobs")),
+      (snap) => {
+        setJobs(
+          snap.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data()
+          }))
+        );
+      }
+    );
+
+    const unsub2 = onSnapshot(
+      query(collection(db, "customers")),
+      (snap) => {
+        setCustomers(
+          snap.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data()
+          }))
+        );
+      }
+    );
+
+    const unsub3 = onSnapshot(
+      query(collection(db, "money")),
+      (snap) => {
+        setMoney(
+          snap.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data()
+          }))
+        );
+      }
+    );
+
+    const unsub4 = onSnapshot(
+      query(collection(db, "stock")),
+      (snap) => {
+        setStock(
+          snap.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data()
+          }))
+        );
+      }
+    );
+
+    return () => {
+      unsub1();
+      unsub2();
+      unsub3();
+      unsub4();
+    };
+  }, []);
+
+  const todayJobs = jobs.filter(
+    (j) =>
+      new Date(j.createdAt?.seconds * 1000).toDateString() ===
+      new Date().toDateString()
+  ).length;
+
+  const working = jobs.filter(
+    (j) => j.status === "repairing"
+  ).length;
+
+  const doneToday = jobs.filter(
+    (j) => j.status === "done"
+  ).length;
+
+  const totalIncome = money.reduce(
+    (sum, item) => sum + Number(item.amount || 0),
+    0
+  );
+
+  const readyTech = 3;
+
+  const waiting = jobs.filter(
+    (j) => j.status === "waiting"
+  ).length;
+
+  const monthly = [
+    { month: "Jan", total: 12000 },
+    { month: "Feb", total: 15000 },
+    { month: "Mar", total: 18000 },
+    { month: "Apr", total: 22000 },
+    { month: "May", total: totalIncome }
+  ];
+
+  const serviceData = [
+    { name: "ซ่อมทั่วไป", value: jobs.length },
+    { name: "อะไหล่", value: stock.length },
+    { name: "ลูกค้า", value: customers.length }
+  ];
+
+  return (
+    <div className="p-4 space-y-5 bg-slate-950 min-h-screen">
+      <div>
+        <h1 className="text-2xl font-bold text-white">
+          แดชบอร์ด
+        </h1>
+        <p className="text-slate-400 text-sm">
+          ภาพรวมอู่ซ่อมรถแบบเรียลไทม์
+        </p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <KpiCard
+          title="งานวันนี้"
+          value={todayJobs}
+          icon={Calendar}
+          color="bg-yellow-500"
+        />
+
+        <KpiCard
+          title="กำลังซ่อม"
+          value={working}
+          icon={Wrench}
+          color="bg-blue-500"
+        />
+
+        <KpiCard
+          title="เสร็จแล้ว"
+          value={doneToday}
+          icon={CheckCircle}
+          color="bg-green-500"
+        />
+
+        <KpiCard
+          title="รายได้รวม"
+          value={`฿${totalIncome}`}
+          icon={TrendingUp}
+          color="bg-purple-500"
+        />
+
+        <KpiCard
+          title="ลูกค้า"
+          value={customers.length}
+          icon={Users}
+          color="bg-orange-500"
+        />
+
+        <KpiCard
+          title="รถทั้งหมด"
+          value={jobs.length}
+          icon={Car}
+          color="bg-cyan-500"
+        />
+
+        <KpiCard
+          title="ช่างพร้อมงาน"
+          value={readyTech}
+          icon={HardHat}
+          color="bg-emerald-500"
+        />
+
+        <KpiCard
+          title="รอดำเนินการ"
+          value={waiting}
+          icon={Clock}
+          color="bg-rose-500"
+        />
+      </div>
+
+      <div className="bg-slate-900 rounded-xl p-4">
+        <h2 className="text-white font-semibold mb-4">
+          รายได้รายเดือน
+        </h2>
+
+        <ResponsiveContainer width="100%" height={250}>
+          <BarChart data={monthly}>
+            <XAxis dataKey="month" stroke="#94a3b8" />
+            <YAxis stroke="#94a3b8" />
+            <Tooltip />
+            <Bar dataKey="total" fill="#f59e0b" radius={6} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      <div className="bg-slate-900 rounded-xl p-4">
+        <h2 className="text-white font-semibold mb-4">
+          สัดส่วนข้อมูล
+        </h2>
+
+        <ResponsiveContainer width="100%" height={260}>
+          <PieChart>
+            <Pie
+              data={serviceData}
+              dataKey="value"
+              outerRadius={90}
+              label
+            >
+              {serviceData.map((entry, index) => (
+                <Cell
+                  key={index}
+                  fill={COLORS[index % COLORS.length]}
+                />
+              ))}
+            </Pie>
+            <Tooltip />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
+```0import {
   useGetDashboardSummary,
   useGetRecentActivity,
   useGetServiceBreakdown,
