@@ -1,0 +1,106 @@
+rules_version = '2';
+
+// ══════════════════════════════════════════════════════════════════════════════
+// AutoPro SaaS — Firebase Storage Security Rules
+//
+// Bucket layout:
+//   tenants/{tenantId}/logos/{filename}
+//   tenants/{tenantId}/vehicles/{vehicleId}/{filename}
+//   tenants/{tenantId}/jobs/{jobId}/{filename}
+//   tenants/{tenantId}/payments/{paymentId}/{filename}
+//   tenants/{tenantId}/stock/{itemId}/{filename}
+//   tenants/{tenantId}/users/{uid}/avatar/{filename}
+// ══════════════════════════════════════════════════════════════════════════════
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // ── Helpers ────────────────────────────────────────────────────────────────
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isMemberOf(tenantId) {
+      return isSignedIn() && request.auth.token.tenantId == tenantId;
+    }
+
+    function isManager(tenantId) {
+      return isMemberOf(tenantId) &&
+        request.auth.token.role in ['owner', 'manager'];
+    }
+
+    function isReceptionist(tenantId) {
+      return isMemberOf(tenantId) &&
+        request.auth.token.role in ['owner', 'manager', 'receptionist'];
+    }
+
+    function isTechnician(tenantId) {
+      return isMemberOf(tenantId) &&
+        request.auth.token.role in ['owner', 'manager', 'receptionist', 'technician'];
+    }
+
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+
+    function isPdf() {
+      return request.resource.contentType == 'application/pdf';
+    }
+
+    function isImageOrPdf() {
+      return isImage() || isPdf();
+    }
+
+    /** Max 10 MB */
+    function underMaxSize() {
+      return request.resource.size <= 10 * 1024 * 1024;
+    }
+
+    // ─── /tenants/{tenantId}/... ───────────────────────────────────────────────
+
+    match /tenants/{tenantId}/{allPaths=**} {
+      // Any member can read all tenant files
+      allow read: if isMemberOf(tenantId);
+    }
+
+    // Tenant logo — manager+
+    match /tenants/{tenantId}/logos/{filename} {
+      allow write: if isManager(tenantId) && isImage() && underMaxSize();
+    }
+
+    // Vehicle photos — receptionist+
+    match /tenants/{tenantId}/vehicles/{vehicleId}/{filename} {
+      allow write: if isReceptionist(tenantId) && isImage() && underMaxSize();
+    }
+
+    // Job photos and attachments — technician+ (they take before/after shots)
+    match /tenants/{tenantId}/jobs/{jobId}/{filename} {
+      allow write: if isTechnician(tenantId) && isImageOrPdf() && underMaxSize();
+    }
+
+    // Payment slips — receptionist+
+    match /tenants/{tenantId}/payments/{paymentId}/{filename} {
+      allow write: if isReceptionist(tenantId) && isImage() && underMaxSize();
+    }
+
+    // Stock item images — manager+
+    match /tenants/{tenantId}/stock/{itemId}/{filename} {
+      allow write: if isManager(tenantId) && isImage() && underMaxSize();
+    }
+
+    // User avatars — users can only upload their own
+    match /tenants/{tenantId}/users/{uid}/avatar/{filename} {
+      allow write: if isMemberOf(tenantId)
+        && request.auth.uid == uid
+        && isImage()
+        && underMaxSize();
+    }
+
+    // Deny everything else
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+
+  }
+}

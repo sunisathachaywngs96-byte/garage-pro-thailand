@@ -1,0 +1,177 @@
+{
+  "indexes": [
+
+    // ── Jobs ──────────────────────────────────────────────────────────────────
+
+    {
+      "collectionGroup": "jobs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "tenantId", "order": "ASCENDING" },
+        { "fieldPath": "status",   "order": "ASCENDING" },
+        { "fieldPath": "scheduledAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "jobs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "tenantId",    "order": "ASCENDING" },
+        { "fieldPath": "customerId",  "order": "ASCENDING" },
+        { "fieldPath": "createdAt",   "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "jobs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "tenantId",   "order": "ASCENDING" },
+        { "fieldPath": "vehicleId",  "order": "ASCENDING" },
+        { "fieldPath": "createdAt",  "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "jobs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "tenantId",    "order": "ASCENDING" },
+        { "fieldPath": "assignedTo",  "arrayConfig": "CONTAINS" },
+        { "fieldPath": "scheduledAt", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "jobs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "tenantId",      "order": "ASCENDING" },
+        { "fieldPath": "paymentStatus", "order": "ASCENDING" },
+        { "fieldPath": "completedAt",   "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "jobs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "tenantId",    "order": "ASCENDING" },
+        { "fieldPath": "priority",    "order": "ASCENDING" },
+        { "fieldPath": "scheduledAt", "order": "ASCENDING" }
+      ]
+    },
+
+    // ── Customers ─────────────────────────────────────────────────────────────
+
+    {
+      "collectionGroup": "customers",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "tenantId",  "order": "ASCENDING" },
+        { "fieldPath": "name",      "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "customers",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "tenantId", "order": "ASCENDING" },
+        { "fieldPath": "tags",     "arrayConfig": "CONTAINS" },
+        { "fieldPath": "name",     "order": "ASCENDING" }
+      ]
+    },
+
+    // ── Vehicles ──────────────────────────────────────────────────────────────
+
+    {
+      "collectionGroup": "vehicles",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "tenantId",    "order": "ASCENDING" },
+        { "fieldPath": "customerId",  "order": "ASCENDING" },
+        { "fieldPath": "createdAt",   "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "vehicles",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "tenantId",        "order": "ASCENDING" },
+        { "fieldPath": "taxExpiryAt",     "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "vehicles",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "tenantId",           "order": "ASCENDING" },
+        { "fieldPath": "insuranceExpiryAt",  "order": "ASCENDING" }
+      ]
+    },
+
+    // ── Payments ──────────────────────────────────────────────────────────────
+
+    {
+      "collectionGroup": "payments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "tenantId",   "order": "ASCENDING" },
+        { "fieldPath": "jobId",      "order": "ASCENDING" },
+        { "fieldPath": "createdAt",  "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "payments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "tenantId",   "order": "ASCENDING" },
+        { "fieldPath": "status",     "order": "ASCENDING" },
+        { "fieldPath": "receivedAt", "order": "DESCENDING" }
+      ]
+    },
+
+    // ── Stock Items ───────────────────────────────────────────────────────────
+
+    {
+      "collectionGroup": "stock_items",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "tenantId",  "order": "ASCENDING" },
+        { "fieldPath": "category",  "order": "ASCENDING" },
+        { "fieldPath": "name",      "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "stock_items",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "tenantId",   "order": "ASCENDING" },
+        { "fieldPath": "isActive",   "order": "ASCENDING" },
+        { "fieldPath": "quantity",   "order": "ASCENDING" }
+      ]
+    },
+
+    // ── Stock Movements ───────────────────────────────────────────────────────
+
+    {
+      "collectionGroup": "movements",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "tenantId",     "order": "ASCENDING" },
+        { "fieldPath": "stockItemId",  "order": "ASCENDING" },
+        { "fieldPath": "performedAt",  "order": "DESCENDING" }
+      ]
+    },
+
+    // ── Users ─────────────────────────────────────────────────────────────────
+
+    {
+      "collectionGroup": "users",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "tenantId", "order": "ASCENDING" },
+        { "fieldPath": "role",     "order": "ASCENDING" },
+        { "fieldPath": "isActive", "order": "ASCENDING" }
+      ]
+    }
+
+  ],
+  "fieldOverrides": []
+}

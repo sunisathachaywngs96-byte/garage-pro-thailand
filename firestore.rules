@@ -1,0 +1,309 @@
+rules_version = '2';
+
+// ══════════════════════════════════════════════════════════════════════════════
+// AutoPro SaaS — Firestore Security Rules
+//
+// Architecture: /tenants/{tenantId}/... subcollections
+//
+// Auth strategy: Firebase Auth custom claims carry { tenantId, role }
+//   → Set by Cloud Function `onUserCreated` and `onRoleChanged`
+//   → Eliminates a user-doc read on every rule evaluation
+//
+// Role hierarchy:  viewer < technician < receptionist < manager < owner
+// ══════════════════════════════════════════════════════════════════════════════
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // Helper functions
+    // ──────────────────────────────────────────────────────────────────────────
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /** UID of the requesting user */
+    function uid() {
+      return request.auth.uid;
+    }
+
+    /** Custom claims from the auth token */
+    function claims() {
+      return request.auth.token;
+    }
+
+    /**
+     * The tenant this user belongs to.
+     * Stored in custom claim so no extra read is needed.
+     */
+    function userTenantId() {
+      return claims().tenantId;
+    }
+
+    /** User's role within their tenant */
+    function userRole() {
+      return claims().role;
+    }
+
+    /** Verify the user belongs to this tenant */
+    function isMemberOf(tenantId) {
+      return isSignedIn() && userTenantId() == tenantId;
+    }
+
+    // ── Role checks ────────────────────────────────────────────────────────────
+
+    function isOwner(tenantId) {
+      return isMemberOf(tenantId) && userRole() == 'owner';
+    }
+
+    function isManager(tenantId) {
+      return isMemberOf(tenantId) && userRole() in ['owner', 'manager'];
+    }
+
+    function isReceptionist(tenantId) {
+      return isMemberOf(tenantId) &&
+        userRole() in ['owner', 'manager', 'receptionist'];
+    }
+
+    function isTechnician(tenantId) {
+      return isMemberOf(tenantId) &&
+        userRole() in ['owner', 'manager', 'receptionist', 'technician'];
+    }
+
+    function isAnyMember(tenantId) {
+      return isMemberOf(tenantId) &&
+        userRole() in ['owner', 'manager', 'receptionist', 'technician', 'viewer'];
+    }
+
+    // ── Field validation helpers ───────────────────────────────────────────────
+
+    function isValidStatus(field, allowed) {
+      return !(field in request.resource.data) ||
+        request.resource.data[field] in allowed;
+    }
+
+    function notChanging(field) {
+      return !(field in request.resource.data) ||
+        request.resource.data[field] == resource.data[field];
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // /tenants/{tenantId}
+    // ──────────────────────────────────────────────────────────────────────────
+
+    match /tenants/{tenantId} {
+
+      // Any tenant member can read their own tenant doc
+      allow read: if isAnyMember(tenantId);
+
+      // Only Cloud Functions (admin SDK) can create tenants
+      allow create: if false;
+
+      // Owner and manager can update settings/contact; NOT plan/status (CF only)
+      allow update: if isManager(tenantId)
+        && notChanging('plan')
+        && notChanging('planExpiresAt')
+        && notChanging('status')
+        && notChanging('ownerUid')
+        && notChanging('createdAt')
+        && notChanging('metrics');
+
+      // Tenant deletion only via Cloud Function
+      allow delete: if false;
+
+      // ────────────────────────────────────────────────────────────────────────
+      // /tenants/{tenantId}/users/{userId}
+      // ────────────────────────────────────────────────────────────────────────
+
+      match /users/{userId} {
+
+        // Members can read all users in their tenant
+        allow read: if isAnyMember(tenantId);
+
+        // New user doc is created by Cloud Function on invite acceptance
+        allow create: if false;
+
+        // Owner can update any user; manager can update non-owners;
+        // users can update their own displayName, photoURL, notificationPrefs
+        allow update: if isOwner(tenantId)
+          || (isManager(tenantId) && resource.data.role != 'owner')
+          || (isMemberOf(tenantId) && uid() == userId
+              && request.resource.data.diff(resource.data).affectedKeys()
+                   .hasOnly(['displayName', 'phone', 'photoURL', 'notificationPrefs', 'lastSeenAt', 'updatedAt']));
+
+        // Only owner can deactivate/remove (soft-delete via isActive flag)
+        allow delete: if isOwner(tenantId);
+      }
+
+      // ────────────────────────────────────────────────────────────────────────
+      // /tenants/{tenantId}/customers/{customerId}
+      // ────────────────────────────────────────────────────────────────────────
+
+      match /customers/{customerId} {
+
+        allow read: if isAnyMember(tenantId);
+
+        allow create: if isReceptionist(tenantId)
+          && hasRequiredFields(['name', 'phone', 'type', 'tenantId', 'createdBy', 'createdAt', 'updatedAt'])
+          && request.resource.data.tenantId == tenantId
+          && request.resource.data.createdBy == uid();
+
+        allow update: if isReceptionist(tenantId)
+          && notChanging('tenantId')
+          && notChanging('createdBy')
+          && notChanging('createdAt')
+          // Cloud Function owns stats; clients must not write stats directly
+          && !('stats' in request.resource.data.diff(resource.data).affectedKeys());
+
+        // Only managers+ can hard-delete customers
+        allow delete: if isManager(tenantId);
+      }
+
+      // ────────────────────────────────────────────────────────────────────────
+      // /tenants/{tenantId}/vehicles/{vehicleId}
+      // ────────────────────────────────────────────────────────────────────────
+
+      match /vehicles/{vehicleId} {
+
+        allow read: if isAnyMember(tenantId);
+
+        allow create: if isReceptionist(tenantId)
+          && hasRequiredFields(['customerId', 'licensePlate', 'make', 'model', 'year', 'tenantId', 'createdBy', 'createdAt', 'updatedAt'])
+          && request.resource.data.tenantId == tenantId
+          && request.resource.data.createdBy == uid();
+
+        allow update: if isReceptionist(tenantId)
+          && notChanging('tenantId')
+          && notChanging('customerId')
+          && notChanging('createdBy')
+          && notChanging('createdAt')
+          && !('stats' in request.resource.data.diff(resource.data).affectedKeys());
+
+        allow delete: if isManager(tenantId);
+      }
+
+      // ────────────────────────────────────────────────────────────────────────
+      // /tenants/{tenantId}/jobs/{jobId}
+      // ────────────────────────────────────────────────────────────────────────
+
+      match /jobs/{jobId} {
+
+        allow read: if isAnyMember(tenantId);
+
+        allow create: if isReceptionist(tenantId)
+          && hasRequiredFields(['customerId', 'vehicleId', 'status', 'tenantId', 'createdBy', 'createdAt', 'updatedAt'])
+          && request.resource.data.tenantId == tenantId
+          && request.resource.data.createdBy == uid()
+          && request.resource.data.status == 'pending';
+
+        allow update: if (
+          // Receptionists and above can update non-financial fields
+          isReceptionist(tenantId)
+          && notChanging('tenantId')
+          && notChanging('customerId')
+          && notChanging('vehicleId')
+          && notChanging('jobNumber')
+          && notChanging('createdBy')
+          && notChanging('createdAt')
+        ) || (
+          // Technicians can update only status, notes, images on assigned jobs
+          isMemberOf(tenantId)
+          && userRole() == 'technician'
+          && uid() in resource.data.assignedTo
+          && request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(['status', 'internalNote', 'images', 'mileageOutKm',
+                         'startedAt', 'completedAt', 'updatedAt', 'services', 'partsUsed'])
+          && isValidStatus('status', ['in_progress', 'waiting_parts', 'quality_check', 'completed'])
+        ) || (
+          // Managers can approve / override anything
+          isManager(tenantId)
+          && notChanging('tenantId')
+          && notChanging('createdBy')
+          && notChanging('createdAt')
+        );
+
+        allow delete: if isManager(tenantId);
+
+        // ── /jobs/{jobId}/status_history  (append-only audit log) ─────────────
+        match /status_history/{eventId} {
+          allow read:   if isAnyMember(tenantId);
+          allow create: if isTechnician(tenantId)
+            && request.resource.data.changedBy == uid();
+          allow update: if false;   // Immutable
+          allow delete: if false;   // Immutable
+        }
+      }
+
+      // ────────────────────────────────────────────────────────────────────────
+      // /tenants/{tenantId}/payments/{paymentId}
+      // ────────────────────────────────────────────────────────────────────────
+
+      match /payments/{paymentId} {
+
+        allow read: if isAnyMember(tenantId);
+
+        allow create: if isReceptionist(tenantId)
+          && hasRequiredFields(['jobId', 'amount', 'method', 'status', 'tenantId', 'collectedBy', 'createdAt', 'updatedAt'])
+          && request.resource.data.tenantId == tenantId
+          && request.resource.data.collectedBy == uid()
+          && request.resource.data.amount > 0
+          && isValidStatus('status', ['pending', 'completed']);
+
+        // Only manager can update payment records (e.g. mark failed, add reference)
+        allow update: if isManager(tenantId)
+          && notChanging('tenantId')
+          && notChanging('jobId')
+          && notChanging('amount')
+          && notChanging('collectedBy')
+          && notChanging('createdAt');
+
+        allow delete: if isOwner(tenantId);
+      }
+
+      // ────────────────────────────────────────────────────────────────────────
+      // /tenants/{tenantId}/stock_items/{itemId}
+      // ────────────────────────────────────────────────────────────────────────
+
+      match /stock_items/{itemId} {
+
+        allow read: if isAnyMember(tenantId);
+
+        allow create: if isManager(tenantId)
+          && hasRequiredFields(['name', 'unit', 'costPrice', 'sellingPrice', 'quantity', 'minQuantity', 'tenantId', 'createdBy', 'createdAt', 'updatedAt'])
+          && request.resource.data.tenantId == tenantId
+          && request.resource.data.createdBy == uid();
+
+        allow update: if isManager(tenantId)
+          && notChanging('tenantId')
+          && notChanging('createdBy')
+          && notChanging('createdAt');
+
+        allow delete: if isManager(tenantId);
+
+        // ── /stock_items/{itemId}/movements  (append-only) ────────────────────
+        match /movements/{movementId} {
+          allow read:   if isAnyMember(tenantId);
+          allow create: if isReceptionist(tenantId)
+            && request.resource.data.performedBy == uid()
+            && request.resource.data.tenantId == tenantId;
+          allow update: if false;   // Immutable audit trail
+          allow delete: if false;   // Immutable audit trail
+        }
+      }
+
+    } // end /tenants/{tenantId}
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // Deny everything not explicitly matched
+    // ──────────────────────────────────────────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+  }
+}
