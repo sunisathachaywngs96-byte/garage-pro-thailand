@@ -5,56 +5,39 @@ import {
   useGetRevenueByMonth,
 } from "@workspace/api-client-react";
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, PieChart, Pie, Cell,
 } from "recharts";
-import {
-  Calendar,
-  Wrench,
-  CheckCircle,
-  Users,
-  Car,
-  DollarSign,
-  HardHat,
-  Clock,
-} from "lucide-react";
+import { Calendar, Wrench, CheckCircle, Users, Car, TrendingUp, HardHat, Clock } from "lucide-react";
+import { useLang } from "@/lib/i18n";
 
-const COLORS = ["#f59e0b", "#3b82f6", "#10b981", "#8b5cf6", "#ef4444", "#f97316"];
+const COLORS = ["#f59e0b", "#3b82f6", "#10b981", "#8b5cf6", "#ef4444", "#f97316", "#06b6d4", "#84cc16"];
 
 function KpiCard({
-  label,
+  labelKey,
   value,
   icon: Icon,
-  color,
+  accent,
   sub,
 }: {
-  label: string;
+  labelKey: string;
   value: string | number;
   icon: React.ElementType;
-  color: string;
+  accent: string;
   sub?: string;
 }) {
   return (
     <div
-      data-testid={`kpi-${label.toLowerCase().replace(/\s+/g, "-")}`}
-      className="bg-card border border-card-border rounded-xl p-5 flex items-start gap-4 shadow-sm"
+      data-testid={`kpi-${labelKey}`}
+      className="bg-card border border-card-border rounded-xl p-4 flex items-start gap-3 shadow"
     >
-      <div className={`flex items-center justify-center w-11 h-11 rounded-lg shrink-0 ${color}`}>
+      <div className={`flex items-center justify-center w-10 h-10 rounded-lg shrink-0 ${accent}`}>
         <Icon className="w-5 h-5" />
       </div>
-      <div className="min-w-0">
-        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{label}</p>
-        <p className="text-2xl font-bold text-foreground mt-0.5">{value}</p>
-        {sub && <p className="text-xs text-muted-foreground mt-0.5">{sub}</p>}
+      <div className="min-w-0 flex-1">
+        <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider leading-tight">{labelKey}</p>
+        <p className="text-2xl font-bold text-foreground mt-0.5 leading-none">{value}</p>
+        {sub && <p className="text-[11px] text-muted-foreground mt-1">{sub}</p>}
       </div>
     </div>
   );
@@ -67,94 +50,61 @@ function formatMonth(m: string) {
 }
 
 export default function Dashboard() {
+  const { t, lang } = useLang();
   const summary = useGetDashboardSummary();
   const activity = useGetRecentActivity();
   const breakdown = useGetServiceBreakdown();
   const revenue = useGetRevenueByMonth();
-
   const s = summary.data;
 
+  const kpis = [
+    { key: t("todaysJobs"), value: summary.isLoading ? "—" : (s?.todayAppointments ?? 0), icon: Calendar, accent: "bg-amber-500/20 text-amber-400" },
+    { key: t("inProgress"), value: summary.isLoading ? "—" : (s?.inProgressCount ?? 0), icon: Wrench, accent: "bg-blue-500/20 text-blue-400" },
+    { key: t("completedToday"), value: summary.isLoading ? "—" : (s?.completedToday ?? 0), icon: CheckCircle, accent: "bg-emerald-500/20 text-emerald-400" },
+    { key: t("monthlyRevenue"), value: summary.isLoading ? "—" : `${t("baht")}${(s?.monthlyRevenue ?? 0).toLocaleString()}`, icon: TrendingUp, accent: "bg-violet-500/20 text-violet-400" },
+    { key: t("totalCustomers"), value: summary.isLoading ? "—" : (s?.totalCustomers ?? 0), icon: Users, accent: "bg-amber-500/20 text-amber-400" },
+    { key: t("totalVehicles"), value: summary.isLoading ? "—" : (s?.totalVehicles ?? 0), icon: Car, accent: "bg-blue-500/20 text-blue-400" },
+    { key: t("availableTechs"), value: summary.isLoading ? "—" : (s?.availableTechnicians ?? 0), icon: HardHat, accent: "bg-emerald-500/20 text-emerald-400" },
+    {
+      key: t("scheduledToday"),
+      value: summary.isLoading ? "—" : Math.max(0, (s?.todayAppointments ?? 0) - (s?.inProgressCount ?? 0) - (s?.completedToday ?? 0)),
+      icon: Clock,
+      accent: "bg-orange-500/20 text-orange-400",
+      sub: t("pendingStart"),
+    },
+  ];
+
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-5">
       <div>
-        <h1 className="text-xl font-bold text-foreground">Dashboard</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">Live overview of shop operations</p>
+        <h1 className="text-xl font-bold text-foreground">{t("dashboardTitle")}</h1>
+        <p className="text-sm text-muted-foreground mt-0.5">{t("dashboardSub")}</p>
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <KpiCard
-          label="Today's Jobs"
-          value={summary.isLoading ? "—" : (s?.todayAppointments ?? 0)}
-          icon={Calendar}
-          color="bg-amber-100 text-amber-700"
-        />
-        <KpiCard
-          label="In Progress"
-          value={summary.isLoading ? "—" : (s?.inProgressCount ?? 0)}
-          icon={Wrench}
-          color="bg-blue-100 text-blue-700"
-        />
-        <KpiCard
-          label="Completed Today"
-          value={summary.isLoading ? "—" : (s?.completedToday ?? 0)}
-          icon={CheckCircle}
-          color="bg-emerald-100 text-emerald-700"
-        />
-        <KpiCard
-          label="Monthly Revenue"
-          value={summary.isLoading ? "—" : `$${(s?.monthlyRevenue ?? 0).toLocaleString()}`}
-          icon={DollarSign}
-          color="bg-violet-100 text-violet-700"
-        />
-        <KpiCard
-          label="Customers"
-          value={summary.isLoading ? "—" : (s?.totalCustomers ?? 0)}
-          icon={Users}
-          color="bg-amber-100 text-amber-700"
-        />
-        <KpiCard
-          label="Vehicles"
-          value={summary.isLoading ? "—" : (s?.totalVehicles ?? 0)}
-          icon={Car}
-          color="bg-blue-100 text-blue-700"
-        />
-        <KpiCard
-          label="Available Techs"
-          value={summary.isLoading ? "—" : (s?.availableTechnicians ?? 0)}
-          icon={HardHat}
-          color="bg-emerald-100 text-emerald-700"
-        />
-        <KpiCard
-          label="Scheduled Today"
-          value={summary.isLoading ? "—" : ((s?.todayAppointments ?? 0) - (s?.inProgressCount ?? 0) - (s?.completedToday ?? 0))}
-          icon={Clock}
-          color="bg-orange-100 text-orange-700"
-          sub="pending start"
-        />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {kpis.map((k) => (
+          <KpiCard key={k.key} labelKey={k.key} value={k.value} icon={k.icon} accent={k.accent} sub={k.sub} />
+        ))}
       </div>
 
-      {/* Charts row */}
+      {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Revenue chart */}
-        <div className="bg-card border border-card-border rounded-xl p-5 shadow-sm">
-          <h2 className="text-sm font-semibold text-foreground mb-4">Revenue — Last 6 Months</h2>
+        <div className="bg-card border border-card-border rounded-xl p-5 shadow">
+          <h2 className="text-sm font-semibold text-foreground mb-4">{t("revenueChart")}</h2>
           {revenue.isLoading ? (
-            <div className="h-48 flex items-center justify-center text-muted-foreground text-sm">Loading...</div>
+            <div className="h-48 flex items-center justify-center text-muted-foreground text-sm">{t("loading")}</div>
           ) : !revenue.data?.length ? (
-            <div className="h-48 flex items-center justify-center text-muted-foreground text-sm">No revenue data yet</div>
+            <div className="h-48 flex items-center justify-center text-muted-foreground text-sm">{t("noData")}</div>
           ) : (
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={revenue.data} margin={{ top: 0, right: 8, left: -16, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 14% 88%)" />
-                <XAxis
-                  dataKey="month"
-                  tickFormatter={formatMonth}
-                  tick={{ fontSize: 11, fill: "hsl(220 12% 48%)" }}
-                />
-                <YAxis tick={{ fontSize: 11, fill: "hsl(220 12% 48%)" }} tickFormatter={(v) => `$${v}`} />
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(222 20% 18%)" />
+                <XAxis dataKey="month" tickFormatter={formatMonth} tick={{ fontSize: 11, fill: "hsl(215 14% 52%)" }} />
+                <YAxis tick={{ fontSize: 11, fill: "hsl(215 14% 52%)" }} tickFormatter={(v) => `${t("baht")}${v}`} />
                 <Tooltip
-                  formatter={(v: number) => [`$${v.toLocaleString()}`, "Revenue"]}
+                  contentStyle={{ background: "hsl(222 25% 12%)", border: "1px solid hsl(222 20% 18%)", borderRadius: "8px", color: "hsl(215 20% 92%)" }}
+                  formatter={(v: number) => [`${t("baht")}${v.toLocaleString()}`, t("monthlyRevenue")]}
                   labelFormatter={formatMonth}
                 />
                 <Bar dataKey="revenue" fill="#f59e0b" radius={[4, 4, 0, 0]} />
@@ -163,13 +113,12 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Service breakdown */}
-        <div className="bg-card border border-card-border rounded-xl p-5 shadow-sm">
-          <h2 className="text-sm font-semibold text-foreground mb-4">Service Breakdown</h2>
+        <div className="bg-card border border-card-border rounded-xl p-5 shadow">
+          <h2 className="text-sm font-semibold text-foreground mb-4">{t("serviceBreakdown")}</h2>
           {breakdown.isLoading ? (
-            <div className="h-48 flex items-center justify-center text-muted-foreground text-sm">Loading...</div>
+            <div className="h-48 flex items-center justify-center text-muted-foreground text-sm">{t("loading")}</div>
           ) : !breakdown.data?.length ? (
-            <div className="h-48 flex items-center justify-center text-muted-foreground text-sm">No service data yet</div>
+            <div className="h-48 flex items-center justify-center text-muted-foreground text-sm">{t("noData")}</div>
           ) : (
             <ResponsiveContainer width="100%" height={200}>
               <PieChart>
@@ -179,7 +128,7 @@ export default function Dashboard() {
                   nameKey="serviceName"
                   cx="50%"
                   cy="50%"
-                  outerRadius={70}
+                  outerRadius={72}
                   label={({ serviceName, percent }) =>
                     `${serviceName.split(" ")[0]} ${(percent * 100).toFixed(0)}%`
                   }
@@ -189,38 +138,34 @@ export default function Dashboard() {
                     <Cell key={i} fill={COLORS[i % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(v, name) => [v, name]} />
+                <Tooltip
+                  contentStyle={{ background: "hsl(222 25% 12%)", border: "1px solid hsl(222 20% 18%)", borderRadius: "8px", color: "hsl(215 20% 92%)" }}
+                />
               </PieChart>
             </ResponsiveContainer>
           )}
         </div>
       </div>
 
-      {/* Activity feed */}
-      <div className="bg-card border border-card-border rounded-xl shadow-sm">
+      {/* Activity */}
+      <div className="bg-card border border-card-border rounded-xl shadow overflow-hidden">
         <div className="px-5 py-4 border-b border-card-border">
-          <h2 className="text-sm font-semibold text-foreground">Recent Activity</h2>
+          <h2 className="text-sm font-semibold text-foreground">{t("recentActivity")}</h2>
         </div>
         <div className="divide-y divide-border">
           {activity.isLoading ? (
-            <div className="px-5 py-8 text-center text-muted-foreground text-sm">Loading...</div>
+            <div className="px-5 py-8 text-center text-muted-foreground text-sm">{t("loading")}</div>
           ) : !activity.data?.length ? (
-            <div className="px-5 py-8 text-center text-muted-foreground text-sm">No recent activity</div>
+            <div className="px-5 py-8 text-center text-muted-foreground text-sm">{t("noActivity")}</div>
           ) : (
             activity.data.map((item) => (
-              <div
-                key={item.id}
-                data-testid={`activity-item-${item.id}`}
-                className="flex items-start gap-3 px-5 py-3"
-              >
-                <div className="w-7 h-7 rounded-full bg-amber-100 flex items-center justify-center shrink-0 mt-0.5">
-                  <Calendar className="w-3.5 h-3.5 text-amber-700" />
+              <div key={item.id} data-testid={`activity-item-${item.id}`} className="flex items-start gap-3 px-5 py-3">
+                <div className="w-7 h-7 rounded-full bg-amber-500/15 flex items-center justify-center shrink-0 mt-0.5">
+                  <Calendar className="w-3.5 h-3.5 text-amber-400" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm text-foreground">{item.description}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {new Date(item.timestamp).toLocaleString()}
-                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{new Date(item.timestamp).toLocaleString(lang === "th" ? "th-TH" : "en-US")}</p>
                 </div>
               </div>
             ))
