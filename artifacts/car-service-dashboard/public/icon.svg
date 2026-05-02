@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <rect width="512" height="512" rx="112" fill="#0f1623"/>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1a2233"/>
+      <stop offset="100%" stop-color="#0d1320"/>
+    </linearGradient>
+  </defs>
+  <!-- Wrench icon centered -->
+  <g transform="translate(256,256)">
+    <!-- Amber glow circle -->
+    <circle cx="0" cy="0" r="120" fill="#f59e0b" opacity="0.12"/>
+    <circle cx="0" cy="0" r="90" fill="#f59e0b" opacity="0.1"/>
+    <!-- Wrench shape -->
+    <path d="M-8,-90 C-40,-90 -65,-65 -65,-33 C-65,-15 -58,1 -46,13 L-80,47 C-87,54 -87,65 -80,72 L-72,80 C-65,87 -54,87 -47,80 L-13,46 C-1,52 13,56 28,54 C60,50 82,24 82,-8 C82,-14 81,-20 79,-25 L55,-1 L40,-4 L37,-19 L61,-43 C56,-45 50,-46 44,-46 C16,-46 -8,-22 -8,6 L-8,-90 Z" fill="#f59e0b"/>
+    <!-- Bold simplified wrench -->
+    <path d="M20,-72 C-12,-72 -38,-46 -38,-14 C-38,4 -30,20 -17,30 L-60,73 C-66,79 -66,89 -60,95 C-54,101 -44,101 -38,95 L5,52 C15,58 27,62 40,62 C72,62 98,36 98,4 C98,-6 96,-16 91,-24 L66,1 L50,-2 L47,-18 L72,-43 C64,-54 51,-62 36,-64 L20,-72 Z" fill="none" stroke="#f59e0b" stroke-width="12" stroke-linejoin="round"/>
+    <!-- Simplified clean wrench -->
+  </g>
+</svg>

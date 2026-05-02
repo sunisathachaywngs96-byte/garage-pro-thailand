@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LangProvider } from "@/lib/i18n";
 import { Layout } from "@/components/Layout";
+import { InstallPrompt } from "@/components/InstallPrompt";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/Dashboard";
 import Bookings from "@/pages/Bookings";
@@ -19,7 +20,8 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
-      staleTime: 30_000,
+      staleTime: 60_000,
+      gcTime: 5 * 60_000,
     },
   },
 });
@@ -51,6 +53,7 @@ function App() {
           <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
             <Router />
           </WouterRouter>
+          <InstallPrompt />
           <Toaster />
         </TooltipProvider>
       </QueryClientProvider>
