@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Car Service Dashboard"
+version = "1.0.0"
+id = "artifacts/car-service-dashboard"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 24077
+
+[services.development]
+run = "pnpm --filter @workspace/car-service-dashboard run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/car-service-dashboard", "run", "build" ]
+publicDir = "artifacts/car-service-dashboard/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "24077"
+BASE_PATH = "/"
