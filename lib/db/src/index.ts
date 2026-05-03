@@ -1,3 +1,48 @@
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  getDocs
+} from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDAfm7eDJPFiWrUK_U0aqS7yl2Wt_PpjmA",
+  authDomain: "garage-system-41587.firebaseapp.com",
+  projectId: "garage-system-41587",
+  storageBucket: "garage-system-41587.firebasestorage.app",
+  messagingSenderId: "688480145767",
+  appId: "1:688480145767:web:f457e635675df0cbd91fc2",
+  measurementId: "G-X8ZYNK9JRS"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// เพิ่มงานซ่อม
+async function saveJob() {
+ await addDoc(collection(db, "jobs"), {
+   customer: "สมชาย",
+   car: "Toyota Vigo",
+   repair: "เปลี่ยนน้ำมันเครื่อง",
+   status: "รอคิว",
+   createdAt: new Date()
+ });
+ alert("บันทึกงานแล้ว");
+}
+
+// โหลดงานทั้งหมด
+async function loadJobs() {
+ const querySnapshot = await getDocs(collection(db, "jobs"));
+ querySnapshot.forEach((doc) => {
+   console.log(doc.id, doc.data());
+ });
+}
+
+window.saveJob = saveJob;
+window.loadJobs = loadJobs;
+</script>
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -125,7 +170,8 @@ header h1{font-size:22px}
 </style>
 </head>
 <body>
-
+<button onclick="saveJob()">บันทึกรถเข้า</button>
+<button onclick="loadJobs()">ดูข้อมูล</button>
 <header>
 <h1>NISA AUTO CAR SERVICE</h1>
 <p>ระบบอู่ครบวงจร • รับรถ • งานซ่อม • รายรับ • ลูกค้า</p>
