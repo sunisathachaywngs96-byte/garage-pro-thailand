@@ -12,97 +12,94 @@ font-family:Arial;
 background:#081018;
 color:white;
 }
+
 header{
 background:#00c853;
 padding:20px;
 text-align:center;
-font-size:30px;
+font-size:28px;
 font-weight:bold;
 }
+
 .wrap{
-padding:20px;
-max-width:1200px;
-margin:auto;
+padding:15px;
 }
-.grid{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-gap:15px;
-margin-bottom:20px;
+
+.box{
+background:#111827;
+padding:15px;
+border-radius:15px;
+margin-bottom:15px;
 }
-.card{
-background:#111a2e;
-padding:20px;
-border-radius:14px;
-}
-button{
-width:100%;
-padding:16px;
-border:none;
-border-radius:12px;
-background:#00c853;
-font-size:20px;
-font-weight:bold;
-cursor:pointer;
-}
-input{
+
+input,button{
 width:100%;
 padding:12px;
-margin:6px 0;
-border-radius:8px;
+margin:5px 0;
 border:none;
+border-radius:10px;
+font-size:16px;
 }
-.list{
-background:#111a2e;
-padding:20px;
-border-radius:14px;
-margin-top:20px;
+
+input{
+background:#1f2937;
+color:white;
 }
-.item{
-padding:10px;
-border-bottom:1px solid #222;
+
+button{
+background:#00c853;
+color:white;
+font-weight:bold;
 }
+
+.card{
+background:#0f172a;
+padding:12px;
+margin-top:10px;
+border-radius:12px;
+}
+
+.red{background:#ff5252;}
+.blue{background:#2196f3;}
+.orange{background:#ff9800;}
 </style>
 </head>
-
 <body>
 
 <header>NISA AUTO CAR SERVICE</header>
 
 <div class="wrap">
 
-<div class="grid">
-<div class="card">
-<h2>รับรถเข้าใหม่</h2>
+<div class="box">
+<h2>รับรถเข้า</h2>
+
 <input id="name" placeholder="ชื่อลูกค้า">
-<input id="phone" placeholder="เบอร์โทร">
-<input id="car" placeholder="รถรุ่น">
+<input id="car" placeholder="รุ่นรถ">
 <input id="plate" placeholder="ทะเบียน">
-<button onclick="saveCustomer()">บันทึกลูกค้า</button>
+<input id="phone" placeholder="เบอร์โทร">
+
+<button onclick="saveCustomer()">บันทึกเข้าระบบ</button>
 </div>
 
-<div class="card">
-<h2>สถิติวันนี้</h2>
-<p id="count">ลูกค้า: 0</p>
-</div>
-</div>
-
-<div class="list">
-<h2>รายชื่อลูกค้าจริง</h2>
-<div id="customerList"></div>
+<div class="box">
+<h2>ลูกค้าทั้งหมด</h2>
+<div id="list"></div>
 </div>
 
 </div>
 
 <script type="module">
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
 import {
 getFirestore,
 collection,
 addDoc,
-getDocs
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+getDocs,
+deleteDoc,
+doc
+}
+from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 const firebaseConfig = {
 apiKey: "AIzaSyDAfm7eDJPFiWrUK_U0aqS7yl2Wt_PpjmA",
@@ -119,49 +116,57 @@ const db = getFirestore(app);
 window.saveCustomer = async function(){
 
 const name = document.getElementById("name").value;
-const phone = document.getElementById("phone").value;
 const car = document.getElementById("car").value;
 const plate = document.getElementById("plate").value;
+const phone = document.getElementById("phone").value;
 
 await addDoc(collection(db,"customers"),{
 name,
-phone,
 car,
 plate,
-time:new Date().toLocaleString()
+phone,
+status:"รับรถใหม่",
+time:new Date()
 });
 
-alert("บันทึกสำเร็จ");
-loadCustomers();
+alert("บันทึกแล้ว");
+
+loadData();
 }
 
-async function loadCustomers(){
-
-const box = document.getElementById("customerList");
-box.innerHTML = "";
+async function loadData(){
 
 const querySnapshot = await getDocs(collection(db,"customers"));
 
-let total = 0;
+let html="";
 
-querySnapshot.forEach((doc)=>{
-total++;
+querySnapshot.forEach((docSnap)=>{
 
-const data = doc.data();
+const d = docSnap.data();
 
-box.innerHTML += `
-<div class="item">
-${data.name} | ${data.phone} | ${data.car} | ${data.plate}
+html += `
+<div class="card">
+<b>${d.name}</b><br>
+🚗 ${d.car}<br>
+📌 ${d.plate}<br>
+📞 ${d.phone}<br><br>
+
+<button class="red" onclick="del('${docSnap.id}')">ลบ</button>
 </div>
 `;
+
 });
 
-document.getElementById("count").innerText="ลูกค้า: "+total;
+document.getElementById("list").innerHTML = html;
 }
 
-loadCustomers();
+window.del = async function(id){
+await deleteDoc(doc(db,"customers",id));
+loadData();
+}
+
+loadData();
 
 </script>
-
 </body>
 </html>
