@@ -1,16 +1,5 @@
 import { useState } from "react";
-import {
-  useListAppointments,
-  useUpdateAppointment,
-  useDeleteAppointment,
-  getListAppointmentsQueryKey,
-} from "@workspace/api-client-react";
-import { useQueryClient } from "@tanstack/react-query";
-import { Pencil, Trash2, X } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { useToast } from "@/hooks/use-toast";
+import { Pencil, Trash2, X, Wrench } from "lucide-react";
 import { useLang } from "@/lib/i18n";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -20,55 +9,47 @@ const STATUS_COLORS: Record<string, string> = {
   cancelled: "bg-red-500/15 text-red-400 border border-red-500/20",
 };
 
-const updateSchema = z.object({
-  status: z.enum(["scheduled", "in_progress", "completed", "cancelled"]),
-  notes: z.string().optional(),
-});
-
-type UpdateForm = z.infer<typeof updateSchema>;
+const initialRepairs = [
+  { id: 1, customerName: "Emily Davis", vehicleDescription: "2023 Mercedes C300", serviceName: "Engine Repair", technicianName: "Mike T.", scheduledAt: "2024-06-10T08:00:00Z", status: "in_progress", totalCost: 12500, notes: "Major engine overhaul" },
+  { id: 2, customerName: "David Wilson", vehicleDescription: "2019 Ford F-150", serviceName: "Transmission Service", technicianName: "James R.", scheduledAt: "2024-06-12T10:00:00Z", status: "in_progress", totalCost: 8500, notes: "" },
+  { id: 3, customerName: "John Smith", vehicleDescription: "2022 Honda Civic", serviceName: "Brake Service", technicianName: "David L.", scheduledAt: "2024-06-14T09:00:00Z", status: "scheduled", totalCost: 3500, notes: "" },
+  { id: 4, customerName: "Sarah Johnson", vehicleDescription: "2021 Toyota Camry", serviceName: "Oil Change", technicianName: "Mike T.", scheduledAt: "2024-06-09T14:00:00Z", status: "completed", totalCost: 1500, notes: "Full synthetic oil" },
+];
 
 export default function Repairs() {
   const { t, lang } = useLang();
-  const { toast } = useToast();
-  const qc = useQueryClient();
-  const [statusFilter, setStatusFilter] = useState<"" | "in_progress" | "scheduled">("");
+  const [repairs, setRepairs] = useState(initialRepairs);
+  const [statusFilter, setStatusFilter] = useState<string>("");
   const [editId, setEditId] = useState<number | null>(null);
+  const [updateForm, setUpdateForm] = useState({ status: "in_progress", notes: "" });
 
-  const appointments = useListAppointments({ status: statusFilter || undefined } as any);
+  const filteredRepairs = statusFilter 
+    ? repairs.filter(r => r.status === statusFilter)
+    : repairs;
 
-  const updateMutation = useUpdateAppointment({
-    mutation: {
-      onSuccess: () => {
-        qc.invalidateQueries({ queryKey: getListAppointmentsQueryKey() });
-        setEditId(null);
-        toast({ title: lang === "th" ? "อัปเดตเรียบร้อย" : "Updated" });
-      },
-    },
-  });
+  function openEdit(repair: typeof repairs[0]) {
+    setEditId(repair.id);
+    setUpdateForm({ status: repair.status, notes: repair.notes });
+  }
 
-  const deleteMutation = useDeleteAppointment({
-    mutation: {
-      onSuccess: () => qc.invalidateQueries({ queryKey: getListAppointmentsQueryKey() }),
-    },
-  });
+  function handleUpdate(e: React.FormEvent) {
+    e.preventDefault();
+    setRepairs(repairs.map(r => r.id === editId ? { ...r, ...updateForm } : r));
+    setEditId(null);
+  }
 
-  const form = useForm<UpdateForm>({
-    resolver: zodResolver(updateSchema),
-    defaultValues: { status: "in_progress", notes: "" },
-  });
-
-  function openEdit(appt: NonNullable<typeof appointments.data>[0]) {
-    setEditId(appt.id);
-    form.reset({ status: appt.status as any, notes: appt.notes ?? "" });
+  function handleDelete(id: number) {
+    setRepairs(repairs.filter(r => r.id !== id));
   }
 
   const inputCls = "w-full border border-input rounded-lg px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-ring";
   const labelCls = "block text-xs font-medium text-muted-foreground mb-1";
 
-  const filters: Array<{ key: string; val: "" | "in_progress" | "scheduled"; label: string }> = [
+  const filters: Array<{ key: string; val: string; label: string }> = [
     { key: "all", val: "", label: t("all") },
     { key: "in_progress", val: "in_progress", label: t("in_progress") },
     { key: "scheduled", val: "scheduled", label: t("scheduled") },
+    { key: "completed", val: "completed", label: t("completed") },
   ];
 
   return (
@@ -96,44 +77,54 @@ export default function Repairs() {
       </div>
 
       {/* Cards view for repairs */}
-      {appointments.isLoading ? (
-        <div className="py-12 text-center text-muted-foreground">{t("loading")}</div>
-      ) : !appointments.data?.length ? (
-        <div className="py-12 text-center text-muted-foreground">{t("noRepairs")}</div>
+      {!filteredRepairs.length ? (
+        <div className="py-12 text-center">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center">
+              <Wrench className="w-6 h-6 text-muted-foreground" />
+            </div>
+            <p className="text-muted-foreground">{t("noRepairs")}</p>
+          </div>
+        </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {appointments.data.map((appt) => (
-            <div key={appt.id} data-testid={`card-repair-${appt.id}`} className="bg-card border border-card-border rounded-xl p-4 shadow hover:shadow-md transition-shadow">
+          {filteredRepairs.map((repair) => (
+            <div key={repair.id} data-testid={`card-repair-${repair.id}`} className="bg-card border border-card-border rounded-xl p-4 shadow hover:shadow-md transition-shadow">
               <div className="flex items-start justify-between gap-2 mb-3">
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-foreground truncate">{appt.customerName}</p>
-                  <p className="text-xs text-muted-foreground truncate">{appt.vehicleDescription}</p>
+                  <p className="text-sm font-semibold text-foreground truncate">{repair.customerName}</p>
+                  <p className="text-xs text-muted-foreground truncate">{repair.vehicleDescription}</p>
                 </div>
-                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium shrink-0 ${STATUS_COLORS[appt.status] ?? ""}`}>
-                  {t(appt.status as any)}
+                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium shrink-0 ${STATUS_COLORS[repair.status] ?? ""}`}>
+                  {t(repair.status as any)}
                 </span>
               </div>
               <div className="space-y-1.5 mb-3">
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <span className="text-foreground/70 font-medium">{t("service")}:</span>
-                  <span className="truncate">{appt.serviceName}</span>
+                  <span className="truncate">{repair.serviceName}</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <span className="text-foreground/70 font-medium">{t("technician")}:</span>
-                  <span className="truncate">{appt.technicianName}</span>
+                  <span className="truncate">{repair.technicianName}</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <span className="text-foreground/70 font-medium">{t("dateTime")}:</span>
-                  <span>{new Date(appt.scheduledAt).toLocaleDateString(lang === "th" ? "th-TH" : "en-US")}</span>
+                  <span>{new Date(repair.scheduledAt).toLocaleDateString(lang === "th" ? "th-TH" : "en-US")}</span>
                 </div>
+                {repair.notes && (
+                  <div className="text-xs text-muted-foreground italic mt-2">
+                    {repair.notes}
+                  </div>
+                )}
               </div>
               <div className="flex items-center justify-between pt-2 border-t border-border">
-                <span className="text-sm font-bold text-amber-400">{t("baht")}{appt.totalCost.toFixed(2)}</span>
+                <span className="text-sm font-bold text-amber-400">{t("baht")}{repair.totalCost.toLocaleString()}</span>
                 <div className="flex items-center gap-1">
-                  <button data-testid={`button-edit-repair-${appt.id}`} onClick={() => openEdit(appt)} className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
+                  <button data-testid={`button-edit-repair-${repair.id}`} onClick={() => openEdit(repair)} className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
                     <Pencil className="w-3.5 h-3.5" />
                   </button>
-                  <button data-testid={`button-delete-repair-${appt.id}`} onClick={() => deleteMutation.mutate({ id: appt.id })} className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors">
+                  <button data-testid={`button-delete-repair-${repair.id}`} onClick={() => handleDelete(repair.id)} className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -144,16 +135,16 @@ export default function Repairs() {
       )}
 
       {editId !== null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-          <div className="bg-card border border-card-border rounded-xl shadow-2xl w-full max-w-sm">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-0 sm:p-4">
+          <div className="bg-card border border-card-border rounded-t-2xl sm:rounded-xl shadow-2xl w-full sm:max-w-sm">
             <div className="flex items-center justify-between px-5 py-4 border-b border-border">
               <h2 className="text-sm font-semibold text-foreground">{t("updateRepair")}</h2>
               <button onClick={() => setEditId(null)} className="text-muted-foreground hover:text-foreground"><X className="w-4 h-4" /></button>
             </div>
-            <form onSubmit={form.handleSubmit((d) => updateMutation.mutate({ id: editId, data: d }))} className="p-5 space-y-4">
+            <form onSubmit={handleUpdate} className="p-5 space-y-4">
               <div>
                 <label className={labelCls}>{t("status")}</label>
-                <select data-testid="select-status" {...form.register("status")} className={inputCls}>
+                <select data-testid="select-status" value={updateForm.status} onChange={(e) => setUpdateForm({...updateForm, status: e.target.value})} className={inputCls}>
                   <option value="scheduled">{t("scheduled")}</option>
                   <option value="in_progress">{t("in_progress")}</option>
                   <option value="completed">{t("completed")}</option>
@@ -162,13 +153,11 @@ export default function Repairs() {
               </div>
               <div>
                 <label className={labelCls}>{t("notes")}</label>
-                <textarea {...form.register("notes")} className={inputCls + " resize-none"} rows={2} />
+                <textarea value={updateForm.notes} onChange={(e) => setUpdateForm({...updateForm, notes: e.target.value})} className={inputCls + " resize-none"} rows={2} />
               </div>
               <div className="flex gap-3">
-                <button type="button" onClick={() => setEditId(null)} className="flex-1 py-2 border border-border rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors">{t("cancel")}</button>
-                <button type="submit" disabled={updateMutation.isPending} className="flex-1 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-60">
-                  {updateMutation.isPending ? t("saving") : t("save")}
-                </button>
+                <button type="button" onClick={() => setEditId(null)} className="flex-1 py-2.5 border border-border rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors">{t("cancel")}</button>
+                <button type="submit" className="flex-1 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity">{t("save")}</button>
               </div>
             </form>
           </div>

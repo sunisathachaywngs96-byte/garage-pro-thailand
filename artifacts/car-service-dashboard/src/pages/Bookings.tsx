@@ -1,21 +1,5 @@
 import { useState } from "react";
-import {
-  useListAppointments,
-  useCreateAppointment,
-  useUpdateAppointment,
-  useDeleteAppointment,
-  useListCustomers,
-  useListVehicles,
-  useListServices,
-  useListTechnicians,
-  getListAppointmentsQueryKey,
-} from "@workspace/api-client-react";
-import { useQueryClient } from "@tanstack/react-query";
-import { Plus, Pencil, Trash2, X } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { useToast } from "@/hooks/use-toast";
+import { Plus, Pencil, Trash2, X, CalendarDays } from "lucide-react";
 import { useLang } from "@/lib/i18n";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -25,77 +9,81 @@ const STATUS_COLORS: Record<string, string> = {
   cancelled: "bg-red-500/15 text-red-400 border border-red-500/20",
 };
 
-const createSchema = z.object({
-  customerId: z.coerce.number().min(1),
-  vehicleId: z.coerce.number().min(1),
-  serviceId: z.coerce.number().min(1),
-  technicianId: z.coerce.number().min(1),
-  scheduledAt: z.string().min(1),
-  notes: z.string().optional(),
-});
+const initialBookings = [
+  { id: 1, customerName: "John Smith", vehicleDescription: "2022 Honda Civic", serviceName: "Oil Change", technicianName: "Mike T.", scheduledAt: "2024-06-15T09:00:00Z", status: "scheduled", totalCost: 1500, notes: "" },
+  { id: 2, customerName: "Sarah Johnson", vehicleDescription: "2021 Toyota Camry", serviceName: "Brake Service", technicianName: "James R.", scheduledAt: "2024-06-15T11:00:00Z", status: "scheduled", totalCost: 3500, notes: "" },
+  { id: 3, customerName: "Michael Brown", vehicleDescription: "2020 BMW X5", serviceName: "AC Service", technicianName: "David L.", scheduledAt: "2024-06-16T10:00:00Z", status: "scheduled", totalCost: 2800, notes: "Customer requests express service" },
+];
 
-const updateSchema = z.object({
-  status: z.enum(["scheduled", "in_progress", "completed", "cancelled"]),
-  notes: z.string().optional(),
-});
+const mockCustomers = [
+  { id: 1, name: "John Smith" },
+  { id: 2, name: "Sarah Johnson" },
+  { id: 3, name: "Michael Brown" },
+];
 
-type CreateForm = z.infer<typeof createSchema>;
-type UpdateForm = z.infer<typeof updateSchema>;
+const mockVehicles = [
+  { id: 1, year: 2022, make: "Honda", model: "Civic" },
+  { id: 2, year: 2021, make: "Toyota", model: "Camry" },
+  { id: 3, year: 2020, make: "BMW", model: "X5" },
+];
+
+const mockServices = [
+  { id: 1, name: "Oil Change", price: 1500 },
+  { id: 2, name: "Brake Service", price: 3500 },
+  { id: 3, name: "AC Service", price: 2800 },
+  { id: 4, name: "Engine Repair", price: 8000 },
+];
+
+const mockTechnicians = [
+  { id: 1, name: "Mike Thompson" },
+  { id: 2, name: "James Rodriguez" },
+  { id: 3, name: "David Lee" },
+];
 
 export default function Bookings() {
   const { t, lang } = useLang();
-  const { toast } = useToast();
-  const qc = useQueryClient();
+  const [bookings, setBookings] = useState(initialBookings);
   const [showCreate, setShowCreate] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
+  const [createForm, setCreateForm] = useState({ customerId: 0, vehicleId: 0, serviceId: 0, technicianId: 0, scheduledAt: "", notes: "" });
+  const [updateForm, setUpdateForm] = useState({ status: "scheduled", notes: "" });
 
-  // Show only scheduled bookings
-  const appointments = useListAppointments({ status: "scheduled" } as any);
-  const customers = useListCustomers();
-  const vehicles = useListVehicles();
-  const services = useListServices();
-  const technicians = useListTechnicians();
+  function handleCreate(e: React.FormEvent) {
+    e.preventDefault();
+    const customer = mockCustomers.find(c => c.id === createForm.customerId);
+    const vehicle = mockVehicles.find(v => v.id === createForm.vehicleId);
+    const service = mockServices.find(s => s.id === createForm.serviceId);
+    const tech = mockTechnicians.find(t => t.id === createForm.technicianId);
+    
+    const newBooking = {
+      id: Math.max(...bookings.map(b => b.id)) + 1,
+      customerName: customer?.name || "",
+      vehicleDescription: vehicle ? `${vehicle.year} ${vehicle.make} ${vehicle.model}` : "",
+      serviceName: service?.name || "",
+      technicianName: tech?.name || "",
+      scheduledAt: createForm.scheduledAt,
+      status: "scheduled",
+      totalCost: service?.price || 0,
+      notes: createForm.notes,
+    };
+    setBookings([...bookings, newBooking]);
+    setShowCreate(false);
+    setCreateForm({ customerId: 0, vehicleId: 0, serviceId: 0, technicianId: 0, scheduledAt: "", notes: "" });
+  }
 
-  const createMutation = useCreateAppointment({
-    mutation: {
-      onSuccess: () => {
-        qc.invalidateQueries({ queryKey: getListAppointmentsQueryKey() });
-        setShowCreate(false);
-        createForm.reset();
-        toast({ title: lang === "th" ? "สร้างการจองเรียบร้อย" : "Booking created" });
-      },
-    },
-  });
+  function openEdit(booking: typeof bookings[0]) {
+    setEditId(booking.id);
+    setUpdateForm({ status: booking.status, notes: booking.notes });
+  }
 
-  const updateMutation = useUpdateAppointment({
-    mutation: {
-      onSuccess: () => {
-        qc.invalidateQueries({ queryKey: getListAppointmentsQueryKey() });
-        setEditId(null);
-        toast({ title: lang === "th" ? "อัปเดตเรียบร้อย" : "Updated" });
-      },
-    },
-  });
+  function handleUpdate(e: React.FormEvent) {
+    e.preventDefault();
+    setBookings(bookings.map(b => b.id === editId ? { ...b, ...updateForm } : b));
+    setEditId(null);
+  }
 
-  const deleteMutation = useDeleteAppointment({
-    mutation: {
-      onSuccess: () => qc.invalidateQueries({ queryKey: getListAppointmentsQueryKey() }),
-    },
-  });
-
-  const createForm = useForm<CreateForm>({
-    resolver: zodResolver(createSchema),
-    defaultValues: { customerId: 0, vehicleId: 0, serviceId: 0, technicianId: 0, scheduledAt: "", notes: "" },
-  });
-
-  const updateForm = useForm<UpdateForm>({
-    resolver: zodResolver(updateSchema),
-    defaultValues: { status: "scheduled", notes: "" },
-  });
-
-  function openEdit(appt: NonNullable<typeof appointments.data>[0]) {
-    setEditId(appt.id);
-    updateForm.reset({ status: appt.status as any, notes: appt.notes ?? "" });
+  function handleDelete(id: number) {
+    setBookings(bookings.filter(b => b.id !== id));
   }
 
   const inputCls = "w-full border border-input rounded-lg px-3 py-2 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring";
@@ -103,7 +91,7 @@ export default function Bookings() {
 
   return (
     <div className="p-4 sm:p-6 space-y-5">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-foreground">{t("bookingsTitle")}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">{t("bookingsSub")}</p>
@@ -111,14 +99,68 @@ export default function Bookings() {
         <button
           data-testid="button-create-booking"
           onClick={() => setShowCreate(true)}
-          className="flex items-center gap-2 px-3 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity shrink-0"
+          className="flex items-center justify-center gap-2 px-3 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity shrink-0 w-full sm:w-auto"
         >
           <Plus className="w-4 h-4" />
-          <span className="hidden sm:inline">{t("newBooking")}</span>
+          <span>{t("newBooking")}</span>
         </button>
       </div>
 
-      <div className="bg-card border border-card-border rounded-xl shadow overflow-hidden">
+      {/* Mobile Card View */}
+      <div className="block sm:hidden space-y-3">
+        {!bookings.length ? (
+          <div className="py-14 text-center">
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center">
+                <CalendarDays className="w-6 h-6 text-muted-foreground" />
+              </div>
+              <p className="text-muted-foreground">{t("noBookings")}</p>
+            </div>
+          </div>
+        ) : (
+          bookings.map((booking) => (
+            <div key={booking.id} className="bg-card border border-card-border rounded-xl p-4 shadow">
+              <div className="flex items-start justify-between gap-3 mb-3">
+                <div className="min-w-0 flex-1">
+                  <p className="font-semibold text-foreground truncate">{booking.customerName}</p>
+                  <p className="text-xs text-muted-foreground truncate">{booking.vehicleDescription}</p>
+                </div>
+                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium shrink-0 ${STATUS_COLORS[booking.status] ?? ""}`}>
+                  {t(booking.status as any)}
+                </span>
+              </div>
+              <div className="space-y-1.5 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">{t("service")}:</span>
+                  <span className="text-foreground">{booking.serviceName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">{t("technician")}:</span>
+                  <span className="text-foreground">{booking.technicianName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">{t("dateTime")}:</span>
+                  <span className="text-foreground">{new Date(booking.scheduledAt).toLocaleDateString(lang === "th" ? "th-TH" : "en-US")}</span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
+                <span className="text-sm font-bold text-amber-400">{t("baht")}{booking.totalCost.toLocaleString()}</span>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => openEdit(booking)} className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => handleDelete(booking.id)} className="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden sm:block bg-card border border-card-border rounded-xl shadow overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -129,30 +171,28 @@ export default function Bookings() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {appointments.isLoading ? (
-                <tr><td colSpan={8} className="px-4 py-10 text-center text-muted-foreground">{t("loading")}</td></tr>
-              ) : !appointments.data?.length ? (
+              {!bookings.length ? (
                 <tr><td colSpan={8} className="px-4 py-10 text-center text-muted-foreground">{t("noBookings")}</td></tr>
               ) : (
-                appointments.data.map((appt) => (
-                  <tr key={appt.id} data-testid={`row-booking-${appt.id}`} className="hover:bg-muted/20 transition-colors">
-                    <td className="px-4 py-3 font-medium text-foreground whitespace-nowrap">{appt.customerName}</td>
-                    <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{appt.vehicleDescription}</td>
-                    <td className="px-4 py-3 text-foreground whitespace-nowrap">{appt.serviceName}</td>
-                    <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{appt.technicianName}</td>
-                    <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{new Date(appt.scheduledAt).toLocaleDateString(lang === "th" ? "th-TH" : "en-US")}</td>
+                bookings.map((booking) => (
+                  <tr key={booking.id} data-testid={`row-booking-${booking.id}`} className="hover:bg-muted/20 transition-colors">
+                    <td className="px-4 py-3 font-medium text-foreground whitespace-nowrap">{booking.customerName}</td>
+                    <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{booking.vehicleDescription}</td>
+                    <td className="px-4 py-3 text-foreground whitespace-nowrap">{booking.serviceName}</td>
+                    <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{booking.technicianName}</td>
+                    <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{new Date(booking.scheduledAt).toLocaleDateString(lang === "th" ? "th-TH" : "en-US")}</td>
                     <td className="px-4 py-3 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[appt.status] ?? ""}`}>
-                        {t(appt.status as any)}
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[booking.status] ?? ""}`}>
+                        {t(booking.status as any)}
                       </span>
                     </td>
-                    <td className="px-4 py-3 font-medium text-foreground whitespace-nowrap">{t("baht")}{appt.totalCost.toFixed(2)}</td>
+                    <td className="px-4 py-3 font-medium text-foreground whitespace-nowrap">{t("baht")}{booking.totalCost.toLocaleString()}</td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1">
-                        <button data-testid={`button-edit-booking-${appt.id}`} onClick={() => openEdit(appt)} className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
+                        <button data-testid={`button-edit-booking-${booking.id}`} onClick={() => openEdit(booking)} className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
-                        <button data-testid={`button-delete-booking-${appt.id}`} onClick={() => deleteMutation.mutate({ id: appt.id })} className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors">
+                        <button data-testid={`button-delete-booking-${booking.id}`} onClick={() => handleDelete(booking.id)} className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -167,56 +207,54 @@ export default function Bookings() {
 
       {/* Create Modal */}
       {showCreate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-          <div className="bg-card border border-card-border rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-0 sm:p-4">
+          <div className="bg-card border border-card-border rounded-t-2xl sm:rounded-xl shadow-2xl w-full sm:max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between px-5 py-4 border-b border-border sticky top-0 bg-card z-10">
               <h2 className="text-sm font-semibold text-foreground">{t("newBooking")}</h2>
               <button onClick={() => setShowCreate(false)} className="text-muted-foreground hover:text-foreground"><X className="w-4 h-4" /></button>
             </div>
-            <form onSubmit={createForm.handleSubmit((d) => createMutation.mutate({ data: d }))} className="p-5 space-y-4">
+            <form onSubmit={handleCreate} className="p-5 space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className={labelCls}>{t("customers")}</label>
-                  <select data-testid="select-customer" {...createForm.register("customerId")} className={inputCls}>
+                  <select value={createForm.customerId} onChange={(e) => setCreateForm({...createForm, customerId: Number(e.target.value)})} className={inputCls} required>
                     <option value={0}>{t("selectCustomer")}</option>
-                    {customers.data?.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    {mockCustomers.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className={labelCls}>{t("vehicle")}</label>
-                  <select data-testid="select-vehicle" {...createForm.register("vehicleId")} className={inputCls}>
+                  <select value={createForm.vehicleId} onChange={(e) => setCreateForm({...createForm, vehicleId: Number(e.target.value)})} className={inputCls} required>
                     <option value={0}>{t("selectVehicle")}</option>
-                    {vehicles.data?.map((v) => <option key={v.id} value={v.id}>{v.year} {v.make} {v.model}</option>)}
+                    {mockVehicles.map((v) => <option key={v.id} value={v.id}>{v.year} {v.make} {v.model}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className={labelCls}>{t("service")}</label>
-                  <select data-testid="select-service" {...createForm.register("serviceId")} className={inputCls}>
+                  <select value={createForm.serviceId} onChange={(e) => setCreateForm({...createForm, serviceId: Number(e.target.value)})} className={inputCls} required>
                     <option value={0}>{t("selectService")}</option>
-                    {services.data?.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                    {mockServices.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className={labelCls}>{t("technician")}</label>
-                  <select data-testid="select-technician" {...createForm.register("technicianId")} className={inputCls}>
+                  <select value={createForm.technicianId} onChange={(e) => setCreateForm({...createForm, technicianId: Number(e.target.value)})} className={inputCls} required>
                     <option value={0}>{t("selectTechnician")}</option>
-                    {technicians.data?.map((t2) => <option key={t2.id} value={t2.id}>{t2.name}</option>)}
+                    {mockTechnicians.map((t2) => <option key={t2.id} value={t2.id}>{t2.name}</option>)}
                   </select>
                 </div>
               </div>
               <div>
                 <label className={labelCls}>{t("dateTime")}</label>
-                <input data-testid="input-scheduled-at" type="datetime-local" {...createForm.register("scheduledAt")} className={inputCls} />
+                <input type="datetime-local" value={createForm.scheduledAt} onChange={(e) => setCreateForm({...createForm, scheduledAt: e.target.value})} className={inputCls} required />
               </div>
               <div>
                 <label className={labelCls}>{t("notes")}</label>
-                <textarea data-testid="input-notes" {...createForm.register("notes")} className={inputCls + " resize-none"} rows={2} placeholder={t("optionalNotes")} />
+                <textarea value={createForm.notes} onChange={(e) => setCreateForm({...createForm, notes: e.target.value})} className={inputCls + " resize-none"} rows={2} placeholder={t("optionalNotes")} />
               </div>
               <div className="flex gap-3 pt-1">
-                <button type="button" onClick={() => setShowCreate(false)} className="flex-1 py-2 border border-border rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors">{t("cancel")}</button>
-                <button data-testid="button-submit-booking" type="submit" disabled={createMutation.isPending} className="flex-1 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-60">
-                  {createMutation.isPending ? t("creating") : t("create")}
-                </button>
+                <button type="button" onClick={() => setShowCreate(false)} className="flex-1 py-2.5 border border-border rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors">{t("cancel")}</button>
+                <button type="submit" className="flex-1 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity">{t("create")}</button>
               </div>
             </form>
           </div>
@@ -225,16 +263,16 @@ export default function Bookings() {
 
       {/* Edit Modal */}
       {editId !== null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-          <div className="bg-card border border-card-border rounded-xl shadow-2xl w-full max-w-sm">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-0 sm:p-4">
+          <div className="bg-card border border-card-border rounded-t-2xl sm:rounded-xl shadow-2xl w-full sm:max-w-sm">
             <div className="flex items-center justify-between px-5 py-4 border-b border-border">
               <h2 className="text-sm font-semibold text-foreground">{t("updateRepair")}</h2>
               <button onClick={() => setEditId(null)} className="text-muted-foreground hover:text-foreground"><X className="w-4 h-4" /></button>
             </div>
-            <form onSubmit={updateForm.handleSubmit((d) => updateMutation.mutate({ id: editId, data: d }))} className="p-5 space-y-4">
+            <form onSubmit={handleUpdate} className="p-5 space-y-4">
               <div>
                 <label className={labelCls}>{t("status")}</label>
-                <select data-testid="select-status" {...updateForm.register("status")} className={inputCls}>
+                <select value={updateForm.status} onChange={(e) => setUpdateForm({...updateForm, status: e.target.value})} className={inputCls}>
                   <option value="scheduled">{t("scheduled")}</option>
                   <option value="in_progress">{t("in_progress")}</option>
                   <option value="completed">{t("completed")}</option>
@@ -243,13 +281,11 @@ export default function Bookings() {
               </div>
               <div>
                 <label className={labelCls}>{t("notes")}</label>
-                <textarea data-testid="input-update-notes" {...updateForm.register("notes")} className={inputCls + " resize-none"} rows={2} />
+                <textarea value={updateForm.notes} onChange={(e) => setUpdateForm({...updateForm, notes: e.target.value})} className={inputCls + " resize-none"} rows={2} />
               </div>
               <div className="flex gap-3">
-                <button type="button" onClick={() => setEditId(null)} className="flex-1 py-2 border border-border rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors">{t("cancel")}</button>
-                <button data-testid="button-submit-update" type="submit" disabled={updateMutation.isPending} className="flex-1 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-60">
-                  {updateMutation.isPending ? t("saving") : t("save")}
-                </button>
+                <button type="button" onClick={() => setEditId(null)} className="flex-1 py-2.5 border border-border rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors">{t("cancel")}</button>
+                <button type="submit" className="flex-1 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity">{t("save")}</button>
               </div>
             </form>
           </div>

@@ -1,90 +1,59 @@
 import { useState } from "react";
-import {
-  useListTechnicians,
-  useCreateTechnician,
-  useUpdateTechnician,
-  useDeleteTechnician,
-  getListTechniciansQueryKey,
-} from "@workspace/api-client-react";
-import { useQueryClient } from "@tanstack/react-query";
 import { Plus, Pencil, Trash2, X, HardHat } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { useToast } from "@/hooks/use-toast";
 import { useLang } from "@/lib/i18n";
 
-const schema = z.object({
-  name: z.string().min(1),
-  specialty: z.string().optional(),
-  phone: z.string().optional(),
-  isAvailable: z.boolean().default(true),
-});
-type FormData = z.infer<typeof schema>;
+const initialTechnicians = [
+  { id: 1, name: "Mike Thompson", specialty: "Engine Specialist", phone: "081-111-2222", isAvailable: true },
+  { id: 2, name: "James Rodriguez", specialty: "Transmission Expert", phone: "082-333-4444", isAvailable: true },
+  { id: 3, name: "David Lee", specialty: "Electrical Systems", phone: "083-555-6666", isAvailable: false },
+  { id: 4, name: "Robert Chen", specialty: "Brake & Suspension", phone: "084-777-8888", isAvailable: true },
+  { id: 5, name: "Kevin Park", specialty: "AC & Climate Control", phone: "085-999-0000", isAvailable: true },
+];
 
 export default function Technicians() {
   const { t, lang } = useLang();
-  const { toast } = useToast();
-  const qc = useQueryClient();
+  const [technicians, setTechnicians] = useState(initialTechnicians);
   const [modalMode, setModalMode] = useState<"create" | "edit" | null>(null);
   const [editId, setEditId] = useState<number | null>(null);
-
-  const technicians = useListTechnicians();
-  const createMutation = useCreateTechnician({
-    mutation: {
-      onSuccess: () => {
-        qc.invalidateQueries({ queryKey: getListTechniciansQueryKey() });
-        setModalMode(null);
-        form.reset();
-        toast({ title: lang === "th" ? "เพิ่มช่างเรียบร้อย" : "Technician added" });
-      },
-    },
-  });
-  const updateMutation = useUpdateTechnician({
-    mutation: {
-      onSuccess: () => {
-        qc.invalidateQueries({ queryKey: getListTechniciansQueryKey() });
-        setModalMode(null);
-        toast({ title: lang === "th" ? "อัปเดตเรียบร้อย" : "Updated" });
-      },
-    },
-  });
-  const deleteMutation = useDeleteTechnician({
-    mutation: {
-      onSuccess: () => qc.invalidateQueries({ queryKey: getListTechniciansQueryKey() }),
-    },
-  });
-
-  const form = useForm<FormData>({ resolver: zodResolver(schema), defaultValues: { isAvailable: true } });
+  const [formData, setFormData] = useState({ name: "", specialty: "", phone: "", isAvailable: true });
 
   function openCreate() {
     setEditId(null);
-    form.reset({ name: "", specialty: "", phone: "", isAvailable: true });
+    setFormData({ name: "", specialty: "", phone: "", isAvailable: true });
     setModalMode("create");
   }
 
-  function openEdit(tech: NonNullable<typeof technicians.data>[0]) {
+  function openEdit(tech: typeof technicians[0]) {
     setEditId(tech.id);
-    form.reset({ name: tech.name, specialty: tech.specialty ?? "", phone: tech.phone ?? "", isAvailable: tech.isAvailable });
+    setFormData({ name: tech.name, specialty: tech.specialty ?? "", phone: tech.phone ?? "", isAvailable: tech.isAvailable });
     setModalMode("edit");
   }
 
-  function handleSubmit(d: FormData) {
-    if (modalMode === "create") createMutation.mutate({ data: d });
-    else if (editId) updateMutation.mutate({ id: editId, data: d });
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (modalMode === "create") {
+      const newTech = { id: Math.max(...technicians.map(t => t.id)) + 1, ...formData };
+      setTechnicians([...technicians, newTech]);
+    } else if (editId) {
+      setTechnicians(technicians.map(t => t.id === editId ? { ...t, ...formData } : t));
+    }
+    setModalMode(null);
   }
 
-  function toggleAvailability(tech: NonNullable<typeof technicians.data>[0]) {
-    updateMutation.mutate({ id: tech.id, data: { isAvailable: !tech.isAvailable } });
+  function handleDelete(id: number) {
+    setTechnicians(technicians.filter(t => t.id !== id));
+  }
+
+  function toggleAvailability(tech: typeof technicians[0]) {
+    setTechnicians(technicians.map(t => t.id === tech.id ? { ...t, isAvailable: !t.isAvailable } : t));
   }
 
   const inputCls = "w-full border border-input rounded-lg px-3 py-2 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring";
   const labelCls = "block text-xs font-medium text-muted-foreground mb-1";
-  const isPending = createMutation.isPending || updateMutation.isPending;
 
   return (
     <div className="p-4 sm:p-6 space-y-5">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-foreground">{t("techniciansTitle")}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">{t("techniciansSub")}</p>
@@ -92,16 +61,14 @@ export default function Technicians() {
         <button
           data-testid="button-create-technician"
           onClick={openCreate}
-          className="flex items-center gap-2 px-3 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity shrink-0"
+          className="flex items-center justify-center gap-2 px-3 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity shrink-0 w-full sm:w-auto"
         >
           <Plus className="w-4 h-4" />
-          <span className="hidden sm:inline">{t("addTechnician")}</span>
+          <span>{t("addTechnician")}</span>
         </button>
       </div>
 
-      {technicians.isLoading ? (
-        <div className="py-12 text-center text-muted-foreground">{t("loading")}</div>
-      ) : !technicians.data?.length ? (
+      {!technicians.length ? (
         <div className="py-14 text-center">
           <div className="flex flex-col items-center gap-3">
             <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center">
@@ -112,7 +79,7 @@ export default function Technicians() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-          {technicians.data.map((tech) => (
+          {technicians.map((tech) => (
             <div key={tech.id} data-testid={`card-technician-${tech.id}`} className="bg-card border border-card-border rounded-xl p-5 shadow hover:shadow-md transition-shadow group">
               <div className="flex items-start justify-between gap-2 mb-3">
                 <div className="flex items-center gap-3">
@@ -128,7 +95,7 @@ export default function Technicians() {
                   <button data-testid={`button-edit-technician-${tech.id}`} onClick={() => openEdit(tech)} className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
                     <Pencil className="w-3.5 h-3.5" />
                   </button>
-                  <button data-testid={`button-delete-technician-${tech.id}`} onClick={() => deleteMutation.mutate({ id: tech.id })} className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors">
+                  <button data-testid={`button-delete-technician-${tech.id}`} onClick={() => handleDelete(tech.id)} className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -155,37 +122,37 @@ export default function Technicians() {
       )}
 
       {modalMode && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-          <div className="bg-card border border-card-border rounded-xl shadow-2xl w-full max-w-sm">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-0 sm:p-4">
+          <div className="bg-card border border-card-border rounded-t-2xl sm:rounded-xl shadow-2xl w-full sm:max-w-sm">
             <div className="flex items-center justify-between px-5 py-4 border-b border-border">
               <h2 className="text-sm font-semibold text-foreground">{modalMode === "create" ? t("addTechnician") : t("editTechnician")}</h2>
               <button onClick={() => setModalMode(null)} className="text-muted-foreground hover:text-foreground"><X className="w-4 h-4" /></button>
             </div>
-            <form onSubmit={form.handleSubmit(handleSubmit)} className="p-5 space-y-4">
+            <form onSubmit={handleSubmit} className="p-5 space-y-4">
               <div>
                 <label className={labelCls}>{t("fullName")}</label>
-                <input data-testid="input-tech-name" {...form.register("name")} className={inputCls} placeholder={t("required")} />
+                <input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className={inputCls} placeholder={t("required")} required />
               </div>
               <div>
                 <label className={labelCls}>{t("specialty")}</label>
-                <input data-testid="input-specialty" {...form.register("specialty")} className={inputCls} placeholder={lang === "th" ? "เช่น เครื่องยนต์, ไฟฟ้า" : "e.g. Engine, Electrical"} />
+                <input value={formData.specialty} onChange={(e) => setFormData({...formData, specialty: e.target.value})} className={inputCls} placeholder={lang === "th" ? "เช่น เครื่องยนต์, ไฟฟ้า" : "e.g. Engine, Electrical"} />
               </div>
               <div>
                 <label className={labelCls}>{t("phone")}</label>
-                <input data-testid="input-tech-phone" {...form.register("phone")} className={inputCls} placeholder="0xx-xxx-xxxx" />
+                <input value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} className={inputCls} placeholder="0xx-xxx-xxxx" />
               </div>
               <label className="flex items-center gap-2.5 cursor-pointer group">
                 <div className="relative">
-                  <input data-testid="input-available" type="checkbox" {...form.register("isAvailable")} className="sr-only peer" />
+                  <input type="checkbox" checked={formData.isAvailable} onChange={(e) => setFormData({...formData, isAvailable: e.target.checked})} className="sr-only peer" />
                   <div className="w-9 h-5 rounded-full bg-muted peer-checked:bg-emerald-500 transition-colors" />
                   <div className="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all peer-checked:translate-x-4" />
                 </div>
                 <span className="text-sm text-foreground">{t("available")}</span>
               </label>
               <div className="flex gap-3 pt-1">
-                <button type="button" onClick={() => setModalMode(null)} className="flex-1 py-2 border border-border rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors">{t("cancel")}</button>
-                <button data-testid="button-submit-technician" type="submit" disabled={isPending} className="flex-1 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-60">
-                  {isPending ? t("saving") : modalMode === "create" ? t("add") : t("save")}
+                <button type="button" onClick={() => setModalMode(null)} className="flex-1 py-2.5 border border-border rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors">{t("cancel")}</button>
+                <button type="submit" className="flex-1 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity">
+                  {modalMode === "create" ? t("add") : t("save")}
                 </button>
               </div>
             </form>
