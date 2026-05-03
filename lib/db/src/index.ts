@@ -12,56 +12,38 @@ font-family:Arial;
 background:#081018;
 color:white;
 }
-
 header{
 background:#00c853;
 padding:20px;
 text-align:center;
-font-size:28px;
+font-size:30px;
 font-weight:bold;
 }
-
 .wrap{
-padding:15px;
+padding:20px;
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:15px;
 }
-
-.box{
-background:#111827;
-padding:15px;
-border-radius:15px;
-margin-bottom:15px;
-}
-
-input,button{
-width:100%;
-padding:12px;
-margin:5px 0;
-border:none;
-border-radius:10px;
-font-size:16px;
-}
-
-input{
-background:#1f2937;
-color:white;
-}
-
-button{
-background:#00c853;
-color:white;
-font-weight:bold;
-}
-
 .card{
-background:#0f172a;
-padding:12px;
-margin-top:10px;
-border-radius:12px;
+background:#111827;
+padding:20px;
+border-radius:14px;
+font-size:22px;
 }
-
-.red{background:#ff5252;}
-.blue{background:#2196f3;}
-.orange{background:#ff9800;}
+h2{
+color:#00e676;
+padding:20px;
+}
+.list{
+padding:20px;
+}
+.job{
+background:#111827;
+margin-bottom:10px;
+padding:15px;
+border-radius:10px;
+}
 </style>
 </head>
 <body>
@@ -69,43 +51,29 @@ border-radius:12px;
 <header>NISA AUTO CAR SERVICE</header>
 
 <div class="wrap">
-
-<div class="box">
-<h2>รับรถเข้า</h2>
-
-<input id="name" placeholder="ชื่อลูกค้า">
-<input id="car" placeholder="รุ่นรถ">
-<input id="plate" placeholder="ทะเบียน">
-<input id="phone" placeholder="เบอร์โทร">
-
-<button onclick="saveCustomer()">บันทึกเข้าระบบ</button>
+<div class="card">ลูกค้า <br><span id="customer">0</span></div>
+<div class="card">งานซ่อม <br><span id="jobs">0</span></div>
+<div class="card">รายรับ <br>฿<span id="money">0</span></div>
 </div>
 
-<div class="box">
-<h2>ลูกค้าทั้งหมด</h2>
-<div id="list"></div>
-</div>
-
-</div>
+<h2>งานล่าสุด</h2>
+<div class="list" id="jobList"></div>
 
 <script type="module">
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
 getFirestore,
 collection,
-addDoc,
-getDocs,
-deleteDoc,
-doc
+getDocs
 }
-from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
 apiKey: "AIzaSyDAfm7eDJPFiWrUK_U0aqS7yl2Wt_PpjmA",
 authDomain: "garage-system-41587.firebaseapp.com",
 projectId: "garage-system-41587",
-storageBucket: "garage-system-41587.firebasestorage.app",
+storageBucket: "garage-system-41587.appspot.com",
 messagingSenderId: "688480145767",
 appId: "1:688480145767:web:f457e635675df0cbd91fc2"
 };
@@ -113,56 +81,28 @@ appId: "1:688480145767:web:f457e635675df0cbd91fc2"
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-window.saveCustomer = async function(){
-
-const name = document.getElementById("name").value;
-const car = document.getElementById("car").value;
-const plate = document.getElementById("plate").value;
-const phone = document.getElementById("phone").value;
-
-await addDoc(collection(db,"customers"),{
-name,
-car,
-plate,
-phone,
-status:"รับรถใหม่",
-time:new Date()
-});
-
-alert("บันทึกแล้ว");
-
-loadData();
-}
-
 async function loadData(){
 
-const querySnapshot = await getDocs(collection(db,"customers"));
+const customers = await getDocs(collection(db,"customers"));
+document.getElementById("customer").innerText = customers.size;
+
+const jobs = await getDocs(collection(db,"jobs"));
+document.getElementById("jobs").innerText = jobs.size;
 
 let html="";
-
-querySnapshot.forEach((docSnap)=>{
-
-const d = docSnap.data();
-
-html += `
-<div class="card">
-<b>${d.name}</b><br>
-🚗 ${d.car}<br>
-📌 ${d.plate}<br>
-📞 ${d.phone}<br><br>
-
-<button class="red" onclick="del('${docSnap.id}')">ลบ</button>
-</div>
-`;
-
+jobs.forEach(doc=>{
+const d = doc.data();
+html += `<div class="job">${d.car || "-"} • ${d.job || "-"}</div>`;
 });
+document.getElementById("jobList").innerHTML = html;
 
-document.getElementById("list").innerHTML = html;
-}
+const money = await getDocs(collection(db,"money"));
+let total = 0;
+money.forEach(doc=>{
+total += Number(doc.data().amount || 0);
+});
+document.getElementById("money").innerText = total.toLocaleString();
 
-window.del = async function(id){
-await deleteDoc(doc(db,"customers",id));
-loadData();
 }
 
 loadData();
