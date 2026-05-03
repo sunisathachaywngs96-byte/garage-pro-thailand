@@ -7,57 +7,90 @@
 
 <style>
 body{
-font-family:Arial;
-background:#0a0f1c;
-color:white;
 margin:0;
-padding:0;
+font-family:Arial;
+background:#081018;
+color:white;
 }
 header{
 background:#00c853;
 padding:20px;
 text-align:center;
-font-size:28px;
+font-size:30px;
 font-weight:bold;
 }
-.box{
+.wrap{
 padding:20px;
+max-width:1200px;
+margin:auto;
 }
-input,button{
-padding:12px;
-margin:5px;
-border:none;
-border-radius:8px;
-}
-input{
-width:220px;
-}
-button{
-background:#00c853;
-color:white;
-font-weight:bold;
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+gap:15px;
+margin-bottom:20px;
 }
 .card{
-background:#111827;
-padding:15px;
-margin-top:10px;
+background:#111a2e;
+padding:20px;
+border-radius:14px;
+}
+button{
+width:100%;
+padding:16px;
+border:none;
 border-radius:12px;
+background:#00c853;
+font-size:20px;
+font-weight:bold;
+cursor:pointer;
+}
+input{
+width:100%;
+padding:12px;
+margin:6px 0;
+border-radius:8px;
+border:none;
+}
+.list{
+background:#111a2e;
+padding:20px;
+border-radius:14px;
+margin-top:20px;
+}
+.item{
+padding:10px;
+border-bottom:1px solid #222;
 }
 </style>
 </head>
+
 <body>
 
 <header>NISA AUTO CAR SERVICE</header>
 
-<div class="box">
+<div class="wrap">
 
-<h2>รับรถเข้า</h2>
+<div class="grid">
+<div class="card">
+<h2>รับรถเข้าใหม่</h2>
+<input id="name" placeholder="ชื่อลูกค้า">
+<input id="phone" placeholder="เบอร์โทร">
+<input id="car" placeholder="รถรุ่น">
+<input id="plate" placeholder="ทะเบียน">
+<button onclick="saveCustomer()">บันทึกลูกค้า</button>
+</div>
 
-<input id="car" placeholder="ทะเบียนรถ">
-<input id="job" placeholder="งานซ่อม">
-<button onclick="saveJob()">บันทึก</button>
+<div class="card">
+<h2>สถิติวันนี้</h2>
+<p id="count">ลูกค้า: 0</p>
+</div>
+</div>
 
-<div id="list"></div>
+<div class="list">
+<h2>รายชื่อลูกค้าจริง</h2>
+<div id="customerList"></div>
+</div>
 
 </div>
 
@@ -83,36 +116,52 @@ appId: "1:688480145767:web:f457e635675df0cbd91fc2"
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-window.saveJob = async function(){
+window.saveCustomer = async function(){
 
+const name = document.getElementById("name").value;
+const phone = document.getElementById("phone").value;
 const car = document.getElementById("car").value;
-const job = document.getElementById("job").value;
+const plate = document.getElementById("plate").value;
 
-await addDoc(collection(db,"jobs"),{
+await addDoc(collection(db,"customers"),{
+name,
+phone,
 car,
-job,
-time:new Date()
+plate,
+time:new Date().toLocaleString()
 });
 
-loadData();
+alert("บันทึกสำเร็จ");
+loadCustomers();
 }
 
-async function loadData(){
+async function loadCustomers(){
 
-const snap = await getDocs(collection(db,"jobs"));
+const box = document.getElementById("customerList");
+box.innerHTML = "";
 
-let html = "";
+const querySnapshot = await getDocs(collection(db,"customers"));
 
-snap.forEach(doc=>{
-let d = doc.data();
-html += `<div class="card">${d.car} - ${d.job}</div>`;
+let total = 0;
+
+querySnapshot.forEach((doc)=>{
+total++;
+
+const data = doc.data();
+
+box.innerHTML += `
+<div class="item">
+${data.name} | ${data.phone} | ${data.car} | ${data.plate}
+</div>
+`;
 });
 
-document.getElementById("list").innerHTML = html;
+document.getElementById("count").innerText="ลูกค้า: "+total;
 }
 
-loadData();
+loadCustomers();
 
 </script>
+
 </body>
 </html>
