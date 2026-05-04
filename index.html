@@ -30,7 +30,35 @@
 <canvas id="chart"></canvas>
 
 <script type="module">
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } 
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
+const auth = getAuth();
+
+window.register = async function() {
+  const email = document.getElementById("email").value;
+  const pass = document.getElementById("password").value;
+
+  try {
+    const user = await createUserWithEmailAndPassword(auth, email, pass);
+    alert("สมัครสำเร็จ");
+  } catch (e) {
+    alert(e.message);
+  }
+}
+
+window.login = async function() {
+  const email = document.getElementById("email").value;
+  const pass = document.getElementById("password").value;
+
+  try {
+    const user = await signInWithEmailAndPassword(auth, email, pass);
+    alert("เข้าสู่ระบบสำเร็จ");
+    loadUserRole(user.user.uid);
+  } catch (e) {
+    alert(e.message);
+  }
+}
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
