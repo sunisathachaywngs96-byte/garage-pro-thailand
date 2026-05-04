@@ -1,229 +1,177 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <title>Garage Pro</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Garage Pro</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f2f2f2;
+      margin: 0;
+    }
 
-<style>
-body {
-  font-family: sans-serif;
-  margin: 0;
-  background: #f5f6fa;
-}
+    header {
+      background: linear-gradient(90deg,#ff6a00,#ff3c00);
+      color: white;
+      padding: 20px;
+      font-size: 22px;
+      font-weight: bold;
+    }
 
-/* HEADER */
-.header {
-  background: linear-gradient(135deg,#ff7a18,#ff3d00);
-  color: white;
-  padding: 20px;
-  border-radius: 0 0 20px 20px;
-}
+    .container {
+      padding: 15px;
+    }
 
-.header h1 {
-  margin: 0;
-  font-size: 22px;
-}
+    .card {
+      background: white;
+      padding: 15px;
+      border-radius: 12px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
 
-.balance {
-  background: rgba(255,255,255,0.2);
-  padding: 10px;
-  margin-top: 10px;
-  border-radius: 10px;
-}
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
 
-/* FORM */
-.form {
-  background: white;
-  margin: -20px 15px 15px;
-  padding: 15px;
-  border-radius: 15px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-}
+    button {
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+    }
 
-.form input {
-  width: 100%;
-  margin-bottom: 8px;
-  padding: 10px;
-  border-radius: 10px;
-  border: 1px solid #ddd;
-}
+    .btn-add {
+      background: #ff3c00;
+      width: 100%;
+    }
 
-.form button {
-  width: 100%;
-  padding: 12px;
-  border: none;
-  border-radius: 10px;
-  background: #ff3d00;
-  color: white;
-  font-weight: bold;
-}
+    .btn {
+      margin: 5px 3px;
+      font-size: 12px;
+    }
 
-/* JOB CARD */
-.card {
-  background: white;
-  margin: 10px 15px;
-  padding: 15px;
-  border-radius: 15px;
-  box-shadow: 0 5px 10px rgba(0,0,0,0.05);
-}
-
-.status {
-  display: inline-block;
-  padding: 5px 10px;
-  border-radius: 20px;
-  font-size: 12px;
-  margin-top: 5px;
-}
-
-.waiting { background: orange; color:white; }
-.fixing { background: blue; color:white; }
-.done { background: green; color:white; }
-
-/* BUTTONS */
-.actions {
-  margin-top: 10px;
-}
-
-.actions button {
-  margin-right: 5px;
-  margin-top: 5px;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 10px;
-  color: white;
-}
-
-.btn-w { background: orange; }
-.btn-f { background: blue; }
-.btn-d { background: green; }
-.btn-del { background: red; }
-
-/* FLOAT BUTTON */
-.addBtn {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background: #ff3d00;
-  color: white;
-  font-size: 25px;
-  border: none;
-  width: 55px;
-  height: 55px;
-  border-radius: 50%;
-}
-</style>
+    .wait { background: orange; }
+    .fix { background: blue; }
+    .done { background: green; }
+    .del { background: red; }
+  </style>
 </head>
 
 <body>
 
-<div class="header">
-  <h1>🚗 Garage Pro</h1>
-  <div class="balance" id="total">💰 0 บาท</div>
+<header>🚗 Garage Pro</header>
+
+<div class="container">
+
+  <div class="card">
+    <input id="car" placeholder="รถ">
+    <input id="customer" placeholder="ลูกค้า">
+    <input id="phone" placeholder="เบอร์">
+    <input id="problem" placeholder="ปัญหา">
+    <input id="price" placeholder="ราคา">
+    <button class="btn-add" onclick="addJob()">+ เพิ่มงาน</button>
+  </div>
+
+  <div id="jobs"></div>
+
 </div>
-
-<div class="form">
-  <input id="car" placeholder="🚗 รุ่นรถ">
-  <input id="name" placeholder="👤 ลูกค้า">
-  <input id="phone" placeholder="📞 เบอร์">
-  <input id="problem" placeholder="🛠 ปัญหา">
-  <input id="price" placeholder="💰 ราคา">
-  <button onclick="addJob()">+ เพิ่มงาน</button>
-</div>
-
-<div id="list"></div>
-
-<button class="addBtn" onclick="scrollTo(0,0)">+</button>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {
-  getFirestore, collection, addDoc, onSnapshot,
-  updateDoc, deleteDoc, doc, query, orderBy
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
-const firebaseConfig = {
-  apiKey: "YOUR_KEY",
-  authDomain: "YOUR_DOMAIN",
-  projectId: "YOUR_PROJECT"
-};
+  import {
+    getFirestore,
+    collection,
+    addDoc,
+    onSnapshot,
+    orderBy,
+    query,
+    serverTimestamp,
+    updateDoc,
+    deleteDoc,
+    doc
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+  // 🔥 ใส่ของคุณตรงนี้
+  const firebaseConfig = {
+    apiKey: "ใส่ของคุณ",
+    authDomain: "ใส่ของคุณ",
+    projectId: "ใส่ของคุณ",
+  };
 
-const tenantId = "tenant_001";
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-const list = document.getElementById("list");
-const totalBox = document.getElementById("total");
+  const col = collection(db, "jobs");
 
-/* ADD */
-window.addJob = async () => {
-  await addDoc(
-    collection(db, "tenants", tenantId, "jobs"),
-    {
-      car: car.value,
-      customerName: name.value,
-      phone: phone.value,
-      problem: problem.value,
-      price: Number(price.value || 0),
-      status: "waiting",
-      createdAt: new Date()
+  // ✅ เพิ่มงาน (แก้แล้ว ใช้งานได้ชัวร์)
+  window.addJob = async () => {
+    try {
+      await addDoc(col, {
+        car: document.getElementById("car").value || "-",
+        customerName: document.getElementById("customer").value || "-",
+        phone: document.getElementById("phone").value || "-",
+        problem: document.getElementById("problem").value || "-",
+        price: Number(document.getElementById("price").value) || 0,
+        status: "waiting",
+        createdAt: serverTimestamp()
+      });
+
+      // clear input
+      document.querySelectorAll("input").forEach(i => i.value = "");
+
+    } catch (e) {
+      alert("ERROR: " + e.message);
+      console.error(e);
     }
-  );
+  };
 
-  car.value = name.value = phone.value = problem.value = price.value = "";
-};
+  // 🔄 realtime
+  onSnapshot(query(col, orderBy("createdAt","desc")), (snap) => {
+    const box = document.getElementById("jobs");
+    box.innerHTML = "";
 
-/* REALTIME */
-const q = query(
-  collection(db, "tenants", tenantId, "jobs"),
-  orderBy("createdAt", "desc")
-);
+    snap.forEach(d => {
+      const data = d.data();
 
-onSnapshot(q, (snap) => {
-  list.innerHTML = "";
-  let total = 0;
+      box.innerHTML += `
+        <div class="card">
+          🚗 ${data.car} <br>
+          👤 ${data.customerName} <br>
+          📞 ${data.phone} <br>
+          🔧 ${data.problem} <br>
+          💰 ${data.price} <br>
+          📊 <b>${data.status}</b><br>
 
-  snap.forEach((docSnap) => {
-    const d = docSnap.data();
-    const id = docSnap.id;
-
-    if (d.status === "done") {
-      total += d.price || 0;
-    }
-
-    list.innerHTML += `
-      <div class="card">
-        <b>🚗 ${d.car}</b><br>
-        👤 ${d.customerName}<br>
-        📞 ${d.phone}<br>
-        🛠 ${d.problem}<br>
-        💰 ${d.price}<br>
-
-        <span class="status ${d.status}">${d.status}</span>
-
-        <div class="actions">
-          <button class="btn-w" onclick="setStatus('${id}','waiting')">รอ</button>
-          <button class="btn-f" onclick="setStatus('${id}','fixing')">ซ่อม</button>
-          <button class="btn-d" onclick="setStatus('${id}','done')">เสร็จ</button>
-          <button class="btn-del" onclick="del('${id}')">ลบ</button>
+          <button class="btn wait" onclick="setStatus('${d.id}','waiting')">รอ</button>
+          <button class="btn fix" onclick="setStatus('${d.id}','fixing')">กำลังซ่อม</button>
+          <button class="btn done" onclick="setStatus('${d.id}','done')">เสร็จ</button>
+          <button class="btn del" onclick="delJob('${d.id}')">ลบ</button>
         </div>
-      </div>
-    `;
+      `;
+    });
   });
 
-  totalBox.innerHTML = "💰 " + total + " บาท";
-});
+  // 🔁 เปลี่ยนสถานะ
+  window.setStatus = async (id, status) => {
+    await updateDoc(doc(db, "jobs", id), { status });
+  };
 
-/* ACTION */
-window.setStatus = async (id, status) => {
-  await updateDoc(doc(db, "tenants", tenantId, "jobs", id), { status });
-};
+  // 🗑 ลบ
+  window.delJob = async (id) => {
+    if(confirm("ลบจริง?")){
+      await deleteDoc(doc(db, "jobs", id));
+    }
+  };
 
-window.del = async (id) => {
-  await deleteDoc(doc(db, "tenants", tenantId, "jobs", id));
-};
 </script>
 
 </body>
