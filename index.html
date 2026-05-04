@@ -1,135 +1,64 @@
 <!DOCTYPE html>
-<html>
+<html lang="th">
 <head>
-<meta charset="UTF-8">
-<title>Garage SaaS Login</title>
-
-<style>
-body {
-  background:#000;
-  color:#FFD700;
-  font-family:sans-serif;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  height:100vh;
-}
-
-.box {
-  border:1px solid gold;
-  padding:30px;
-  border-radius:10px;
-  width:300px;
-  background:#111;
-}
-
-input {
-  width:100%;
-  padding:10px;
-  margin:10px 0;
-  border:none;
-  border-radius:5px;
-}
-
-button {
-  width:100%;
-  padding:10px;
-  background:gold;
-  border:none;
-  font-weight:bold;
-}
-</style>
+  <meta charset="UTF-8">
+  <title>Garage System</title>
 </head>
-
 <body>
 
-<div class="box">
-
-<h2>🚗 Garage SaaS</h2>
-
-<input id="email" placeholder="Email">
-<input id="password" type="password" placeholder="Password">
-<input id="garageName" placeholder="ชื่ออู่ (สมัครใหม่)">
-
-<button onclick="register()">สมัคร</button>
-<button onclick="login()">เข้าสู่ระบบ</button>
-
-</div>
+<h2>📋 รายการงานซ่อม</h2>
+<div id="jobList">กำลังโหลด...</div>
 
 <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {
-getAuth, createUserWithEmailAndPassword,
-signInWithEmailAndPassword
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  // 🔴 ใส่ config ของคุณตรงนี้
+  const firebaseConfig = {
+    apiKey: "YOUR_KEY",
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    projectId: "garage-system-41587",
+  };
 
-import {
-getFirestore, addDoc, collection, query,
-where, getDocs
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-/* 🔥 ใส่ config */
-const firebaseConfig = {
-  apiKey: "YOUR_KEY",
-  authDomain: "YOUR_DOMAIN",
-  projectId: "YOUR_PROJECT"
-};
+  async function loadJobs() {
+    const jobList = document.getElementById("jobList");
+    jobList.innerHTML = "";
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+    // 🔥 path ตรงกับที่คุณทำในรูป
+    const querySnapshot = await getDocs(
+      collection(db, "tenants", "tenant_001", "jobs")
+    );
 
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
 
-// ================= REGISTER =================
-window.register = async () => {
+      const div = document.createElement("div");
+      div.style.border = "1px solid #ccc";
+      div.style.margin = "10px";
+      div.style.padding = "10px";
 
-  const user = await createUserWithEmailAndPassword(
-    auth,
-    email.value,
-    password.value
-  );
+      div.innerHTML = `
+        🚗 รถ: ${data.car} <br>
+        👤 ลูกค้า: ${data.customerName} <br>
+        📞 โทร: ${data.phone} <br>
+        🔧 ปัญหา: ${data.problem} <br>
+        💰 ราคา: ${data.price} <br>
+        📊 สถานะ: ${data.status} <br>
+        <hr>
+      `;
 
-  // สร้าง tenant
-  const tenant = await addDoc(collection(db,"tenants"),{
-    name: garageName.value,
-    owner: user.user.uid,
-    created: new Date()
-  });
+      jobList.appendChild(div);
+    });
 
-  // เก็บ tenantId
-  localStorage.setItem("tenantId", tenant.id);
+    if (querySnapshot.empty) {
+      jobList.innerHTML = "❌ ไม่มีข้อมูล";
+    }
+  }
 
-  alert("สมัครสำเร็จ");
-
-  location.href = "index.html"; // ไป dashboard
-};
-
-
-// ================= LOGIN =================
-window.login = async () => {
-
-  const user = await signInWithEmailAndPassword(
-    auth,
-    email.value,
-    password.value
-  );
-
-  // หา tenant ของ user
-  const q = query(
-    collection(db,"tenants"),
-    where("owner","==",user.user.uid)
-  );
-
-  const snap = await getDocs(q);
-
-  snap.forEach(d=>{
-    localStorage.setItem("tenantId", d.id);
-  });
-
-  location.href = "index.html";
-};
-
+  loadJobs();
 </script>
 
 </body>
