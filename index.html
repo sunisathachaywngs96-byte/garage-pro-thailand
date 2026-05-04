@@ -1,67 +1,38 @@
 <!DOCTYPE html>
-<html lang="th">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>NISA AUTO SYSTEM PRO</title>
+  <title>Garage System</title>
 </head>
 <body>
 
-<h1>🚗 NISA AUTO SYSTEM PRO</h1>
-
-<h2>Login</h2>
-<input id="email" placeholder="Email">
-<input id="password" type="password" placeholder="Password">
-<button onclick="login()">Login</button>
-
-<hr>
-
-<h2>ข้อมูลลูกค้า</h2>
-<div id="data"></div>
+<h2>📋 งานในอู่</h2>
+<div id="jobList"></div>
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "👉 ใส่ apiKey จาก Firebase",
-    authDomain: "garage-system-41587.firebaseapp.com",
-    projectId: "garage-system-41587",
-    storageBucket: "garage-system-41587.appspot.com",
-    messagingSenderId: "688480145767",
-    appId: "👉 ใส่ appId"
-  };
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
+const firebaseConfig = {
+  apiKey: "ใส่ของคุณ",
+  authDomain: "garage-system-41587.firebaseapp.com",
+  projectId: "garage-system-41587",
+};
 
-  window.login = async () => {
-    try {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-      await signInWithEmailAndPassword(auth, email, password);
-      alert("✅ Login สำเร็จ");
+onSnapshot(collection(db, "jobs"), (snapshot) => {
+  let html = "";
 
-      loadData();
-    } catch (err) {
-      alert("❌ " + err.message);
-      console.error(err);
-    }
-  };
+  snapshot.forEach(doc => {
+    const job = doc.data();
+    html += `<div>${job.name} - ${job.status}</div>`;
+  });
 
-  async function loadData() {
-    const snapshot = await getDocs(collection(db, "customers"));
-    const dataDiv = document.getElementById("data");
+  document.getElementById("jobList").innerHTML = html;
+});
 
-    dataDiv.innerHTML = "";
-
-    snapshot.forEach(doc => {
-      const d = doc.data();
-      dataDiv.innerHTML += `<p>${d.name || "-"} - ${d.car || "-"}</p>`;
-    });
-  }
 </script>
 
 </body>
