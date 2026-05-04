@@ -1,37 +1,56 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>NISA AUTO SYSTEM PRO</title>
+</head>
+<body>
+
+<h1>🚗 NISA AUTO SYSTEM PRO</h1>
+
+<h2>Login</h2>
+<input id="email" placeholder="Email">
+<input id="password" type="password" placeholder="Password">
+<button onclick="login()">Login</button>
+
+<hr>
+
+<h2>ข้อมูลลูกค้า</h2>
+<div id="data"></div>
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
   import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   const firebaseConfig = {
-    apiKey: "🔥 ใส่ของคุณ",
+    apiKey: "👉 ใส่ apiKey จาก Firebase",
     authDomain: "garage-system-41587.firebaseapp.com",
     projectId: "garage-system-41587",
     storageBucket: "garage-system-41587.appspot.com",
     messagingSenderId: "688480145767",
-    appId: "🔥 ใส่ของคุณ"
+    appId: "👉 ใส่ appId"
   };
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  // LOGIN
   window.login = async () => {
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-
     try {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
       await signInWithEmailAndPassword(auth, email, password);
       alert("✅ Login สำเร็จ");
 
       loadData();
     } catch (err) {
       alert("❌ " + err.message);
+      console.error(err);
     }
   };
 
-  // LOAD DATA
   async function loadData() {
     const snapshot = await getDocs(collection(db, "customers"));
     const dataDiv = document.getElementById("data");
@@ -40,7 +59,10 @@
 
     snapshot.forEach(doc => {
       const d = doc.data();
-      dataDiv.innerHTML += `<p>👤 ${d.name} - ${d.car}</p>`;
+      dataDiv.innerHTML += `<p>${d.name || "-"} - ${d.car || "-"}</p>`;
     });
   }
 </script>
+
+</body>
+</html>
