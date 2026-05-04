@@ -7,6 +7,32 @@
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
+  <script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDAfm7eDJPFiWrUK_U0aqS7yl2Wt_PpjmA",
+  authDomain: "garage-system-41587.firebaseapp.com",
+  projectId: "garage-system-41587",
+  storageBucket: "garage-system-41587.firebasestorage.app",
+  messagingSenderId: "688480145767",
+  appId: "1:688480145767:web:f457e635675df0cbd91fc2"
+};
+
+// init
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// ทดสอบเพิ่มข้อมูล
+window.testAdd = async () => {
+  await addDoc(collection(db, "test"), {
+    name: "NISA",
+    time: Date.now()
+  });
+  alert("เพิ่มข้อมูลแล้ว🔥");
+};
+</script>
 body{
 font-family:Arial,sans-serif;
 background:#081018;
