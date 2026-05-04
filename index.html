@@ -5,26 +5,76 @@
 <title>Garage Pro</title>
 
 <style>
-body { font-family: sans-serif; padding:20px; background:#f5f5f5; }
+body {
+  font-family: sans-serif;
+  padding:20px;
+  background: #0f0f0f; /* ดำเข้ม */
+  color: #f5d27a; /* ทอง */
+}
+
+h2, h3 {
+  color: #d4af37; /* ทองหรู */
+}
+
 .card {
-  background: back;
+  background: linear-gradient(145deg, #1a1a1a, #111);
   padding:15px;
   margin:10px 0;
-  border-radius:10px;
+  border-radius:12px;
+  border: 1px solid #d4af37;
+  box-shadow: 0 0 10px rgba(212,175,55,0.2);
 }
+
+input {
+  width:100%;
+  padding:10px;
+  margin:5px 0;
+  border-radius:8px;
+  border:1px solid #444;
+  background:#0f0f0f;
+  color:#f5d27a;
+}
+
+input::placeholder {
+  color:#888;
+}
+
+/* ปุ่มหลัก */
 button {
-  padding:6px 10px;
+  padding:8px 12px;
   margin:3px;
   border:none;
-  border-radius:6px;
+  border-radius:8px;
   cursor:pointer;
+  font-weight:bold;
 }
-.waiting { background:orange; color:white; }
-.fixing { background:blue; color:white; }
-.done { background:green; color:white; }
-.delete { background:red; color:white; }
-</style>
-</head>
+
+/* ปุ่มเพิ่มงาน */
+button[onclick="addJob()"] {
+  background: linear-gradient(45deg,#d4af37,#b8962e);
+  color:black;
+}
+
+/* ปุ่มสถานะ */
+.waiting {
+  background: #b8860b;
+  color:black;
+}
+
+.fixing {
+  background: #1e90ff;
+  color:white;
+}
+
+.done {
+  background: #2ecc71;
+  color:black;
+}
+
+.delete {
+  background: #c0392b;
+  color:white;
+}
 
 <body>
 
