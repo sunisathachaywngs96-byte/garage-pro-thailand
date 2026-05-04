@@ -2,34 +2,40 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Garage ERP</title>
+<title>Garage SaaS Login</title>
 
 <style>
 body {
   background:#000;
   color:#FFD700;
   font-family:sans-serif;
-  padding:20px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
 }
 
-h1 {color:#FFD700}
-
-.card {
+.box {
   border:1px solid gold;
+  padding:30px;
+  border-radius:10px;
+  width:300px;
+  background:#111;
+}
+
+input {
+  width:100%;
   padding:10px;
   margin:10px 0;
-}
-
-input, button {
-  padding:10px;
-  margin:5px;
-  border-radius:5px;
   border:none;
+  border-radius:5px;
 }
 
 button {
+  width:100%;
+  padding:10px;
   background:gold;
-  color:black;
+  border:none;
   font-weight:bold;
 }
 </style>
@@ -37,68 +43,33 @@ button {
 
 <body>
 
-<h1>🚗 Garage ERP</h1>
+<div class="box">
 
-<!-- DASHBOARD -->
-<div class="card">
-<h3>📊 Dashboard</h3>
-<div id="dash"></div>
-</div>
+<h2>🚗 Garage SaaS</h2>
 
-<!-- ADD JOB -->
-<div class="card">
-<h3>➕ รับรถ</h3>
-<input id="name" placeholder="ชื่อ">
-<input id="phone" placeholder="เบอร์">
-<input id="car" placeholder="รถ">
-<input id="plate" placeholder="ทะเบียน">
-<input id="problem" placeholder="ปัญหา">
-<button onclick="addJob()">บันทึก</button>
-</div>
+<input id="email" placeholder="Email">
+<input id="password" type="password" placeholder="Password">
+<input id="garageName" placeholder="ชื่ออู่ (สมัครใหม่)">
 
-<!-- JOB LIST -->
-<div class="card">
-<h3>📋 งาน</h3>
-<div id="jobs"></div>
-</div>
+<button onclick="register()">สมัคร</button>
+<button onclick="login()">เข้าสู่ระบบ</button>
 
-<!-- POS -->
-<div class="card">
-<h3>🧾 POS</h3>
-<input id="pname" placeholder="สินค้า">
-<input id="pprice" placeholder="ขาย">
-<input id="pcost" placeholder="ต้นทุน">
-<input id="pqty" placeholder="จำนวน">
-<button onclick="addItem()">เพิ่ม</button>
-
-<div id="cart"></div>
-<button onclick="checkout()">ชำระเงิน</button>
-</div>
-
-<!-- AI -->
-<div class="card">
-<h3>🤖 AI วิเคราะห์</h3>
-<div id="ai"></div>
-<button onclick="analyze()">วิเคราะห์</button>
-</div>
-
-<!-- CHECK STATUS -->
-<div class="card">
-<h3>🔍 ลูกค้าเช็คสถานะ</h3>
-<input id="cphone" placeholder="เบอร์">
-<button onclick="check()">เช็ค</button>
-<div id="result"></div>
 </div>
 
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-getFirestore, collection, addDoc, onSnapshot,
-updateDoc, doc, query, where, getDocs
+getAuth, createUserWithEmailAndPassword,
+signInWithEmailAndPassword
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+import {
+getFirestore, addDoc, collection, query,
+where, getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-/* 🔥 ใส่ Firebase ของคุณ */
+/* 🔥 ใส่ config */
 const firebaseConfig = {
   apiKey: "YOUR_KEY",
   authDomain: "YOUR_DOMAIN",
@@ -106,160 +77,60 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 const db = getFirestore(app);
 
-let cart = [];
 
+// ================= REGISTER =================
+window.register = async () => {
 
-// ================= JOB =================
-window.addJob = async () => {
+  const user = await createUserWithEmailAndPassword(
+    auth,
+    email.value,
+    password.value
+  );
 
-  await addDoc(collection(db, "jobs"), {
-    name: name.value,
-    phone: phone.value,
-    car: car.value,
-    plate: plate.value,
-    problem: problem.value,
-    status: "รอซ่อม",
-    price: 0,
+  // สร้าง tenant
+  const tenant = await addDoc(collection(db,"tenants"),{
+    name: garageName.value,
+    owner: user.user.uid,
     created: new Date()
   });
 
-  alert("เพิ่มงานแล้ว");
+  // เก็บ tenantId
+  localStorage.setItem("tenantId", tenant.id);
+
+  alert("สมัครสำเร็จ");
+
+  location.href = "index.html"; // ไป dashboard
 };
 
 
-// ================= LOAD JOB =================
-onSnapshot(collection(db, "jobs"), snap => {
+// ================= LOGIN =================
+window.login = async () => {
 
-  let html = "";
-  let total = 0, waiting = 0, done = 0;
+  const user = await signInWithEmailAndPassword(
+    auth,
+    email.value,
+    password.value
+  );
 
-  snap.forEach(d => {
-    const data = d.data();
-    total++;
+  // หา tenant ของ user
+  const q = query(
+    collection(db,"tenants"),
+    where("owner","==",user.user.uid)
+  );
 
-    if(data.status === "รอซ่อม") waiting++;
-    if(data.status === "เสร็จแล้ว") done++;
-
-    html += `
-    <div class="card">
-      ${data.name} (${data.car})<br>
-      ${data.status}<br>
-
-      <button onclick="setStatus('${d.id}','กำลังซ่อม')">กำลังซ่อม</button>
-      <button onclick="setStatus('${d.id}','เสร็จแล้ว')">เสร็จ</button>
-
-      <button onclick="bill(${JSON.stringify(data)})">ใบเสร็จ</button>
-    </div>`;
-  });
-
-  jobs.innerHTML = html;
-
-  dash.innerHTML = `
-    ทั้งหมด: ${total} |
-    รอซ่อม: ${waiting} |
-    เสร็จ: ${done}
-  `;
-});
-
-
-// ================= STATUS =================
-window.setStatus = async (id, status) => {
-  await updateDoc(doc(db,"jobs",id),{status});
-};
-
-
-// ================= POS =================
-window.addItem = () => {
-  cart.push({
-    name:pname.value,
-    price:Number(pprice.value),
-    cost:Number(pcost.value),
-    qty:Number(pqty.value)
-  });
-
-  cartDiv.innerHTML = cart.map(i =>
-    `${i.name} x${i.qty}`
-  ).join("<br>");
-};
-
-
-window.checkout = async () => {
-
-  let total = 0;
-  let profit = 0;
-
-  cart.forEach(i=>{
-    total += i.price*i.qty;
-    profit += (i.price-i.cost)*i.qty;
-  });
-
-  await addDoc(collection(db,"sales"),{
-    items:cart,
-    total,
-    profit,
-    created:new Date()
-  });
-
-  cart = [];
-  cartDiv.innerHTML="";
-  alert("ขายสำเร็จ");
-};
-
-
-// ================= AI =================
-window.analyze = async () => {
-
-  const snap = await getDocs(collection(db,"sales"));
-
-  let revenue=0, profit=0;
-
-  snap.forEach(d=>{
-    revenue += d.data().total;
-    profit += d.data().profit;
-  });
-
-  let margin = ((profit/revenue)*100||0).toFixed(2);
-
-  ai.innerHTML = `
-  รายได้: ${revenue} บาท<br>
-  กำไร: ${profit} บาท<br>
-  Margin: ${margin}%<br>
-  ${margin<20?"❌ ปรับราคา":margin<40?"⚠️ กลาง":"🔥 ดีมาก"}
-  `;
-};
-
-
-// ================= RECEIPT =================
-window.bill = (data) => {
-  const w = window.open();
-  w.document.write(`
-  <h2>Garage</h2>
-  ลูกค้า: ${data.name}<br>
-  รถ: ${data.car}<br>
-  ราคา: ${data.price}<br>
-  <button onclick="window.print()">Print</button>
-  `);
-};
-
-
-// ================= CUSTOMER CHECK =================
-window.check = async () => {
-
-  const q = query(collection(db,"jobs"),where("phone","==",cphone.value));
   const snap = await getDocs(q);
 
-  let html="";
   snap.forEach(d=>{
-    html += `${d.data().car} - ${d.data().status}<br>`;
+    localStorage.setItem("tenantId", d.id);
   });
 
-  result.innerHTML = html;
+  location.href = "index.html";
 };
 
 </script>
+
 </body>
 </html>
-
-
