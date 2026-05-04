@@ -3,23 +3,136 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>NISA AUTO</title>
+<title>NISA AUTO CAR SERVICE</title>
+
 <style>
 body{
 margin:0;
 font-family:Arial;
 background:#081018;
 color:white;
-text-align:center;
-padding:50px;
 }
-h1{color:#00ff88;}
+header{
+background:#00c853;
+padding:25px;
+text-align:center;
+font-size:34px;
+font-weight:bold;
+}
+.box{
+padding:20px;
+max-width:1100px;
+margin:auto;
+}
+.card{
+background:#111827;
+padding:18px;
+border-radius:14px;
+margin-bottom:15px;
+}
+h2{color:#00e676}
+input,button{
+padding:12px;
+margin:5px;
+border:none;
+border-radius:10px;
+}
+input{
+width:200px;
+}
+button{
+background:#00c853;
+color:white;
+font-weight:bold;
+}
+.item{
+padding:12px;
+background:#0f172a;
+margin-top:8px;
+border-radius:10px;
+}
 </style>
 </head>
+
 <body>
 
-<h1>NISA AUTO CAR SERVICE</h1>
-<p>ระบบกลับมาออนไลน์แล้ว</p>
+<header>NISA AUTO CAR SERVICE</header>
+
+<div class="box">
+
+<div class="card">
+<h2>เพิ่มลูกค้าใหม่</h2>
+
+<input id="name" placeholder="ชื่อลูกค้า">
+<input id="car" placeholder="รถยนต์">
+<input id="plate" placeholder="ทะเบียน">
+<button onclick="saveData()">บันทึก</button>
+</div>
+
+<div class="card">
+<h2>รายการลูกค้าจริงจาก Firebase</h2>
+<div id="list"></div>
+</div>
+
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+getFirestore,
+collection,
+addDoc,
+getDocs
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+apiKey: "ใส่ของคุณ",
+authDomain: "ใส่ของคุณ",
+projectId: "ใส่ของคุณ",
+storageBucket: "ใส่ของคุณ",
+messagingSenderId: "ใส่ของคุณ",
+appId: "ใส่ของคุณ"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+window.saveData = async function(){
+
+const name=document.getElementById("name").value;
+const car=document.getElementById("car").value;
+const plate=document.getElementById("plate").value;
+
+await addDoc(collection(db,"customers"),{
+name,car,plate,status:"ลูกค้าใหม่"
+});
+
+loadData();
+}
+
+async function loadData(){
+
+const querySnapshot = await getDocs(collection(db,"customers"));
+
+let html="";
+
+querySnapshot.forEach((doc)=>{
+const d=doc.data();
+
+html += `
+<div class="item">
+${d.name} | ${d.car} | ${d.plate}
+</div>
+`;
+});
+
+document.getElementById("list").innerHTML=html;
+}
+
+loadData();
+
+</script>
 
 </body>
 </html>
