@@ -27,7 +27,7 @@ async function loadJobs() {
 
   querySnapshot.forEach((doc) => {
     const data = doc.data(); // ⭐ สำคัญ
-
+console.log(data);
     box.innerHTML += `
       <div style="border:1px solid #ccc;padding:10px;margin:10px;">
         🚗 รถ: ${data.car || "-"}<br>
