@@ -1,38 +1,47 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
   <title>Garage System</title>
 </head>
 <body>
 
 <h2>📋 งานในอู่</h2>
-<div id="jobList"></div>
+<div id="jobs"></div>
 
 <script type="module">
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+// 🔥 Firebase config (ของคุณ)
 const firebaseConfig = {
-  apiKey: "ใส่ของคุณ",
-  authDomain: "garage-system-41587.firebaseapp.com",
+  apiKey: "YOUR_KEY",
+  authDomain: "YOUR_DOMAIN",
   projectId: "garage-system-41587",
 };
 
+// init
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-onSnapshot(collection(db, "jobs"), (snapshot) => {
-  let html = "";
+// โหลดข้อมูล
+const querySnapshot = await getDocs(collection(db, "jobs"));
 
-  snapshot.forEach(doc => {
-    const job = doc.data();
-    html += `<div>${job.name} - ${job.status}</div>`;
-  });
+const jobsDiv = document.getElementById("jobs");
 
-  document.getElementById("jobList").innerHTML = html;
+querySnapshot.forEach(doc => {
+  const job = doc.data();
+
+  jobsDiv.innerHTML += `
+    <div style="border:1px solid #ccc; padding:10px; margin:10px;">
+      <b>👤 ${job.name}</b><br>
+      📞 ${job.phone}<br>
+      🚗 ${job.car} (${job.plate})<br>
+      🔧 ${job.problem}<br>
+      📌 สถานะ: <b>${job.status}</b>
+    </div>
+  `;
 });
-
 </script>
 
 </body>
