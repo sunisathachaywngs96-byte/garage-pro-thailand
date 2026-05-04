@@ -1,53 +1,114 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8">
-<title>Garage System</title>
+  <meta charset="UTF-8">
+  <title>Garage System</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    .card {
+      border: 1px solid #ccc;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 10px;
+    }
+    button {
+      margin: 5px;
+      padding: 6px 10px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .waiting { background: orange; color: white; }
+    .fixing { background: blue; color: white; }
+    .done { background: green; color: white; }
+    .delete { background: red; color: white; }
+  </style>
+</head>
+<body>
+
+<h2>📋 รายการงานซ่อม (Realtime)</h2>
+
+<div id="app">กำลังโหลด...</div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  query,
+  orderBy,
+  limit,
+  onSnapshot,
+  doc,
+  updateDoc,
+  deleteDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+// 🔥 ใส่ config ของคุณ
 const firebaseConfig = {
   apiKey: "YOUR_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "garage-system-41587",
+  authDomain: "YOUR_DOMAIN",
+  projectId: "garage-system-41587"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-async function loadJobs() {
-  const querySnapshot = await getDocs(
-    collection(db, "tenants", "tenant_001", "jobs")
-  );
+const box = document.getElementById("app");
 
-  const box = document.getElementById("jobs");
+// 🎯 query เอา “งานล่าสุด”
+const q = query(
+  collection(db, "tenants", "tenant_001", "jobs"),
+  orderBy("createdAt", "desc"),
+  limit(1)
+);
+
+// 🔄 realtime listener
+onSnapshot(q, (snapshot) => {
   box.innerHTML = "";
 
-  querySnapshot.forEach((doc) => {
-    const data = doc.data(); // ⭐ สำคัญ
-console.log(data);
-    console.log(doc.id, data);
+  if (snapshot.empty) {
+    box.innerHTML = "ไม่มีข้อมูล";
+    return;
+  }
+
+  snapshot.forEach((docSnap) => {
+    const data = docSnap.data();
+    const id = docSnap.id;
+
     box.innerHTML += `
-      <div style="border:1px solid #ccc;padding:10px;margin:10px;">
-        🚗 รถ: ${data.car || "-"}<br>
-        👤 ลูกค้า: ${data.customerName || "-"}<br>
-        📞 โทร: ${data.phone || "-"}<br>
-        🛠 ปัญหา: ${data.problem || "-"}<br>
-        💰 ราคา: ${data.price || 0}<br>
-        📊 สถานะ: ${data.status || "-"}
+      <div class="card">
+        🚗 รถ: ${data.car ?? "-"} <br>
+        👤 ลูกค้า: ${data.customerName ?? "-"} <br>
+        📞 โทร: ${data.phone ?? "-"} <br>
+        🛠 ปัญหา: ${data.problem ?? "-"} <br>
+        💰 ราคา: ${data.price ?? 0} <br>
+        📊 สถานะ: <b>${data.status ?? "waiting"}</b> <br><br>
+
+        <button class="waiting" onclick="updateStatus('${id}','waiting')">รอ</button>
+        <button class="fixing" onclick="updateStatus('${id}','fixing')">กำลังซ่อม</button>
+        <button class="done" onclick="updateStatus('${id}','done')">เสร็จแล้ว</button>
+
+        <button class="delete" onclick="deleteJob('${id}')">ลบ</button>
       </div>
     `;
   });
-}
+});
 
-loadJobs();
+// 🟢 เปลี่ยนสถานะ
+window.updateStatus = async (id, status) => {
+  const ref = doc(db, "tenants", "tenant_001", "jobs", id);
+  await updateDoc(ref, { status });
+};
+
+// 🗑 ลบงาน
+window.deleteJob = async (id) => {
+  if (!confirm("ลบงานนี้?")) return;
+  const ref = doc(db, "tenants", "tenant_001", "jobs", id);
+  await deleteDoc(ref);
+};
+
 </script>
-</head>
 
-<body>
-<h2>📋 รายการงานซ่อม</h2>
-<div id="jobs"></div>
 </body>
 </html>
