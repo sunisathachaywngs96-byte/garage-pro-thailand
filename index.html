@@ -1,124 +1,103 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <title>NISA AUTO LOGIN</title>
+<meta charset="UTF-8">
+<title>NISA AUTO SYSTEM</title>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "YOUR_KEY",
+  authDomain: "garage-system-41587.firebaseapp.com",
+  projectId: "garage-system-41587"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth();
+const db = getFirestore();
+
+window.login = async function () {
+  const email = document.getElementById("email").value;
+  const pass = document.getElementById("pass").value;
+
+  await signInWithEmailAndPassword(auth, email, pass);
+};
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) return;
+
+  const userDoc = await getDoc(doc(db, "users", user.uid));
+  const role = userDoc.data().role;
+
+  if (role === "admin") {
+    document.getElementById("adminPanel").style.display = "block";
+    loadAllJobs();
+  } else {
+    document.getElementById("customerPanel").style.display = "block";
+    loadMyCar(user.uid);
+  }
+});
+
+async function loadMyCar(uid) {
+  const q = query(collection(db, "customers"), where("userId", "==", uid));
+  const snapshot = await getDocs(q);
+
+  let html = "";
+  snapshot.forEach(doc => {
+    const d = doc.data();
+    html += `
+      <div style="background:#111;color:#0f0;padding:10px;margin:10px">
+        🚗 ${d.car} (${d.plate}) <br>
+        สถานะ: ${d.status}
+      </div>
+    `;
+  });
+
+  document.getElementById("mycar").innerHTML = html;
+}
+
+async function loadAllJobs() {
+  const snapshot = await getDocs(collection(db, "customers"));
+
+  let html = "";
+  snapshot.forEach(doc => {
+    const d = doc.data();
+    html += `
+      <div style="background:#222;color:#fff;padding:10px;margin:10px">
+        👤 ${d.name} - ${d.car} <br>
+        สถานะ: ${d.status}
+      </div>
+    `;
+  });
+
+  document.getElementById("adminJobs").innerHTML = html;
+}
+
+</script>
 </head>
-<body style="font-family:sans-serif; padding:20px">
 
-  <h2>🚗 NISA AUTO SYSTEM</h2>
+<body style="font-family:sans-serif;background:#eee">
 
-  <!-- LOGIN -->
-  <h3>Login</h3>
-  <input id="email" placeholder="Email"><br><br>
-  <input id="password" type="password" placeholder="Password"><br><br>
-  <button onclick="login()">Login</button>
-  <button onclick="register()">สมัคร</button>
+<h1>NISA AUTO SYSTEM</h1>
 
-  <hr>
+<input id="email" placeholder="Email">
+<input id="pass" placeholder="Password" type="password">
+<button onclick="login()">Login</button>
 
-  <!-- USER INFO -->
-  <h3>👤 User</h3>
-  <div id="userInfo">ยังไม่ login</div>
+<hr>
 
-  <hr>
+<div id="adminPanel" style="display:none">
+  <h2>🔧 Admin Dashboard</h2>
+  <div id="adminJobs"></div>
+</div>
 
-  <button onclick="logout()">Logout</button>
-
-  <script type="module">
-
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import {
-      getAuth,
-      createUserWithEmailAndPassword,
-      signInWithEmailAndPassword,
-      onAuthStateChanged,
-      signOut
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-    import {
-      getFirestore,
-      doc,
-      setDoc,
-      getDoc
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-    // 🔥 YOUR CONFIG
-    const firebaseConfig = {
-      apiKey: "AIzaSyDAfm7eDJPFiWrUK_U0aqS7yl2Wt_PpjmA",
-      authDomain: "garage-system-41587.firebaseapp.com",
-      projectId: "garage-system-41587",
-      storageBucket: "garage-system-41587.firebasestorage.app",
-      messagingSenderId: "688480145767",
-      appId: "1:688480145767:web:f457e635675df0cbd91fc2",
-      measurementId: "G-X8ZYNK9JRS"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    // REGISTER
-    window.register = async function () {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-
-      const userCred = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCred.user;
-
-      // 🔥 สร้าง user ใน Firestore
-      await setDoc(doc(db, "users", user.uid), {
-        email: user.email,
-        role: "customer", // เปลี่ยนเป็น admin ได้ทีหลัง
-        createdAt: Date.now()
-      });
-
-      alert("สมัครสำเร็จ");
-    };
-
-    // LOGIN
-    window.login = async function () {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-
-      await signInWithEmailAndPassword(auth, email, password);
-    };
-
-    // LOGOUT
-    window.logout = async function () {
-      await signOut(auth);
-    };
-
-    // CHECK LOGIN
-    onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        const docRef = doc(db, "users", user.uid);
-        const docSnap = await getDoc(docRef);
-
-        let role = "unknown";
-        if (docSnap.exists()) {
-          role = docSnap.data().role;
-        }
-
-        document.getElementById("userInfo").innerHTML = `
-          UID: ${user.uid}<br>
-          Email: ${user.email}<br>
-          Role: ${role}
-        `;
-
-        // 🔥 ตรงนี้คือจุดแยกหน้า
-        if (role === "admin") {
-          console.log("ไปหน้า Admin");
-        } else {
-          console.log("ไปหน้า ลูกค้า");
-        }
-
-      } else {
-        document.getElementById("userInfo").innerHTML = "ยังไม่ login";
-      }
-    });
-
-  </script>
+<div id="customerPanel" style="display:none">
+  <h2>🚗 รถของฉัน</h2>
+  <div id="mycar"></div>
+</div>
 
 </body>
 </html>
