@@ -1,46 +1,108 @@
 <!DOCTYPE html>
-<html>
+<html lang="th">
 <head>
   <meta charset="UTF-8">
-  <title>Garage System</title>
+  <title>Garage Dashboard</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f5f6fa;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .card {
+      padding: 20px;
+      border-radius: 10px;
+      color: white;
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    .all { background: #2f3640; }
+    .wait { background: #fbc531; }
+    .doing { background: #00a8ff; }
+    .done { background: #4cd137; }
+
+    .jobs {
+      margin-top: 20px;
+    }
+
+    .job {
+      background: white;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 10px;
+      border-left: 5px solid #ccc;
+    }
+  </style>
 </head>
 <body>
 
-<h2>📋 งานในอู่</h2>
-<div id="jobs"></div>
+<h1>📊 Dashboard อู่</h1>
+
+<div class="cards">
+  <div class="card all">ทั้งหมด: <span id="all">0</span></div>
+  <div class="card wait">รอซ่อม: <span id="wait">0</span></div>
+  <div class="card doing">กำลังซ่อม: <span id="doing">0</span></div>
+  <div class="card done">เสร็จแล้ว: <span id="done">0</span></div>
+</div>
+
+<div class="jobs" id="jobs"></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// 🔥 Firebase config (ของคุณ)
 const firebaseConfig = {
   apiKey: "YOUR_KEY",
-  authDomain: "YOUR_DOMAIN",
-  projectId: "garage-system-41587",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT",
 };
 
-// init
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// โหลดข้อมูล
-const querySnapshot = await getDocs(collection(db, "jobs"));
-
 const jobsDiv = document.getElementById("jobs");
 
-querySnapshot.forEach(doc => {
-  const job = doc.data();
+onSnapshot(collection(db, "jobs"), (snapshot) => {
+  jobsDiv.innerHTML = "";
 
-  jobsDiv.innerHTML += `
-    <div style="border:1px solid #ccc; padding:10px; margin:10px;">
-      <b>👤 ${job.name}</b><br>
-      📞 ${job.phone}<br>
-      🚗 ${job.car} (${job.plate})<br>
-      🔧 ${job.problem}<br>
-      📌 สถานะ: <b>${job.status}</b>
-    </div>
-  `;
+  let all = 0, wait = 0, doing = 0, done = 0;
+
+  snapshot.forEach(doc => {
+    const j = doc.data();
+    all++;
+
+    if (j.status === "รอซ่อม") wait++;
+    if (j.status === "กำลังซ่อม") doing++;
+    if (j.status === "เสร็จแล้ว") done++;
+
+    jobsDiv.innerHTML += `
+      <div class="job">
+        👤 ${j.name}<br>
+        📞 ${j.phone}<br>
+        🚗 ${j.car} (${j.plate})<br>
+        🔧 ${j.problem}<br>
+        📌 สถานะ: ${j.status}
+      </div>
+    `;
+  });
+
+  document.getElementById("all").innerText = all;
+  document.getElementById("wait").innerText = wait;
+  document.getElementById("doing").innerText = doing;
+  document.getElementById("done").innerText = done;
 });
 </script>
 
