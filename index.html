@@ -1,173 +1,265 @@
 <!DOCTYPE html>
-<html lang="th">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>Garage Luxury</title>
+<title>Garage ERP</title>
 
 <style>
 body {
-  background:#0f0f0f;
-  color:#f5d27a;
+  background:#000;
+  color:#FFD700;
   font-family:sans-serif;
-  margin:0;
   padding:20px;
 }
 
-h1 { color:#ffd700; }
+h1 {color:#FFD700}
 
-input, select, button {
-  padding:8px;
+.card {
+  border:1px solid gold;
+  padding:10px;
+  margin:10px 0;
+}
+
+input, button {
+  padding:10px;
   margin:5px;
-  border-radius:6px;
+  border-radius:5px;
   border:none;
 }
 
 button {
-  background:#ffd700;
+  background:gold;
   color:black;
   font-weight:bold;
-  cursor:pointer;
-}
-
-.card {
-  background:#1a1a1a;
-  border:1px solid #ffd70044;
-  padding:15px;
-  margin-top:10px;
-  border-radius:10px;
-}
-
-.stats {
-  display:flex;
-  gap:10px;
-}
-
-.stat {
-  flex:1;
-  background:#1a1a1a;
-  padding:10px;
-  border-radius:10px;
-  text-align:center;
-  border:1px solid #ffd70044;
 }
 </style>
 </head>
 
 <body>
 
-<h1>🏎️ Garage Luxury Dashboard</h1>
+<h1>🚗 Garage ERP</h1>
 
-<!-- 📊 Dashboard -->
-<div class="stats">
-  <div class="stat">ทั้งหมด <br><b id="all">0</b></div>
-  <div class="stat">รอซ่อม <br><b id="wait">0</b></div>
-  <div class="stat">กำลังซ่อม <br><b id="doing">0</b></div>
-  <div class="stat">เสร็จแล้ว <br><b id="done">0</b></div>
-  <div class="stat">💰 รายรับ <br><b id="income">0</b></div>
+<!-- DASHBOARD -->
+<div class="card">
+<h3>📊 Dashboard</h3>
+<div id="dash"></div>
 </div>
 
-<!-- ➕ เพิ่มงาน -->
-<h2>➕ รับรถ</h2>
-<input id="name" placeholder="ชื่อลูกค้า">
+<!-- ADD JOB -->
+<div class="card">
+<h3>➕ รับรถ</h3>
+<input id="name" placeholder="ชื่อ">
 <input id="phone" placeholder="เบอร์">
 <input id="car" placeholder="รถ">
 <input id="plate" placeholder="ทะเบียน">
 <input id="problem" placeholder="ปัญหา">
 <button onclick="addJob()">บันทึก</button>
+</div>
 
-<!-- 📋 งาน -->
-<h2>📋 งานทั้งหมด</h2>
+<!-- JOB LIST -->
+<div class="card">
+<h3>📋 งาน</h3>
 <div id="jobs"></div>
+</div>
+
+<!-- POS -->
+<div class="card">
+<h3>🧾 POS</h3>
+<input id="pname" placeholder="สินค้า">
+<input id="pprice" placeholder="ขาย">
+<input id="pcost" placeholder="ต้นทุน">
+<input id="pqty" placeholder="จำนวน">
+<button onclick="addItem()">เพิ่ม</button>
+
+<div id="cart"></div>
+<button onclick="checkout()">ชำระเงิน</button>
+</div>
+
+<!-- AI -->
+<div class="card">
+<h3>🤖 AI วิเคราะห์</h3>
+<div id="ai"></div>
+<button onclick="analyze()">วิเคราะห์</button>
+</div>
+
+<!-- CHECK STATUS -->
+<div class="card">
+<h3>🔍 ลูกค้าเช็คสถานะ</h3>
+<input id="cphone" placeholder="เบอร์">
+<button onclick="check()">เช็ค</button>
+<div id="result"></div>
+</div>
 
 <script type="module">
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-  getFirestore, collection, addDoc,
-  onSnapshot, doc, updateDoc
+getFirestore, collection, addDoc, onSnapshot,
+updateDoc, doc, query, where, getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+/* 🔥 ใส่ Firebase ของคุณ */
 const firebaseConfig = {
   apiKey: "YOUR_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT",
+  authDomain: "YOUR_DOMAIN",
+  projectId: "YOUR_PROJECT"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const jobsDiv = document.getElementById("jobs");
+let cart = [];
 
+
+// ================= JOB =================
 window.addJob = async () => {
-  await addDoc(collection(db,"jobs"),{
+
+  await addDoc(collection(db, "jobs"), {
     name: name.value,
     phone: phone.value,
     car: car.value,
     plate: plate.value,
     problem: problem.value,
-    status:"รอซ่อม",
-    price:0
-  });
-};
-
-window.updateStatus = async (id,status) => {
-  const ref = doc(db,"jobs",id);
-  await updateDoc(ref,{status});
-};
-
-window.savePrice = async (id) => {
-  const price = prompt("ใส่ราคางาน:");
-  if(!price) return;
-
-  const ref = doc(db,"jobs",id);
-  await updateDoc(ref,{
-    price:Number(price),
-    status:"เสร็จแล้ว"
-  });
-};
-
-onSnapshot(collection(db,"jobs"), (snap) => {
-  jobsDiv.innerHTML="";
-
-  let all=0,wait=0,doing=0,done=0,income=0;
-
-  snap.forEach(d=>{
-    const j = d.data();
-    all++;
-
-    if(j.status==="รอซ่อม") wait++;
-    if(j.status==="กำลังซ่อม") doing++;
-    if(j.status==="เสร็จแล้ว") done++;
-
-    income += j.price || 0;
-
-    jobsDiv.innerHTML += `
-      <div class="card">
-        👤 ${j.name}<br>
-        📞 ${j.phone}<br>
-        🚗 ${j.car} (${j.plate})<br>
-        🔧 ${j.problem}<br>
-        📌 ${j.status}<br><br>
-
-        <button onclick="updateStatus('${d.id}','กำลังซ่อม')">เริ่มซ่อม</button>
-        <button onclick="savePrice('${d.id}')">ปิดงาน + รับเงิน</button>
-      </div>
-    `;
+    status: "รอซ่อม",
+    price: 0,
+    created: new Date()
   });
 
-  allEl.innerText=all;
-  waitEl.innerText=wait;
-  doingEl.innerText=doing;
-  doneEl.innerText=done;
-  incomeEl.innerText=income + " บาท";
+  alert("เพิ่มงานแล้ว");
+};
+
+
+// ================= LOAD JOB =================
+onSnapshot(collection(db, "jobs"), snap => {
+
+  let html = "";
+  let total = 0, waiting = 0, done = 0;
+
+  snap.forEach(d => {
+    const data = d.data();
+    total++;
+
+    if(data.status === "รอซ่อม") waiting++;
+    if(data.status === "เสร็จแล้ว") done++;
+
+    html += `
+    <div class="card">
+      ${data.name} (${data.car})<br>
+      ${data.status}<br>
+
+      <button onclick="setStatus('${d.id}','กำลังซ่อม')">กำลังซ่อม</button>
+      <button onclick="setStatus('${d.id}','เสร็จแล้ว')">เสร็จ</button>
+
+      <button onclick="bill(${JSON.stringify(data)})">ใบเสร็จ</button>
+    </div>`;
+  });
+
+  jobs.innerHTML = html;
+
+  dash.innerHTML = `
+    ทั้งหมด: ${total} |
+    รอซ่อม: ${waiting} |
+    เสร็จ: ${done}
+  `;
 });
 
-const allEl = document.getElementById("all");
-const waitEl = document.getElementById("wait");
-const doingEl = document.getElementById("doing");
-const doneEl = document.getElementById("done");
-const incomeEl = document.getElementById("income");
+
+// ================= STATUS =================
+window.setStatus = async (id, status) => {
+  await updateDoc(doc(db,"jobs",id),{status});
+};
+
+
+// ================= POS =================
+window.addItem = () => {
+  cart.push({
+    name:pname.value,
+    price:Number(pprice.value),
+    cost:Number(pcost.value),
+    qty:Number(pqty.value)
+  });
+
+  cartDiv.innerHTML = cart.map(i =>
+    `${i.name} x${i.qty}`
+  ).join("<br>");
+};
+
+
+window.checkout = async () => {
+
+  let total = 0;
+  let profit = 0;
+
+  cart.forEach(i=>{
+    total += i.price*i.qty;
+    profit += (i.price-i.cost)*i.qty;
+  });
+
+  await addDoc(collection(db,"sales"),{
+    items:cart,
+    total,
+    profit,
+    created:new Date()
+  });
+
+  cart = [];
+  cartDiv.innerHTML="";
+  alert("ขายสำเร็จ");
+};
+
+
+// ================= AI =================
+window.analyze = async () => {
+
+  const snap = await getDocs(collection(db,"sales"));
+
+  let revenue=0, profit=0;
+
+  snap.forEach(d=>{
+    revenue += d.data().total;
+    profit += d.data().profit;
+  });
+
+  let margin = ((profit/revenue)*100||0).toFixed(2);
+
+  ai.innerHTML = `
+  รายได้: ${revenue} บาท<br>
+  กำไร: ${profit} บาท<br>
+  Margin: ${margin}%<br>
+  ${margin<20?"❌ ปรับราคา":margin<40?"⚠️ กลาง":"🔥 ดีมาก"}
+  `;
+};
+
+
+// ================= RECEIPT =================
+window.bill = (data) => {
+  const w = window.open();
+  w.document.write(`
+  <h2>Garage</h2>
+  ลูกค้า: ${data.name}<br>
+  รถ: ${data.car}<br>
+  ราคา: ${data.price}<br>
+  <button onclick="window.print()">Print</button>
+  `);
+};
+
+
+// ================= CUSTOMER CHECK =================
+window.check = async () => {
+
+  const q = query(collection(db,"jobs"),where("phone","==",cphone.value));
+  const snap = await getDocs(q);
+
+  let html="";
+  snap.forEach(d=>{
+    html += `${d.data().car} - ${d.data().status}<br>`;
+  });
+
+  result.innerHTML = html;
+};
 
 </script>
-
 </body>
 </html>
+
+
