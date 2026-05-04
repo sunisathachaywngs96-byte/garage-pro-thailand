@@ -1,170 +1,79 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8">
-<title>NISA AUTO SYSTEM PRO</title>
-
-<style>
-body {
-  font-family: Arial;
-  background:#f4f6f9;
-  margin:0;
-}
-
-header {
-  background:#111;
-  color:#fff;
-  padding:15px;
-  font-size:20px;
-}
-
-.container {
-  padding:15px;
-}
-
-input, button {
-  padding:10px;
-  margin:5px;
-}
-
-button {
-  background:#111;
-  color:#fff;
-  border:none;
-  cursor:pointer;
-}
-
-.card {
-  background:#fff;
-  padding:10px;
-  margin:10px 0;
-  border-radius:10px;
-  box-shadow:0 2px 5px rgba(0,0,0,0.1);
-}
-</style>
+  <meta charset="UTF-8">
+  <title>NISA AUTO SYSTEM PRO</title>
 </head>
 
 <body>
+  <h1>🚗 NISA AUTO SYSTEM PRO</h1>
 
-<header>🚗 NISA AUTO SYSTEM PRO</header>
-
-<div class="container">
-
-<!-- LOGIN -->
-<div id="loginBox">
-  <h3>Login</h3>
+  <h2>Login</h2>
   <input id="email" placeholder="Email">
   <input id="password" type="password" placeholder="Password">
   <button onclick="login()">Login</button>
-</div>
 
-<!-- APP -->
-<div id="app" style="display:none">
+  <hr>
 
-<h3>เพิ่มลูกค้า</h3>
-<input id="name" placeholder="ชื่อลูกค้า">
-<input id="phone" placeholder="เบอร์">
-<input id="car" placeholder="รถ">
-<input id="plate" placeholder="ทะเบียน">
-<button onclick="addCustomer()">บันทึก</button>
+  <h2>ข้อมูลลูกค้า</h2>
+  <div id="data"></div>
 
-<h3>รายการลูกค้า</h3>
-<div id="list"></div>
+  <script type="module">
 
-</div>
+    // 🔥 Firebase SDK
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-</div>
+    // 🔥 config ของคุณ (ที่แคปมา)
+    const firebaseConfig = {
+      apiKey: "ใส่ของคุณ",
+      authDomain: "garage-system-41587.firebaseapp.com",
+      projectId: "garage-system-41587",
+      storageBucket: "garage-system-41587.appspot.com",
+      messagingSenderId: "688480145767",
+      appId: "1:688480145767:web:xxxxxxxx"
+    };
 
-<script type="module">
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-// 🔥 Firebase Config (ของคุณ)
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "garage-system-41587.firebaseapp.com",
-  projectId: "garage-system-41587",
-  storageBucket: "garage-system-41587.appspot.com",
-  messagingSenderId: "XXXX",
-  appId: "XXXX"
-};
+    // 🔥 LOGIN
+    window.login = async () => {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
 
-// IMPORT
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        alert("✅ Login สำเร็จ");
+        loadData();
+      } catch (err) {
+        alert("❌ " + err.message);
+      }
+    };
 
-// INIT
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+    // 🔥 ดึงข้อมูล Firestore
+    async function loadData() {
+      const querySnapshot = await getDocs(collection(db, "customers"));
+      let html = "";
 
-// LOGIN
-window.login = async () => {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
+      querySnapshot.forEach((doc) => {
+        const d = doc.data();
+        html += `
+          <div style="border:1px solid #ccc; padding:10px; margin:10px;">
+            <b>${d.name}</b><br>
+            📞 ${d.Phone}<br>
+            🚗 ${d.Car}<br>
+            🔢 ${d.plate}<br>
+            📌 ${d.status}
+          </div>
+        `;
+      });
 
-  try {
-    await signInWithEmailAndPassword(auth, email, password);
-    document.getElementById("loginBox").style.display = "none";
-    document.getElementById("app").style.display = "block";
-    loadData();
-  } catch(e) {
-    alert("Login ผิด");
-  }
-};
+      document.getElementById("data").innerHTML = html;
+    }
 
-// ADD
-window.addCustomer = async () => {
-  const name = document.getElementById("name").value;
-  const phone = document.getElementById("phone").value;
-  const car = document.getElementById("car").value;
-  const plate = document.getElementById("plate").value;
-
-  await addDoc(collection(db, "customers"), {
-    name, phone, car, plate,
-    status: "ลูกค้าใหม่"
-  });
-
-  loadData();
-};
-
-// LOAD
-async function loadData(){
-  const list = document.getElementById("list");
-  list.innerHTML = "";
-
-  const querySnapshot = await getDocs(collection(db, "customers"));
-
-  querySnapshot.forEach(docSnap => {
-    const d = docSnap.data();
-
-    list.innerHTML += `
-    <div class="card">
-      <b>${d.name}</b> (${d.phone})<br>
-      🚗 ${d.car} - ${d.plate}<br>
-      📌 ${d.status}
-      <br><br>
-      <button onclick="updateStatus('${docSnap.id}')">เปลี่ยนสถานะ</button>
-      <button onclick="del('${docSnap.id}')">ลบ</button>
-    </div>
-    `;
-  });
-}
-
-// UPDATE
-window.updateStatus = async (id) => {
-  await updateDoc(doc(db, "customers", id), {
-    status: "กำลังซ่อม"
-  });
-  loadData();
-};
-
-// DELETE
-window.del = async (id) => {
-  await deleteDoc(doc(db, "customers", id));
-  loadData();
-};
-
-</script>
-
+  </script>
 </body>
 </html>
