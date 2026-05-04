@@ -1,68 +1,90 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <title>Garage Dashboard</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      background: #f5f6fa;
-      margin: 0;
-      padding: 20px;
-    }
+<meta charset="UTF-8">
+<title>Garage Luxury</title>
 
-    h1 {
-      margin-bottom: 20px;
-    }
+<style>
+body {
+  background:#0f0f0f;
+  color:#f5d27a;
+  font-family:sans-serif;
+  margin:0;
+  padding:20px;
+}
 
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-    }
+h1 { color:#ffd700; }
 
-    .card {
-      padding: 20px;
-      border-radius: 10px;
-      color: white;
-      font-weight: bold;
-      font-size: 18px;
-    }
+input, select, button {
+  padding:8px;
+  margin:5px;
+  border-radius:6px;
+  border:none;
+}
 
-    .all { background: #2f3640; }
-    .wait { background: #fbc531; }
-    .doing { background: #00a8ff; }
-    .done { background: #4cd137; }
+button {
+  background:#ffd700;
+  color:black;
+  font-weight:bold;
+  cursor:pointer;
+}
 
-    .jobs {
-      margin-top: 20px;
-    }
+.card {
+  background:#1a1a1a;
+  border:1px solid #ffd70044;
+  padding:15px;
+  margin-top:10px;
+  border-radius:10px;
+}
 
-    .job {
-      background: white;
-      padding: 15px;
-      margin-bottom: 10px;
-      border-radius: 10px;
-      border-left: 5px solid #ccc;
-    }
-  </style>
+.stats {
+  display:flex;
+  gap:10px;
+}
+
+.stat {
+  flex:1;
+  background:#1a1a1a;
+  padding:10px;
+  border-radius:10px;
+  text-align:center;
+  border:1px solid #ffd70044;
+}
+</style>
 </head>
+
 <body>
 
-<h1>📊 Dashboard อู่</h1>
+<h1>🏎️ Garage Luxury Dashboard</h1>
 
-<div class="cards">
-  <div class="card all">ทั้งหมด: <span id="all">0</span></div>
-  <div class="card wait">รอซ่อม: <span id="wait">0</span></div>
-  <div class="card doing">กำลังซ่อม: <span id="doing">0</span></div>
-  <div class="card done">เสร็จแล้ว: <span id="done">0</span></div>
+<!-- 📊 Dashboard -->
+<div class="stats">
+  <div class="stat">ทั้งหมด <br><b id="all">0</b></div>
+  <div class="stat">รอซ่อม <br><b id="wait">0</b></div>
+  <div class="stat">กำลังซ่อม <br><b id="doing">0</b></div>
+  <div class="stat">เสร็จแล้ว <br><b id="done">0</b></div>
+  <div class="stat">💰 รายรับ <br><b id="income">0</b></div>
 </div>
 
-<div class="jobs" id="jobs"></div>
+<!-- ➕ เพิ่มงาน -->
+<h2>➕ รับรถ</h2>
+<input id="name" placeholder="ชื่อลูกค้า">
+<input id="phone" placeholder="เบอร์">
+<input id="car" placeholder="รถ">
+<input id="plate" placeholder="ทะเบียน">
+<input id="problem" placeholder="ปัญหา">
+<button onclick="addJob()">บันทึก</button>
+
+<!-- 📋 งาน -->
+<h2>📋 งานทั้งหมด</h2>
+<div id="jobs"></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  getFirestore, collection, addDoc,
+  onSnapshot, doc, updateDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "YOUR_KEY",
@@ -75,35 +97,76 @@ const db = getFirestore(app);
 
 const jobsDiv = document.getElementById("jobs");
 
-onSnapshot(collection(db, "jobs"), (snapshot) => {
-  jobsDiv.innerHTML = "";
+window.addJob = async () => {
+  await addDoc(collection(db,"jobs"),{
+    name: name.value,
+    phone: phone.value,
+    car: car.value,
+    plate: plate.value,
+    problem: problem.value,
+    status:"รอซ่อม",
+    price:0
+  });
+};
 
-  let all = 0, wait = 0, doing = 0, done = 0;
+window.updateStatus = async (id,status) => {
+  const ref = doc(db,"jobs",id);
+  await updateDoc(ref,{status});
+};
 
-  snapshot.forEach(doc => {
-    const j = doc.data();
+window.savePrice = async (id) => {
+  const price = prompt("ใส่ราคางาน:");
+  if(!price) return;
+
+  const ref = doc(db,"jobs",id);
+  await updateDoc(ref,{
+    price:Number(price),
+    status:"เสร็จแล้ว"
+  });
+};
+
+onSnapshot(collection(db,"jobs"), (snap) => {
+  jobsDiv.innerHTML="";
+
+  let all=0,wait=0,doing=0,done=0,income=0;
+
+  snap.forEach(d=>{
+    const j = d.data();
     all++;
 
-    if (j.status === "รอซ่อม") wait++;
-    if (j.status === "กำลังซ่อม") doing++;
-    if (j.status === "เสร็จแล้ว") done++;
+    if(j.status==="รอซ่อม") wait++;
+    if(j.status==="กำลังซ่อม") doing++;
+    if(j.status==="เสร็จแล้ว") done++;
+
+    income += j.price || 0;
 
     jobsDiv.innerHTML += `
-      <div class="job">
+      <div class="card">
         👤 ${j.name}<br>
         📞 ${j.phone}<br>
         🚗 ${j.car} (${j.plate})<br>
         🔧 ${j.problem}<br>
-        📌 สถานะ: ${j.status}
+        📌 ${j.status}<br><br>
+
+        <button onclick="updateStatus('${d.id}','กำลังซ่อม')">เริ่มซ่อม</button>
+        <button onclick="savePrice('${d.id}')">ปิดงาน + รับเงิน</button>
       </div>
     `;
   });
 
-  document.getElementById("all").innerText = all;
-  document.getElementById("wait").innerText = wait;
-  document.getElementById("doing").innerText = doing;
-  document.getElementById("done").innerText = done;
+  allEl.innerText=all;
+  waitEl.innerText=wait;
+  doingEl.innerText=doing;
+  doneEl.innerText=done;
+  incomeEl.innerText=income + " บาท";
 });
+
+const allEl = document.getElementById("all");
+const waitEl = document.getElementById("wait");
+const doingEl = document.getElementById("doing");
+const doneEl = document.getElementById("done");
+const incomeEl = document.getElementById("income");
+
 </script>
 
 </body>
