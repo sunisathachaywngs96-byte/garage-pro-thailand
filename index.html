@@ -1,65 +1,52 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <title>Garage System</title>
-</head>
-<body>
-
-<h2>📋 รายการงานซ่อม</h2>
-<div id="jobList">กำลังโหลด...</div>
+<meta charset="UTF-8">
+<title>Garage System</title>
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  // 🔴 ใส่ config ของคุณตรงนี้
-  const firebaseConfig = {
-    apiKey: "YOUR_KEY",
-    authDomain: "YOUR_PROJECT.firebaseapp.com",
-    projectId: "garage-system-41587",
-  };
+const firebaseConfig = {
+  apiKey: "YOUR_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "garage-system-41587",
+};
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-  async function loadJobs() {
-    const jobList = document.getElementById("jobList");
-    jobList.innerHTML = "";
+async function loadJobs() {
+  const querySnapshot = await getDocs(
+    collection(db, "tenants", "tenant_001", "jobs")
+  );
 
-    // 🔥 path ตรงกับที่คุณทำในรูป
-    const querySnapshot = await getDocs(
-      collection(db, "tenants", "tenant_001", "jobs")
-    );
+  const box = document.getElementById("jobs");
+  box.innerHTML = "";
 
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
+  querySnapshot.forEach((doc) => {
+    const data = doc.data(); // ⭐ สำคัญ
 
-      const div = document.createElement("div");
-      div.style.border = "1px solid #ccc";
-      div.style.margin = "10px";
-      div.style.padding = "10px";
+    box.innerHTML += `
+      <div style="border:1px solid #ccc;padding:10px;margin:10px;">
+        🚗 รถ: ${data.car || "-"}<br>
+        👤 ลูกค้า: ${data.customerName || "-"}<br>
+        📞 โทร: ${data.phone || "-"}<br>
+        🛠 ปัญหา: ${data.problem || "-"}<br>
+        💰 ราคา: ${data.price || 0}<br>
+        📊 สถานะ: ${data.status || "-"}
+      </div>
+    `;
+  });
+}
 
-      div.innerHTML = `
-        🚗 รถ: ${data.car} <br>
-        👤 ลูกค้า: ${data.customerName} <br>
-        📞 โทร: ${data.phone} <br>
-        🔧 ปัญหา: ${data.problem} <br>
-        💰 ราคา: ${data.price} <br>
-        📊 สถานะ: ${data.status} <br>
-        <hr>
-      `;
-
-      jobList.appendChild(div);
-    });
-
-    if (querySnapshot.empty) {
-      jobList.innerHTML = "❌ ไม่มีข้อมูล";
-    }
-  }
-
-  loadJobs();
+loadJobs();
 </script>
+</head>
 
+<body>
+<h2>📋 รายการงานซ่อม</h2>
+<div id="jobs"></div>
 </body>
 </html>
