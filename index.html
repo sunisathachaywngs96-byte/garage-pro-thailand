@@ -1,168 +1,124 @@
 <!DOCTYPE html>
-<html>
+<html lang="th">
 <head>
-  <title>NISA AUTO SaaS</title>
-
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+  <meta charset="UTF-8">
+  <title>NISA AUTO LOGIN</title>
 </head>
+<body style="font-family:sans-serif; padding:20px">
 
-<body>
+  <h2>🚗 NISA AUTO SYSTEM</h2>
 
-<h1>🚗 NISA AUTO SYSTEM</h1>
+  <!-- LOGIN -->
+  <h3>Login</h3>
+  <input id="email" placeholder="Email"><br><br>
+  <input id="password" type="password" placeholder="Password"><br><br>
+  <button onclick="login()">Login</button>
+  <button onclick="register()">สมัคร</button>
 
-<!-- LOGIN -->
-<input id="email" placeholder="Email">
-<input id="password" type="password" placeholder="Password">
-<button onclick="register()">สมัคร</button>
-<button onclick="login()">Login</button>
+  <hr>
 
-<hr>
+  <!-- USER INFO -->
+  <h3>👤 User</h3>
+  <div id="userInfo">ยังไม่ login</div>
 
-<!-- DASHBOARD -->
-<button onclick="loadDashboard()">📊 Dashboard</button>
-<button onclick="loadJobs()">🚗 งาน</button>
-<button onclick="loadCustomers()">👤 ลูกค้า</button>
-<button onclick="backup()">💾 Backup</button>
+  <hr>
 
-<div id="app"></div>
+  <button onclick="logout()">Logout</button>
 
-<canvas id="chart"></canvas>
+  <script type="module">
 
-<script type="module">
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } 
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getAuth,
+      createUserWithEmailAndPassword,
+      signInWithEmailAndPassword,
+      onAuthStateChanged,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-const auth = getAuth();
+    import {
+      getFirestore,
+      doc,
+      setDoc,
+      getDoc
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-window.register = async function() {
-  const email = document.getElementById("email").value;
-  const pass = document.getElementById("password").value;
+    // 🔥 YOUR CONFIG
+    const firebaseConfig = {
+      apiKey: "AIzaSyDAfm7eDJPFiWrUK_U0aqS7yl2Wt_PpjmA",
+      authDomain: "garage-system-41587.firebaseapp.com",
+      projectId: "garage-system-41587",
+      storageBucket: "garage-system-41587.firebasestorage.app",
+      messagingSenderId: "688480145767",
+      appId: "1:688480145767:web:f457e635675df0cbd91fc2",
+      measurementId: "G-X8ZYNK9JRS"
+    };
 
-  try {
-    const user = await createUserWithEmailAndPassword(auth, email, pass);
-    alert("สมัครสำเร็จ");
-  } catch (e) {
-    alert(e.message);
-  }
-}
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-window.login = async function() {
-  const email = document.getElementById("email").value;
-  const pass = document.getElementById("password").value;
+    // REGISTER
+    window.register = async function () {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
 
-  try {
-    const user = await signInWithEmailAndPassword(auth, email, pass);
-    alert("เข้าสู่ระบบสำเร็จ");
-    loadUserRole(user.user.uid);
-  } catch (e) {
-    alert(e.message);
-  }
-}
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+      const userCred = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCred.user;
 
-// 🔥 ใส่ config ของคุณ
-const firebaseConfig = {
-  apiKey: "YOUR_KEY",
-  authDomain: "YOUR_DOMAIN",
-  projectId: "YOUR_ID"
-};
+      // 🔥 สร้าง user ใน Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        email: user.email,
+        role: "customer", // เปลี่ยนเป็น admin ได้ทีหลัง
+        createdAt: Date.now()
+      });
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth();
+      alert("สมัครสำเร็จ");
+    };
 
-// 🔐 LOGIN
-window.register = async ()=>{
-  await createUserWithEmailAndPassword(auth,email.value,password.value);
-  alert("สมัครสำเร็จ");
-}
+    // LOGIN
+    window.login = async function () {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
 
-window.login = async ()=>{
-  await signInWithEmailAndPassword(auth,email.value,password.value);
-  alert("เข้าแล้ว");
-}
+      await signInWithEmailAndPassword(auth, email, password);
+    };
 
-// 🚗 JOB
-window.addJob = async ()=>{
-  await addDoc(collection(db,"jobs"),{
-    car:"Toyota",
-    status:"รอซ่อม",
-    createdAt: Date.now()
-  });
-}
+    // LOGOUT
+    window.logout = async function () {
+      await signOut(auth);
+    };
 
-// 📊 DASHBOARD
-window.loadDashboard = async ()=>{
+    // CHECK LOGIN
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const docRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(docRef);
 
-  const snap = await getDocs(collection(db,"payments"));
+        let role = "unknown";
+        if (docSnap.exists()) {
+          role = docSnap.data().role;
+        }
 
-  let total = 0;
+        document.getElementById("userInfo").innerHTML = `
+          UID: ${user.uid}<br>
+          Email: ${user.email}<br>
+          Role: ${role}
+        `;
 
-  snap.forEach(doc=>{
-    total += doc.data().total || 0;
-  });
+        // 🔥 ตรงนี้คือจุดแยกหน้า
+        if (role === "admin") {
+          console.log("ไปหน้า Admin");
+        } else {
+          console.log("ไปหน้า ลูกค้า");
+        }
 
-  document.getElementById("app").innerHTML =
-    "💰 รายได้รวม: " + total;
+      } else {
+        document.getElementById("userInfo").innerHTML = "ยังไม่ login";
+      }
+    });
 
-}
-
-// 👤 CUSTOMERS
-window.loadCustomers = async ()=>{
-  const snap = await getDocs(collection(db,"customers"));
-
-  let html = "";
-
-  snap.forEach(doc=>{
-    html += `<div>${doc.data().name}</div>`;
-  });
-
-  document.getElementById("app").innerHTML = html;
-}
-
-// 💾 BACKUP
-window.backup = async ()=>{
-
-  const snap = await getDocs(collection(db,"jobs"));
-
-  let data = [];
-
-  snap.forEach(doc=>{
-    data.push(doc.data());
-  });
-
-  const blob = new Blob([JSON.stringify(data)],{type:"application/json"});
-  const a = document.createElement("a");
-
-  a.href = URL.createObjectURL(blob);
-  a.download = "backup.json";
-  a.click();
-}
-
-// 📈 CHART
-window.loadChart = async ()=>{
-
-  const snap = await getDocs(collection(db,"payments"));
-
-  let data = [];
-
-  snap.forEach(doc=>{
-    data.push(doc.data().total);
-  });
-
-  new Chart(document.getElementById("chart"),{
-    type:"line",
-    data:{
-      labels:data.map((_,i)=>i),
-      datasets:[{data}]
-    }
-  });
-}
-
-</script>
+  </script>
 
 </body>
 </html>
