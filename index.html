@@ -2,49 +2,46 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>Garage Pro SaaS</title>
+<title>Garage Pro</title>
 
 <style>
-body { font-family: sans-serif; background:#f5f5f5; padding:15px; }
-.card { background:white; padding:15px; margin:10px 0; border-radius:12px; }
-input { width:100%; padding:8px; margin:5px 0; }
-button { padding:8px; margin:3px; border:none; border-radius:6px; cursor:pointer; }
-
+body { font-family: sans-serif; padding:20px; background:#f5f5f5; }
+.card {
+  background: back;
+  padding:15px;
+  margin:10px 0;
+  border-radius:10px;
+}
+button {
+  padding:6px 10px;
+  margin:3px;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+}
 .waiting { background:orange; color:white; }
 .fixing { background:blue; color:white; }
 .done { background:green; color:white; }
 .delete { background:red; color:white; }
-
-.header {
-  font-size:20px;
-  margin-bottom:10px;
-}
-.stat {
-  background:black;
-  color:#00ffcc;
-  padding:10px;
-  border-radius:10px;
-  margin-bottom:10px;
-}
 </style>
 </head>
 
 <body>
 
-<div class="header">🚗 Garage Pro (SaaS)</div>
+<h2>🚗 Garage Pro</h2>
 
-<div class="stat">💰 รายได้รวม: <span id="total">0</span> บาท</div>
-
+<!-- ➕ เพิ่มงาน -->
 <div class="card">
   <input id="car" placeholder="รถ">
   <input id="name" placeholder="ลูกค้า">
   <input id="phone" placeholder="โทร">
   <input id="problem" placeholder="ปัญหา">
   <input id="price" type="number" placeholder="ราคา">
-  <button onclick="addJob()">+ เพิ่มงาน</button>
+  <button onclick="addJob()">เพิ่มงาน</button>
 </div>
 
-<div id="list">โหลดข้อมูล...</div>
+<h3>📋 รายการงาน</h3>
+<div id="list">กำลังโหลด...</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -61,10 +58,10 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// 🔥 ใส่ของจริงจาก Firebase Console
+// 🔥 ใส่ของจริง
 const firebaseConfig = {
-  apiKey: "ใส่ของจริง",
-  authDomain: "ใส่ของจริง",
+  apiKey: "YOUR_KEY",
+  authDomain: "YOUR_DOMAIN",
   projectId: "garage-system-41587"
 };
 
@@ -72,95 +69,86 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const tenantId = "tenant_001";
-
 const listBox = document.getElementById("list");
-const totalBox = document.getElementById("total");
 
-// ✅ เพิ่มงาน
+// ✅ เพิ่มงาน (มี error log)
 window.addJob = async () => {
-  const car = carInput.value.trim();
-  const name = nameInput.value.trim();
-
-  if (!car || !name) {
-    alert("❗ กรุณากรอกข้อมูลให้ครบ");
-    return;
-  }
-
   try {
-    await addDoc(collection(db, "tenants", tenantId, "jobs"), {
-      car,
-      customerName: name,
-      phone: phoneInput.value || "-",
-      problem: problemInput.value || "-",
-      price: Number(priceInput.value || 0),
+    const data = {
+      car: document.getElementById("car").value || "-",
+      customerName: document.getElementById("name").value || "-",
+      phone: document.getElementById("phone").value || "-",
+      problem: document.getElementById("problem").value || "-",
+      price: Number(document.getElementById("price").value || 0),
       status: "waiting",
       createdAt: serverTimestamp()
-    });
+    };
 
-    clearForm();
+    console.log("กำลังเพิ่ม:", data);
+
+    await addDoc(collection(db, "tenants", tenantId, "jobs"), data);
+
+    alert("✅ เพิ่มงานสำเร็จ");
 
   } catch (err) {
-    alert("❌ ERROR: " + err.message);
-    console.error(err);
+    console.error("ERROR:", err);
+    alert("❌ เพิ่มไม่สำเร็จ: " + err.message);
   }
 };
 
-// clear form
-function clearForm(){
-  document.querySelectorAll("input").forEach(i => i.value="");
-}
-
-// 🔄 realtime + คำนวณรายได้
+// 🔄 realtime
 const q = query(
   collection(db, "tenants", tenantId, "jobs"),
-  orderBy("createdAt","desc")
+  orderBy("createdAt", "desc")
 );
 
-onSnapshot(q, (snap) => {
+onSnapshot(q, (snapshot) => {
   listBox.innerHTML = "";
 
-  let total = 0;
-
-  if (snap.empty) {
-    listBox.innerHTML = "ไม่มีงาน";
+  if (snapshot.empty) {
+    listBox.innerHTML = "ไม่มีข้อมูล";
     return;
   }
 
-  snap.forEach(docSnap => {
+  snapshot.forEach((docSnap) => {
     const d = docSnap.data();
     const id = docSnap.id;
 
-    if (d.status === "done") total += d.price || 0;
-
     listBox.innerHTML += `
       <div class="card">
-        🚗 ${d.car}<br>
-        👤 ${d.customerName}<br>
-        📞 ${d.phone}<br>
-        🔧 ${d.problem}<br>
-        💰 ${d.price}<br>
-        📊 <b>${d.status}</b><br><br>
+        🚗 ${d.car ?? "-"} <br>
+        👤 ${d.customerName ?? "-"} <br>
+        📞 ${d.phone ?? "-"} <br>
+        🛠 ${d.problem ?? "-"} <br>
+        💰 ${d.price ?? 0} <br>
+        📊 <b>${d.status ?? "waiting"}</b><br><br>
 
         <button class="waiting" onclick="setStatus('${id}','waiting')">รอ</button>
         <button class="fixing" onclick="setStatus('${id}','fixing')">กำลังซ่อม</button>
         <button class="done" onclick="setStatus('${id}','done')">เสร็จ</button>
-        <button class="delete" onclick="delJob('${id}')">ลบ</button>
+        <button class="delete" onclick="del('${id}')">ลบ</button>
       </div>
     `;
   });
-
-  totalBox.innerText = total;
 });
 
 // 🟢 เปลี่ยนสถานะ
 window.setStatus = async (id, status) => {
-  await updateDoc(doc(db,"tenants",tenantId,"jobs",id), { status });
+  try {
+    await updateDoc(doc(db, "tenants", tenantId, "jobs", id), { status });
+  } catch (e) {
+    alert("error: " + e.message);
+  }
 };
 
 // 🗑 ลบ
-window.delJob = async (id) => {
-  if (!confirm("ลบจริง?")) return;
-  await deleteDoc(doc(db,"tenants",tenantId,"jobs",id));
+window.del = async (id) => {
+  if (!confirm("ลบงานนี้?")) return;
+  try {
+    await deleteDoc(doc(db, "tenants", tenantId, "jobs", id));
+  } catch (e) {
+    alert("error: " + e.message);
+  }
 };
 
 </script>
