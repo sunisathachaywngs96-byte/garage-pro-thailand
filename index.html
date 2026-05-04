@@ -1,176 +1,155 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <title>Garage Pro</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>Garage Pro</title>
 
-  <style>
-    body {
-      font-family: sans-serif;
-      background: #f2f2f2;
-      margin: 0;
-    }
-
-    header {
-      background: linear-gradient(90deg,#ff6a00,#ff3c00);
-      color: white;
-      padding: 20px;
-      font-size: 22px;
-      font-weight: bold;
-    }
-
-    .container {
-      padding: 15px;
-    }
-
-    .card {
-      background: white;
-      padding: 15px;
-      border-radius: 12px;
-      margin-bottom: 15px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-
-    input {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 10px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-    }
-
-    button {
-      padding: 10px;
-      border: none;
-      border-radius: 8px;
-      color: white;
-      cursor: pointer;
-    }
-
-    .btn-add {
-      background: #ff3c00;
-      width: 100%;
-    }
-
-    .btn {
-      margin: 5px 3px;
-      font-size: 12px;
-    }
-
-    .wait { background: orange; }
-    .fix { background: blue; }
-    .done { background: green; }
-    .del { background: red; }
-  </style>
+<style>
+body { font-family: sans-serif; padding:20px; background:#f5f5f5; }
+.card {
+  background:white;
+  padding:15px;
+  margin:10px 0;
+  border-radius:10px;
+}
+button {
+  padding:6px 10px;
+  margin:3px;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+}
+.waiting { background:orange; color:white; }
+.fixing { background:blue; color:white; }
+.done { background:green; color:white; }
+.delete { background:red; color:white; }
+</style>
 </head>
 
 <body>
 
-<header>🚗 Garage Pro</header>
+<h2>🚗 Garage Pro</h2>
 
-<div class="container">
-
-  <div class="card">
-    <input id="car" placeholder="รถ">
-    <input id="customer" placeholder="ลูกค้า">
-    <input id="phone" placeholder="เบอร์">
-    <input id="problem" placeholder="ปัญหา">
-    <input id="price" placeholder="ราคา">
-    <button class="btn-add" onclick="addJob()">+ เพิ่มงาน</button>
-  </div>
-
-  <div id="jobs"></div>
-
+<!-- ➕ เพิ่มงาน -->
+<div class="card">
+  <input id="car" placeholder="รถ">
+  <input id="name" placeholder="ลูกค้า">
+  <input id="phone" placeholder="โทร">
+  <input id="problem" placeholder="ปัญหา">
+  <input id="price" type="number" placeholder="ราคา">
+  <button onclick="addJob()">เพิ่มงาน</button>
 </div>
 
+<h3>📋 รายการงาน</h3>
+<div id="list">กำลังโหลด...</div>
+
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  query,
+  orderBy,
+  onSnapshot,
+  doc,
+  updateDoc,
+  deleteDoc,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-  import {
-    getFirestore,
-    collection,
-    addDoc,
-    onSnapshot,
-    orderBy,
-    query,
-    serverTimestamp,
-    updateDoc,
-    deleteDoc,
-    doc
-  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+// 🔥 ใส่ของจริง
+const firebaseConfig = {
+  apiKey: "YOUR_KEY",
+  authDomain: "YOUR_DOMAIN",
+  projectId: "garage-system-41587"
+};
 
-  // 🔥 ใส่ของคุณตรงนี้
-  const firebaseConfig = {
-    apiKey: "ใส่ของคุณ",
-    authDomain: "ใส่ของคุณ",
-    projectId: "ใส่ของคุณ",
-  };
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+const tenantId = "tenant_001";
+const listBox = document.getElementById("list");
 
-  const col = collection(db, "jobs");
+// ✅ เพิ่มงาน (มี error log)
+window.addJob = async () => {
+  try {
+    const data = {
+      car: document.getElementById("car").value || "-",
+      customerName: document.getElementById("name").value || "-",
+      phone: document.getElementById("phone").value || "-",
+      problem: document.getElementById("problem").value || "-",
+      price: Number(document.getElementById("price").value || 0),
+      status: "waiting",
+      createdAt: serverTimestamp()
+    };
 
-  // ✅ เพิ่มงาน (แก้แล้ว ใช้งานได้ชัวร์)
-  window.addJob = async () => {
-    try {
-      await addDoc(col, {
-        car: document.getElementById("car").value || "-",
-        customerName: document.getElementById("customer").value || "-",
-        phone: document.getElementById("phone").value || "-",
-        problem: document.getElementById("problem").value || "-",
-        price: Number(document.getElementById("price").value) || 0,
-        status: "waiting",
-        createdAt: serverTimestamp()
-      });
+    console.log("กำลังเพิ่ม:", data);
 
-      // clear input
-      document.querySelectorAll("input").forEach(i => i.value = "");
+    await addDoc(collection(db, "tenants", tenantId, "jobs"), data);
 
-    } catch (e) {
-      alert("ERROR: " + e.message);
-      console.error(e);
-    }
-  };
+    alert("✅ เพิ่มงานสำเร็จ");
 
-  // 🔄 realtime
-  onSnapshot(query(col, orderBy("createdAt","desc")), (snap) => {
-    const box = document.getElementById("jobs");
-    box.innerHTML = "";
+  } catch (err) {
+    console.error("ERROR:", err);
+    alert("❌ เพิ่มไม่สำเร็จ: " + err.message);
+  }
+};
 
-    snap.forEach(d => {
-      const data = d.data();
+// 🔄 realtime
+const q = query(
+  collection(db, "tenants", tenantId, "jobs"),
+  orderBy("createdAt", "desc")
+);
 
-      box.innerHTML += `
-        <div class="card">
-          🚗 ${data.car} <br>
-          👤 ${data.customerName} <br>
-          📞 ${data.phone} <br>
-          🔧 ${data.problem} <br>
-          💰 ${data.price} <br>
-          📊 <b>${data.status}</b><br>
+onSnapshot(q, (snapshot) => {
+  listBox.innerHTML = "";
 
-          <button class="btn wait" onclick="setStatus('${d.id}','waiting')">รอ</button>
-          <button class="btn fix" onclick="setStatus('${d.id}','fixing')">กำลังซ่อม</button>
-          <button class="btn done" onclick="setStatus('${d.id}','done')">เสร็จ</button>
-          <button class="btn del" onclick="delJob('${d.id}')">ลบ</button>
-        </div>
-      `;
-    });
+  if (snapshot.empty) {
+    listBox.innerHTML = "ไม่มีข้อมูล";
+    return;
+  }
+
+  snapshot.forEach((docSnap) => {
+    const d = docSnap.data();
+    const id = docSnap.id;
+
+    listBox.innerHTML += `
+      <div class="card">
+        🚗 ${d.car ?? "-"} <br>
+        👤 ${d.customerName ?? "-"} <br>
+        📞 ${d.phone ?? "-"} <br>
+        🛠 ${d.problem ?? "-"} <br>
+        💰 ${d.price ?? 0} <br>
+        📊 <b>${d.status ?? "waiting"}</b><br><br>
+
+        <button class="waiting" onclick="setStatus('${id}','waiting')">รอ</button>
+        <button class="fixing" onclick="setStatus('${id}','fixing')">กำลังซ่อม</button>
+        <button class="done" onclick="setStatus('${id}','done')">เสร็จ</button>
+        <button class="delete" onclick="del('${id}')">ลบ</button>
+      </div>
+    `;
   });
+});
 
-  // 🔁 เปลี่ยนสถานะ
-  window.setStatus = async (id, status) => {
-    await updateDoc(doc(db, "jobs", id), { status });
-  };
+// 🟢 เปลี่ยนสถานะ
+window.setStatus = async (id, status) => {
+  try {
+    await updateDoc(doc(db, "tenants", tenantId, "jobs", id), { status });
+  } catch (e) {
+    alert("error: " + e.message);
+  }
+};
 
-  // 🗑 ลบ
-  window.delJob = async (id) => {
-    if(confirm("ลบจริง?")){
-      await deleteDoc(doc(db, "jobs", id));
-    }
-  };
+// 🗑 ลบ
+window.del = async (id) => {
+  if (!confirm("ลบงานนี้?")) return;
+  try {
+    await deleteDoc(doc(db, "tenants", tenantId, "jobs", id));
+  } catch (e) {
+    alert("error: " + e.message);
+  }
+};
 
 </script>
 
