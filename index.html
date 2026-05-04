@@ -1,369 +1,137 @@
 <!DOCTYPE html>
-<html lang="th">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>NISA AUTO CAR SERVICE</title>
+  <title>NISA AUTO SaaS</title>
 
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-  <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDAfm7eDJPFiWrUK_U0aqS7yl2Wt_PpjmA",
-  authDomain: "garage-system-41587.firebaseapp.com",
-  projectId: "garage-system-41587",
-  storageBucket: "garage-system-41587.firebasestorage.app",
-  messagingSenderId: "688480145767",
-  appId: "1:688480145767:web:f457e635675df0cbd91fc2"
-};
-
-// init
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-// ทดสอบเพิ่มข้อมูล
-window.testAdd = async () => {
-  await addDoc(collection(db, "test"), {
-    name: "NISA",
-    time: Date.now()
-  });
-  alert("เพิ่มข้อมูลแล้ว🔥");
-};
-</script>
-body{
-font-family:Arial,sans-serif;
-background:#081018;
-color:#fff;
-padding-bottom:80px;
-}
-header{
-background:#00c853;
-padding:22px;
-text-align:center;
-font-size:32px;
-font-weight:bold;
-}
-.sub{
-font-size:15px;
-margin-top:6px;
-}
-.wrap{
-padding:14px;
-max-width:1200px;
-margin:auto;
-}
-.grid{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-gap:12px;
-margin-bottom:14px;
-}
-.card{
-background:#111827;
-padding:18px;
-border-radius:16px;
-box-shadow:0 0 10px rgba(0,0,0,.25);
-}
-.big{
-font-size:42px;
-font-weight:bold;
-color:#00e676;
-margin-top:8px;
-}
-.menu{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
-gap:12px;
-margin-bottom:14px;
-}
-button{
-border:none;
-padding:14px;
-border-radius:14px;
-font-size:18px;
-font-weight:bold;
-background:#16213e;
-color:#fff;
-}
-button:active{transform:scale(.98)}
-.panel{
-display:none;
-background:#111827;
-padding:16px;
-border-radius:16px;
-margin-bottom:14px;
-}
-.panel.active{display:block}
-input,select{
-width:100%;
-padding:12px;
-margin:6px 0;
-border:none;
-border-radius:10px;
-font-size:16px;
-}
-.save{
-background:#00c853;
-}
-.item{
-background:#0f172a;
-padding:12px;
-border-radius:12px;
-margin-top:10px;
-}
-.row{
-display:flex;
-justify-content:space-between;
-gap:8px;
-align-items:center;
-flex-wrap:wrap;
-}
-.tag{
-padding:6px 10px;
-border-radius:20px;
-font-size:14px;
-font-weight:bold;
-}
-.wait{background:#ff9800;color:#000}
-.work{background:#03a9f4}
-.done{background:#00e676;color:#000}
-footer{
-text-align:center;
-padding:20px;
-opacity:.7;
-}
-</style>
 </head>
 
 <body>
 
-<header>
-NISA AUTO CAR SERVICE
-<div class="sub">ระบบอู่ครบวงจร • Firebase Realtime</div>
-</header>
+<h1>🚗 NISA AUTO SYSTEM</h1>
 
-<div class="wrap">
+<!-- LOGIN -->
+<input id="email" placeholder="Email">
+<input id="password" type="password" placeholder="Password">
+<button onclick="register()">สมัคร</button>
+<button onclick="login()">Login</button>
 
-<div class="grid">
-<div class="card">รถเข้าใหม่วันนี้<div class="big" id="carCount">0</div></div>
-<div class="card">กำลังซ่อม<div class="big" id="workCount">0</div></div>
-<div class="card">งานเสร็จ<div class="big" id="doneCount">0</div></div>
-<div class="card">รายได้วันนี้<div class="big" id="moneyCount">0</div></div>
-</div>
+<hr>
 
-<div class="menu">
-<button onclick="showPanel('receive')">🚗 รับรถเข้า</button>
-<button onclick="showPanel('jobs')">🔧 งานซ่อม</button>
-<button onclick="showPanel('customers')">👤 ลูกค้า</button>
-<button onclick="showPanel('money')">💰 รายรับ</button>
-</div>
+<!-- DASHBOARD -->
+<button onclick="loadDashboard()">📊 Dashboard</button>
+<button onclick="loadJobs()">🚗 งาน</button>
+<button onclick="loadCustomers()">👤 ลูกค้า</button>
+<button onclick="backup()">💾 Backup</button>
 
-<!-- รับรถ -->
-<div class="panel active" id="receive">
-<h2>รับรถเข้าใหม่</h2>
-<input id="name" placeholder="ชื่อลูกค้า">
-<input id="phone" placeholder="เบอร์โทร">
-<input id="car" placeholder="รุ่นรถ">
-<input id="plate" placeholder="ทะเบียน">
-<input id="problem" placeholder="อาการเสีย">
-<button class="save" onclick="saveCustomer()">บันทึกรับรถ</button>
-</div>
+<div id="app"></div>
 
-<!-- งานซ่อม -->
-<div class="panel" id="jobs">
-<h2>งานซ่อมล่าสุด</h2>
-<div id="jobList"></div>
-</div>
-
-<!-- ลูกค้า -->
-<div class="panel" id="customers">
-<h2>ลูกค้าทั้งหมด</h2>
-<div id="customerList"></div>
-</div>
-
-<!-- รายรับ -->
-<div class="panel" id="money">
-<h2>เพิ่มรายรับ</h2>
-<input id="detail" placeholder="รายละเอียด">
-<input id="price" placeholder="จำนวนเงิน">
-<button class="save" onclick="saveMoney()">บันทึกรายรับ</button>
-<div id="moneyList"></div>
-</div>
-
-</div>
-
-<footer>NISA AUTO CAR SERVICE © 2026</footer>
+<canvas id="chart"></canvas>
 
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {
-getFirestore,
-collection,
-addDoc,
-onSnapshot,
-updateDoc,
-doc
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-/* ใส่ค่า Firebase Config ของคุณตรงนี้ */
+// 🔥 ใส่ config ของคุณ
 const firebaseConfig = {
-apiKey:"YOUR_API_KEY",
-authDomain:"garage-system.firebaseapp.com",
-projectId:"garage-system",
-storageBucket:"garage-system.appspot.com",
-messagingSenderId:"YOUR_ID",
-appId:"YOUR_APP_ID"
+  apiKey: "YOUR_KEY",
+  authDomain: "YOUR_DOMAIN",
+  projectId: "YOUR_ID"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth();
 
-/* เปลี่ยนหน้า */
-window.showPanel = function(id){
-document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
-document.getElementById(id).classList.add("active");
+// 🔐 LOGIN
+window.register = async ()=>{
+  await createUserWithEmailAndPassword(auth,email.value,password.value);
+  alert("สมัครสำเร็จ");
 }
 
-/* รับรถเข้า */
-window.saveCustomer = async function(){
-
-const name=nameEl("name");
-const phone=nameEl("phone");
-const car=nameEl("car");
-const plate=nameEl("plate");
-const problem=nameEl("problem");
-
-if(!name) return alert("ใส่ชื่อลูกค้า");
-
-await addDoc(collection(db,"customers"),{
-name,phone,car,plate,problem,
-status:"รอคิว",
-createdAt:Date.now()
-});
-
-await addDoc(collection(db,"jobs"),{
-name,car,plate,problem,
-status:"รอคิว",
-createdAt:Date.now()
-});
-
-clearInputs();
-alert("บันทึกแล้ว");
+window.login = async ()=>{
+  await signInWithEmailAndPassword(auth,email.value,password.value);
+  alert("เข้าแล้ว");
 }
 
-/* เพิ่มรายรับ */
-window.saveMoney = async function(){
-const detail=nameEl("detail");
-const price=Number(nameEl("price"));
-
-if(!detail || !price) return alert("กรอกข้อมูล");
-
-await addDoc(collection(db,"money"),{
-detail,price,
-createdAt:Date.now()
-});
-
-document.getElementById("detail").value="";
-document.getElementById("price").value="";
+// 🚗 JOB
+window.addJob = async ()=>{
+  await addDoc(collection(db,"jobs"),{
+    car:"Toyota",
+    status:"รอซ่อม",
+    createdAt: Date.now()
+  });
 }
 
-/* โหลด customers */
-onSnapshot(collection(db,"customers"), snap=>{
-let html="";
-let count=0;
-snap.forEach(d=>{
-count++;
-const x=d.data();
-html+=`
-<div class="item">
-${x.name} • ${x.car} • ${x.plate}<br>
-${x.phone || ""}
-</div>`;
-});
-document.getElementById("customerList").innerHTML=html;
-document.getElementById("carCount").innerText=count;
-});
+// 📊 DASHBOARD
+window.loadDashboard = async ()=>{
 
-/* โหลด jobs */
-onSnapshot(collection(db,"jobs"), snap=>{
-let html="";
-let work=0;
-let done=0;
+  const snap = await getDocs(collection(db,"payments"));
 
-snap.forEach(d=>{
-const x=d.data();
-const id=d.id;
+  let total = 0;
 
-let cls="wait";
-if(x.status=="กำลังซ่อม"){cls="work";work++}
-if(x.status=="เสร็จแล้ว"){cls="done";done++}
+  snap.forEach(doc=>{
+    total += doc.data().total || 0;
+  });
 
-html+=`
-<div class="item">
-<div class="row">
-<div>
-${x.name} • ${x.car}<br>
-${x.problem}
-</div>
+  document.getElementById("app").innerHTML =
+    "💰 รายได้รวม: " + total;
 
-<div>
-<select onchange="changeStatus('${id}',this.value)">
-<option ${x.status=="รอคิว"?"selected":""}>รอคิว</option>
-<option ${x.status=="กำลังซ่อม"?"selected":""}>กำลังซ่อม</option>
-<option ${x.status=="เสร็จแล้ว"?"selected":""}>เสร็จแล้ว</option>
-</select>
-</div>
-
-</div>
-<div class="tag ${cls}">${x.status}</div>
-</div>`;
-});
-
-document.getElementById("jobList").innerHTML=html;
-document.getElementById("workCount").innerText=work;
-document.getElementById("doneCount").innerText=done;
-
-});
-
-/* เปลี่ยนสถานะ */
-window.changeStatus = async function(id,status){
-await updateDoc(doc(db,"jobs",id),{status});
 }
 
-/* โหลดรายรับ */
-onSnapshot(collection(db,"money"), snap=>{
-let html="";
-let total=0;
+// 👤 CUSTOMERS
+window.loadCustomers = async ()=>{
+  const snap = await getDocs(collection(db,"customers"));
 
-snap.forEach(d=>{
-const x=d.data();
-total += Number(x.price || 0);
+  let html = "";
 
-html+=`
-<div class="item">
-${x.detail}
-<div class="row">
-<div>฿${Number(x.price).toLocaleString()}</div>
-</div>
-</div>`;
-});
+  snap.forEach(doc=>{
+    html += `<div>${doc.data().name}</div>`;
+  });
 
-document.getElementById("moneyList").innerHTML=html;
-document.getElementById("moneyCount").innerText="฿"+total.toLocaleString();
-});
-
-/* helper */
-function nameEl(id){
-return document.getElementById(id).value.trim();
+  document.getElementById("app").innerHTML = html;
 }
-function clearInputs(){
-["name","phone","car","plate","problem"].forEach(id=>{
-document.getElementById(id).value="";
-});
+
+// 💾 BACKUP
+window.backup = async ()=>{
+
+  const snap = await getDocs(collection(db,"jobs"));
+
+  let data = [];
+
+  snap.forEach(doc=>{
+    data.push(doc.data());
+  });
+
+  const blob = new Blob([JSON.stringify(data)],{type:"application/json"});
+  const a = document.createElement("a");
+
+  a.href = URL.createObjectURL(blob);
+  a.download = "backup.json";
+  a.click();
+}
+
+// 📈 CHART
+window.loadChart = async ()=>{
+
+  const snap = await getDocs(collection(db,"payments"));
+
+  let data = [];
+
+  snap.forEach(doc=>{
+    data.push(doc.data().total);
+  });
+
+  new Chart(document.getElementById("chart"),{
+    type:"line",
+    data:{
+      labels:data.map((_,i)=>i),
+      datasets:[{data}]
+    }
+  });
 }
 
 </script>
