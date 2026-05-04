@@ -6,75 +6,170 @@
 <title>NISA AUTO CAR SERVICE</title>
 
 <style>
+*{margin:0;padding:0;box-sizing:border-box}
 body{
-margin:0;
-font-family:Arial;
+font-family:Arial,sans-serif;
 background:#081018;
-color:white;
+color:#fff;
+padding-bottom:80px;
 }
 header{
 background:#00c853;
-padding:25px;
+padding:22px;
 text-align:center;
-font-size:34px;
+font-size:32px;
 font-weight:bold;
 }
-.box{
-padding:20px;
-max-width:1100px;
+.sub{
+font-size:15px;
+margin-top:6px;
+}
+.wrap{
+padding:14px;
+max-width:1200px;
 margin:auto;
+}
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+gap:12px;
+margin-bottom:14px;
 }
 .card{
 background:#111827;
 padding:18px;
-border-radius:14px;
-margin-bottom:15px;
+border-radius:16px;
+box-shadow:0 0 10px rgba(0,0,0,.25);
 }
-h2{color:#00e676}
-input,button{
-padding:12px;
-margin:5px;
-border:none;
-border-radius:10px;
+.big{
+font-size:42px;
+font-weight:bold;
+color:#00e676;
+margin-top:8px;
 }
-input{
-width:200px;
+.menu{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+gap:12px;
+margin-bottom:14px;
 }
 button{
-background:#00c853;
-color:white;
+border:none;
+padding:14px;
+border-radius:14px;
+font-size:18px;
 font-weight:bold;
+background:#16213e;
+color:#fff;
+}
+button:active{transform:scale(.98)}
+.panel{
+display:none;
+background:#111827;
+padding:16px;
+border-radius:16px;
+margin-bottom:14px;
+}
+.panel.active{display:block}
+input,select{
+width:100%;
+padding:12px;
+margin:6px 0;
+border:none;
+border-radius:10px;
+font-size:16px;
+}
+.save{
+background:#00c853;
 }
 .item{
-padding:12px;
 background:#0f172a;
-margin-top:8px;
-border-radius:10px;
+padding:12px;
+border-radius:12px;
+margin-top:10px;
+}
+.row{
+display:flex;
+justify-content:space-between;
+gap:8px;
+align-items:center;
+flex-wrap:wrap;
+}
+.tag{
+padding:6px 10px;
+border-radius:20px;
+font-size:14px;
+font-weight:bold;
+}
+.wait{background:#ff9800;color:#000}
+.work{background:#03a9f4}
+.done{background:#00e676;color:#000}
+footer{
+text-align:center;
+padding:20px;
+opacity:.7;
 }
 </style>
 </head>
 
 <body>
 
-<header>NISA AUTO CAR SERVICE</header>
+<header>
+NISA AUTO CAR SERVICE
+<div class="sub">ระบบอู่ครบวงจร • Firebase Realtime</div>
+</header>
 
-<div class="box">
+<div class="wrap">
 
-<div class="card">
-<h2>เพิ่มลูกค้าใหม่</h2>
+<div class="grid">
+<div class="card">รถเข้าใหม่วันนี้<div class="big" id="carCount">0</div></div>
+<div class="card">กำลังซ่อม<div class="big" id="workCount">0</div></div>
+<div class="card">งานเสร็จ<div class="big" id="doneCount">0</div></div>
+<div class="card">รายได้วันนี้<div class="big" id="moneyCount">0</div></div>
+</div>
 
+<div class="menu">
+<button onclick="showPanel('receive')">🚗 รับรถเข้า</button>
+<button onclick="showPanel('jobs')">🔧 งานซ่อม</button>
+<button onclick="showPanel('customers')">👤 ลูกค้า</button>
+<button onclick="showPanel('money')">💰 รายรับ</button>
+</div>
+
+<!-- รับรถ -->
+<div class="panel active" id="receive">
+<h2>รับรถเข้าใหม่</h2>
 <input id="name" placeholder="ชื่อลูกค้า">
-<input id="car" placeholder="รถยนต์">
+<input id="phone" placeholder="เบอร์โทร">
+<input id="car" placeholder="รุ่นรถ">
 <input id="plate" placeholder="ทะเบียน">
-<button onclick="saveData()">บันทึก</button>
+<input id="problem" placeholder="อาการเสีย">
+<button class="save" onclick="saveCustomer()">บันทึกรับรถ</button>
 </div>
 
-<div class="card">
-<h2>รายการลูกค้าจริงจาก Firebase</h2>
-<div id="list"></div>
+<!-- งานซ่อม -->
+<div class="panel" id="jobs">
+<h2>งานซ่อมล่าสุด</h2>
+<div id="jobList"></div>
+</div>
+
+<!-- ลูกค้า -->
+<div class="panel" id="customers">
+<h2>ลูกค้าทั้งหมด</h2>
+<div id="customerList"></div>
+</div>
+
+<!-- รายรับ -->
+<div class="panel" id="money">
+<h2>เพิ่มรายรับ</h2>
+<input id="detail" placeholder="รายละเอียด">
+<input id="price" placeholder="จำนวนเงิน">
+<button class="save" onclick="saveMoney()">บันทึกรายรับ</button>
+<div id="moneyList"></div>
 </div>
 
 </div>
+
+<footer>NISA AUTO CAR SERVICE © 2026</footer>
 
 <script type="module">
 
@@ -83,54 +178,167 @@ import {
 getFirestore,
 collection,
 addDoc,
-getDocs
+onSnapshot,
+updateDoc,
+doc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+/* ใส่ค่า Firebase Config ของคุณตรงนี้ */
 const firebaseConfig = {
-apiKey: "ใส่ของคุณ",
-authDomain: "ใส่ของคุณ",
-projectId: "ใส่ของคุณ",
-storageBucket: "ใส่ของคุณ",
-messagingSenderId: "ใส่ของคุณ",
-appId: "ใส่ของคุณ"
+apiKey:"YOUR_API_KEY",
+authDomain:"garage-system.firebaseapp.com",
+projectId:"garage-system",
+storageBucket:"garage-system.appspot.com",
+messagingSenderId:"YOUR_ID",
+appId:"YOUR_APP_ID"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-window.saveData = async function(){
+/* เปลี่ยนหน้า */
+window.showPanel = function(id){
+document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+document.getElementById(id).classList.add("active");
+}
 
-const name=document.getElementById("name").value;
-const car=document.getElementById("car").value;
-const plate=document.getElementById("plate").value;
+/* รับรถเข้า */
+window.saveCustomer = async function(){
+
+const name=nameEl("name");
+const phone=nameEl("phone");
+const car=nameEl("car");
+const plate=nameEl("plate");
+const problem=nameEl("problem");
+
+if(!name) return alert("ใส่ชื่อลูกค้า");
 
 await addDoc(collection(db,"customers"),{
-name,car,plate,status:"ลูกค้าใหม่"
+name,phone,car,plate,problem,
+status:"รอคิว",
+createdAt:Date.now()
 });
 
-loadData();
+await addDoc(collection(db,"jobs"),{
+name,car,plate,problem,
+status:"รอคิว",
+createdAt:Date.now()
+});
+
+clearInputs();
+alert("บันทึกแล้ว");
 }
 
-async function loadData(){
+/* เพิ่มรายรับ */
+window.saveMoney = async function(){
+const detail=nameEl("detail");
+const price=Number(nameEl("price"));
 
-const querySnapshot = await getDocs(collection(db,"customers"));
+if(!detail || !price) return alert("กรอกข้อมูล");
 
+await addDoc(collection(db,"money"),{
+detail,price,
+createdAt:Date.now()
+});
+
+document.getElementById("detail").value="";
+document.getElementById("price").value="";
+}
+
+/* โหลด customers */
+onSnapshot(collection(db,"customers"), snap=>{
 let html="";
-
-querySnapshot.forEach((doc)=>{
-const d=doc.data();
-
-html += `
+let count=0;
+snap.forEach(d=>{
+count++;
+const x=d.data();
+html+=`
 <div class="item">
-${d.name} | ${d.car} | ${d.plate}
-</div>
-`;
+${x.name} • ${x.car} • ${x.plate}<br>
+${x.phone || ""}
+</div>`;
+});
+document.getElementById("customerList").innerHTML=html;
+document.getElementById("carCount").innerText=count;
 });
 
-document.getElementById("list").innerHTML=html;
+/* โหลด jobs */
+onSnapshot(collection(db,"jobs"), snap=>{
+let html="";
+let work=0;
+let done=0;
+
+snap.forEach(d=>{
+const x=d.data();
+const id=d.id;
+
+let cls="wait";
+if(x.status=="กำลังซ่อม"){cls="work";work++}
+if(x.status=="เสร็จแล้ว"){cls="done";done++}
+
+html+=`
+<div class="item">
+<div class="row">
+<div>
+${x.name} • ${x.car}<br>
+${x.problem}
+</div>
+
+<div>
+<select onchange="changeStatus('${id}',this.value)">
+<option ${x.status=="รอคิว"?"selected":""}>รอคิว</option>
+<option ${x.status=="กำลังซ่อม"?"selected":""}>กำลังซ่อม</option>
+<option ${x.status=="เสร็จแล้ว"?"selected":""}>เสร็จแล้ว</option>
+</select>
+</div>
+
+</div>
+<div class="tag ${cls}">${x.status}</div>
+</div>`;
+});
+
+document.getElementById("jobList").innerHTML=html;
+document.getElementById("workCount").innerText=work;
+document.getElementById("doneCount").innerText=done;
+
+});
+
+/* เปลี่ยนสถานะ */
+window.changeStatus = async function(id,status){
+await updateDoc(doc(db,"jobs",id),{status});
 }
 
-loadData();
+/* โหลดรายรับ */
+onSnapshot(collection(db,"money"), snap=>{
+let html="";
+let total=0;
+
+snap.forEach(d=>{
+const x=d.data();
+total += Number(x.price || 0);
+
+html+=`
+<div class="item">
+${x.detail}
+<div class="row">
+<div>฿${Number(x.price).toLocaleString()}</div>
+</div>
+</div>`;
+});
+
+document.getElementById("moneyList").innerHTML=html;
+document.getElementById("moneyCount").innerText="฿"+total.toLocaleString();
+});
+
+/* helper */
+function nameEl(id){
+return document.getElementById(id).value.trim();
+}
+function clearInputs(){
+["name","phone","car","plate","problem"].forEach(id=>{
+document.getElementById(id).value="";
+});
+}
 
 </script>
 
