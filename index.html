@@ -122,6 +122,13 @@ onSnapshot(q, (snapshot) => {
         🛠 ${d.problem ?? "-"} <br>
         💰 ${d.price ?? 0} <br>
         📊 <b>${d.status ?? "waiting"}</b><br><br>
+        📊 <b class="status">
+  ${
+    d.status === "waiting" ? "รอซ่อม" :
+    d.status === "fixing" ? "กำลังซ่อม" :
+    d.status === "done" ? "เสร็จแล้ว" : "-"
+  }
+</b>
 
         <button class="waiting" onclick="setStatus('${id}','waiting')">รอ</button>
         <button class="fixing" onclick="setStatus('${id}','fixing')">กำลังซ่อม</button>
@@ -134,6 +141,7 @@ onSnapshot(q, (snapshot) => {
 
 // 🟢 เปลี่ยนสถานะ
 window.setStatus = async (id, status) => {
+  
   try {
     await updateDoc(doc(db, "tenants", tenantId, "jobs", id), { status });
   } catch (e) {
