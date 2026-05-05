@@ -130,9 +130,9 @@ onSnapshot(q, (snapshot) => {
   }
 </b>
 
-        <button class="waiting" onclick="setStatus('${id}','waiting')">รอ</button>
-        <button class="fixing" onclick="setStatus('${id}','fixing')">กำลังซ่อม</button>
-        <button class="done" onclick="setStatus('${id}','done')">เสร็จ</button>
+        <button class="waiting" onclick="setStatus('${id}','รอซ่อม')">รอ</button>
+        <button class="fixing" onclick="setStatus('${id}','กำลังซ่อม')">กำลังซ่อม</button>
+        <button class="done" onclick="setStatus('${id}','เสร็จแล้ว')">เสร็จ</button>
         <button class="delete" onclick="del('${id}')">ลบ</button>
       </div>
     `;
