@@ -771,3 +771,336 @@ window.deleteCar = async (id) => {
         <div class="stat-card-body">
           <div class="stat-card-label">ค่าใช้จ่ายรวมปีนี้</div>
           <div
+            <div class="stat-card">
+        <div class="stat-card-icon" style="background:rgba(59,130,246,0.15)">🔧</div>
+        <div class="stat-card-body">
+          <div class="stat-card-label">รายการซ่อมทั้งหมด</div>
+          <div class="stat-card-value" style="color:var(--accent-blue)">18</div>
+          <div class="stat-card-unit">รายการ</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-icon" style="background:rgba(168,85,247,0.15)">🏪</div>
+        <div class="stat-card-body">
+          <div class="stat-card-label">เข้าศูนย์/อู่ทั้งหมด</div>
+          <div class="stat-card-value" style="color:var(--accent-purple)">9</div>
+          <div class="stat-card-unit">ครั้ง</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-icon" style="background:rgba(249,115,22,0.15)">⛽</div>
+        <div class="stat-card-body">
+          <div class="stat-card-label">น้ำมันเฉลี่ย</div>
+          <div class="stat-card-value" style="color:var(--accent-orange)">12.4</div>
+          <div class="stat-card-unit">กม./ลิตร</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REPAIR HISTORY -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">ประวัติการซ่อมล่าสุด</div>
+        <a class="section-link" onclick="showToast('📋 ดูประวัติทั้งหมด')">ดูทั้งหมด →</a>
+      </div>
+      <div class="repair-list" id="repairList">
+        <!-- filled by JS -->
+      </div>
+    </div>
+
+    <!-- ALERTS -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">การแจ้งเตือนที่ใกล้ถึงกำหนด</div>
+        <button class="change-car-btn" style="font-size:12px;padding:6px 12px" onclick="openModal('addAlertModal')">+ เพิ่มแจ้งเตือน</button>
+      </div>
+      <div class="alert-list" id="alertList">
+        <!-- filled by JS -->
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- BOTTOM NAV (Mobile) -->
+<nav class="bottom-nav">
+  <div class="bn-item active">
+    <span class="bn-icon">🏠</span>
+    <span>หน้าหลัก</span>
+  </div>
+  <div class="bn-item">
+    <span class="bn-icon">🚘</span>
+    <span>รถของฉัน</span>
+  </div>
+  <div class="bn-add" onclick="openModal('addRepairModal')">+</div>
+  <div class="bn-item">
+    <span class="bn-icon">💸</span>
+    <span>ค่าใช้จ่าย</span>
+  </div>
+  <div class="bn-item">
+    <span class="bn-icon">👤</span>
+    <span>โปรไฟล์</span>
+  </div>
+</nav>
+
+<!-- MODAL: เพิ่มการซ่อม -->
+<div class="modal-overlay" id="addRepairModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🔧 เพิ่มประวัติการซ่อม</div>
+      <button class="modal-close" onclick="closeModal('addRepairModal')">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">ประเภทการซ่อม</label>
+      <input class="form-input" id="repairType" type="text" placeholder="เช่น เปลี่ยนน้ำมันเครื่อง">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">วันที่</label>
+        <input class="form-input" id="repairDate" type="date">
+      </div>
+      <div class="form-group">
+        <label class="form-label">เลขไมล์ (กม.)</label>
+        <input class="form-input" id="repairKm" type="number" placeholder="78560">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">ค่าใช้จ่าย (บาท)</label>
+        <input class="form-input" id="repairCost" type="number" placeholder="1250">
+      </div>
+      <div class="form-group">
+        <label class="form-label">อู่/ศูนย์บริการ</label>
+        <input class="form-input" id="repairShop" type="text" placeholder="Auto Expert Garage">
+      </div>
+    </div>
+    <button class="modal-btn" onclick="addRepair()">✅ บันทึกการซ่อม</button>
+  </div>
+</div>
+
+<!-- MODAL: เปลี่ยนรถ -->
+<div class="modal-overlay" id="carModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🚘 ข้อมูลรถ</div>
+      <button class="modal-close" onclick="closeModal('carModal')">✕</button>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">ยี่ห้อ</label>
+        <input class="form-input" type="text" value="Toyota">
+      </div>
+      <div class="form-group">
+        <label class="form-label">รุ่น</label>
+        <input class="form-input" type="text" value="Altis">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">ปี</label>
+        <input class="form-input" type="text" value="2019">
+      </div>
+      <div class="form-group">
+        <label class="form-label">ทะเบียน</label>
+        <input class="form-input" type="text" value="กจ 1234">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">เลขไมล์ปัจจุบัน</label>
+        <input class="form-input" type="number" value="78560">
+      </div>
+      <div class="form-group">
+        <label class="form-label">ประเภทน้ำมัน</label>
+        <input class="form-input" type="text" value="E20">
+      </div>
+    </div>
+    <button class="modal-btn" onclick="closeModal('carModal');showToast('✅ บันทึกข้อมูลรถแล้ว')">💾 บันทึก</button>
+  </div>
+</div>
+
+<!-- MODAL: เพิ่มแจ้งเตือน -->
+<div class="modal-overlay" id="addAlertModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🔔 เพิ่มการแจ้งเตือน</div>
+      <button class="modal-close" onclick="closeModal('addAlertModal')">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">ชื่อการแจ้งเตือน</label>
+      <input class="form-input" id="alertName" type="text" placeholder="เช่น เปลี่ยนน้ำมันเครื่อง">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">ทุกๆ (กม.)</label>
+        <input class="form-input" id="alertInterval" type="number" placeholder="10000">
+      </div>
+      <div class="form-group">
+        <label class="form-label">คงเหลือ (กม.)</label>
+        <input class="form-input" id="alertRemain" type="number" placeholder="1440">
+      </div>
+    </div>
+    <button class="modal-btn" onclick="addAlert()">✅ บันทึกการแจ้งเตือน</button>
+  </div>
+</div>
+
+<!-- MODAL: การแจ้งเตือน -->
+<div class="modal-overlay" id="alertModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🔔 การแจ้งเตือนใหม่</div>
+      <button class="modal-close" onclick="closeModal('alertModal')">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.3);border-radius:10px;padding:14px;display:flex;gap:12px;align-items:center">
+        <span style="font-size:24px">🔧</span>
+        <div>
+          <div style="font-size:14px;font-weight:600">ใกล้ถึงเวลาเปลี่ยนน้ำมันเครื่อง</div>
+          <div style="font-size:12px;color:var(--text-secondary)">เหลืออีก 1,440 กม.</div>
+        </div>
+      </div>
+      <div style="background:rgba(234,179,8,0.1);border:1px solid rgba(234,179,8,0.3);border-radius:10px;padding:14px;display:flex;gap:12px;align-items:center">
+        <span style="font-size:24px">🔄</span>
+        <div>
+          <div style="font-size:14px;font-weight:600">ถึงเวลาสลับยาง</div>
+          <div style="font-size:12px;color:var(--text-secondary)">เหลืออีก 1,440 กม.</div>
+        </div>
+      </div>
+      <div style="background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);border-radius:10px;padding:14px;display:flex;gap:12px;align-items:center">
+        <span style="font-size:24px">📋</span>
+        <div>
+          <div style="font-size:14px;font-weight:600">ต่อภาษีรถยนต์ประจำปี</div>
+          <div style="font-size:12px;color:var(--text-secondary)">เหลืออีก 85 วัน</div>
+        </div>
+      </div>
+    </div>
+    <button class="modal-btn" style="margin-top:16px" onclick="closeModal('alertModal')">รับทราบ</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span id="toastMsg"></span>
+</div>
+
+<script>
+// ===== DATA =====
+let repairs = [
+  { type: 'เปลี่ยนน้ำมันเครื่อง', shop: 'Auto Expert Garage', date: '15 พ.ค. 2567', km: '78,560', cost: '1,250', icon: '🛢️', color: 'rgba(34,197,94,0.15)' },
+  { type: 'เปลี่ยนผ้าเบรกหน้า', shop: 'Auto Expert Garage', date: '10 มี.ค. 2567', km: '74,200', cost: '2,850', icon: '🔵', color: 'rgba(59,130,246,0.15)' },
+  { type: 'เปลี่ยนแบตเตอรี่', shop: 'Auto Expert Garage', date: '5 ม.ค. 2567', km: '70,100', cost: '2,390', icon: '🔋', color: 'rgba(34,197,94,0.15)' },
+  { type: 'เปลี่ยนยาง 4 เส้น', shop: 'Auto Expert Garage', date: '20 ธ.ค. 2566', km: '68,300', cost: '8,900', icon: '🔘', color: 'rgba(249,115,22,0.15)' },
+];
+
+let alerts = [
+  { name: 'เปลี่ยนน้ำมันเครื่อง', freq: 'ทุก 10,000 กม.', remain: '1,440', unit: 'กม.', saved: true },
+  { name: 'สลับยาง', freq: 'ทุก 10,000 กม.', remain: '1,440', unit: 'กม.', saved: true },
+  { name: 'ต่อภาษีรถยนต์', freq: 'ประจำปี', remain: '85', unit: 'วัน', saved: false },
+];
+
+// ===== RENDER =====
+function renderRepairs() {
+  const list = document.getElementById('repairList');
+  list.innerHTML = repairs.map(r => `
+    <div class="repair-item">
+      <div class="repair-icon" style="background:${r.color}">${r.icon}</div>
+      <div class="repair-info">
+        <div class="repair-name">${r.type}</div>
+        <div class="repair-shop">${r.shop}</div>
+      </div>
+      <div class="repair-date-km">
+        <div class="repair-date">${r.date}</div>
+        <div class="repair-km">${r.km} กม.</div>
+      </div>
+      <div class="repair-cost">${r.cost} <span class="repair-cost-unit">บาท</span></div>
+    </div>
+  `).join('');
+}
+
+function renderAlerts() {
+  const list = document.getElementById('alertList');
+  list.innerHTML = alerts.map((a, i) => `
+    <div class="alert-item">
+      <div class="repair-icon" style="background:${a.saved ? 'rgba(34,197,94,0.15)' : 'rgba(249,115,22,0.15)'}">
+        ${a.saved ? '🔧' : '📋'}
+      </div>
+      <div class="alert-info">
+        <div class="alert-name">${a.name}</div>
+        <div class="alert-freq">${a.freq}</div>
+      </div>
+      <div class="alert-remain">
+        <div class="alert-remain-label">คงเหลือ</div>
+        <div class="alert-remain-value">${a.remain}</div>
+        <div class="alert-remain-unit">${a.unit}</div>
+      </div>
+      ${a.saved
+        ? `<button class="alert-btn saved">✓ บันทึกแล้ว</button>`
+        : `<button class="alert-btn detail" onclick="showToast('📋 ดูรายละเอียด: ${a.name}')">ดูรายละเอียด</button>`
+      }
+    </div>
+  `).join('');
+}
+
+// ===== ACTIONS =====
+function addRepair() {
+  const type = document.getElementById('repairType').value;
+  const date = document.getElementById('repairDate').value;
+  const km = document.getElementById('repairKm').value;
+  const cost = document.getElementById('repairCost').value;
+  const shop = document.getElementById('repairShop').value;
+  if (!type || !cost) { showToast('⚠️ กรุณากรอกข้อมูลให้ครบ'); return; }
+  repairs.unshift({
+    type, shop: shop || 'Auto Expert Garage',
+    date: date || new Date().toLocaleDateString('th-TH'),
+    km: parseInt(km).toLocaleString() || '-',
+    cost: parseInt(cost).toLocaleString(),
+    icon: '🔧', color: 'rgba(59,130,246,0.15)'
+  });
+  renderRepairs();
+  closeModal('addRepairModal');
+  showToast('✅ บันทึกการซ่อมแล้ว!');
+}
+
+function addAlert() {
+  const name = document.getElementById('alertName').value;
+  const interval = document.getElementById('alertInterval').value;
+  const remain = document.getElementById('alertRemain').value;
+  if (!name) { showToast('⚠️ กรุณากรอกชื่อการแจ้งเตือน'); return; }
+  alerts.push({ name, freq: `ทุก ${parseInt(interval).toLocaleString()} กม.`, remain: parseInt(remain).toLocaleString(), unit: 'กม.', saved: true });
+  renderAlerts();
+  closeModal('addAlertModal');
+  showToast('✅ บันทึกการแจ้งเตือนแล้ว!');
+}
+
+// ===== MODAL =====
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+// ===== TOAST =====
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ===== NAV =====
+function setNav(el, page) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  el.classList.add('active');
+  if (page === 'repair') openModal('addRepairModal');
+  else showToast('📍 ไปที่หน้า: ' + el.textContent.trim());
+}
+
+// ===== INIT =====
+renderRepairs();
+renderAlerts();
+
+// set today as default date
+document.getElementById('repairDate').value = new Date().toISOString().split('T')[0];
+</script>
+</body>
+    </html>
