@@ -550,7 +550,8 @@
     .stats-row { grid-template-columns: 1fr 1fr; gap: 10px; }
     .stat-card-value { font-size: 20px; }
     .repair-item { flex-wrap: wrap; }
-  }
+    
+}
   <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -559,14 +560,16 @@ import {
   getFirestore,
   collection,
   addDoc,
+  query,
+  orderBy,
   onSnapshot,
   doc,
   updateDoc,
-  deleteDoc
+  deleteDoc,
+  serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 
-// 🔥 Firebase เดิมของคุณ
 const firebaseConfig = {
   apiKey: "AIzaSyDAfm7eDJPFiWrUK_U0aqS7yl2Wt_PpjmA",
   authDomain: "garage-system-41587.firebaseapp.com",
@@ -579,6 +582,8 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+
+</script>
 
 
 // ==========================
