@@ -2,164 +2,672 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>Garage Pro</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auto Expert - Your Vehicle Companion</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-body { font-family: sans-serif; padding:20px; background:#FFD700; }
-.card {
-  background:white;
-  padding:15px;
-  margin:10px 0;
-  border-radius:10px;
-}
-button {
-  padding:6px 10px;
-  margin:3px;
-  border:none;
-  border-radius:6px;
-  cursor:pointer;
-}
-.waiting { background:orange; color:white; }
-.fixing { background:blue; color:white; }
-.done { background:green; color:white; }
-.delete { background:red; color:white; }
+  :root {
+    --bg-primary: #0d1117;
+    --bg-secondary: #161b22;
+    --bg-card: #1c2230;
+    --bg-card-hover: #222940;
+    --accent-green: #22c55e;
+    --accent-green-dim: #166534;
+    --accent-blue: #3b82f6;
+    --accent-purple: #a855f7;
+    --accent-orange: #f97316;
+    --accent-yellow: #eab308;
+    --text-primary: #f0f6fc;
+    --text-secondary: #8b949e;
+    --text-muted: #6e7681;
+    --border: #30363d;
+    --sidebar-width: 220px;
+    --green-glow: 0 0 20px rgba(34,197,94,0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'IBM Plex Sans Thai', 'Space Grotesk', sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+  }
+
+  /* ===== SIDEBAR ===== */
+  .sidebar {
+    width: var(--sidebar-width);
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    z-index: 100;
+    padding: 20px 0;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 20px 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+
+  .logo-icon {
+    width: 40px; height: 40px;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    box-shadow: var(--green-glow);
+  }
+
+  .logo-text { display: flex; flex-direction: column; line-height: 1.2; }
+  .logo-title { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+  .logo-sub { font-size: 10px; color: var(--text-secondary); }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-radius: 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+    position: relative;
+  }
+
+  .nav-item:hover { background: var(--bg-card); color: var(--text-primary); }
+
+  .nav-item.active {
+    background: rgba(34,197,94,0.12);
+    color: var(--accent-green);
+    border-right: 3px solid var(--accent-green);
+  }
+
+  .nav-item .nav-icon { width: 20px; text-align: center; font-size: 16px; }
+
+  .nav-section { margin-bottom: 4px; }
+
+  .sidebar-bottom {
+    margin-top: auto;
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+  }
+
+  .premium-card {
+    background: linear-gradient(135deg, rgba(234,179,8,0.15), rgba(234,179,8,0.05));
+    border: 1px solid rgba(234,179,8,0.3);
+    border-radius: 12px;
+    padding: 14px;
+    text-align: center;
+  }
+
+  .premium-crown { font-size: 24px; margin-bottom: 6px; }
+  .premium-title { font-size: 12px; font-weight: 700; color: var(--accent-yellow); }
+  .premium-desc { font-size: 11px; color: var(--text-secondary); margin: 4px 0 10px; line-height: 1.4; }
+  .premium-btn {
+    background: var(--accent-green);
+    color: #000;
+    border: none;
+    padding: 7px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.2s;
+  }
+  .premium-btn:hover { background: #16a34a; transform: translateY(-1px); }
+
+  /* ===== MAIN ===== */
+  .main {
+    margin-left: var(--sidebar-width);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  /* ===== TOPBAR ===== */
+  .topbar {
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky; top: 0; z-index: 50;
+  }
+
+  .greeting-section {}
+  .greeting-title { font-size: 22px; font-weight: 700; color: var(--text-primary); }
+  .greeting-sub { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+
+  .topbar-right { display: flex; align-items: center; gap: 16px; }
+
+  .notif-btn {
+    position: relative;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 18px;
+    transition: all 0.2s;
+  }
+  .notif-btn:hover { border-color: var(--accent-green); color: var(--accent-green); }
+
+  .notif-badge {
+    position: absolute;
+    top: -4px; right: -4px;
+    background: #ef4444;
+    color: #fff;
+    font-size: 10px;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700;
+  }
+
+  .user-chip {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 6px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .user-chip:hover { border-color: var(--accent-green); }
+  .user-avatar {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #22c55e, #3b82f6);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700;
+  }
+  .user-name { font-size: 13px; font-weight: 600; }
+
+  /* ===== CONTENT ===== */
+  .content { padding: 28px 32px; flex: 1; }
+
+  /* ===== CAR CARD ===== */
+  .car-card {
+    background: linear-gradient(135deg, #1c2230, #1a2535);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .car-card::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 300px; height: 100%;
+    background: radial-gradient(ellipse at right center, rgba(34,197,94,0.06), transparent 70%);
+    pointer-events: none;
+  }
+
+  .car-info { flex: 1; }
+  .car-model { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+  .car-variant { font-size: 13px; color: var(--text-secondary); margin-bottom: 10px; }
+
+  .plate-tag {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(59,130,246,0.15);
+    border: 1px solid rgba(59,130,246,0.3);
+    color: var(--accent-blue);
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+
+  .car-stats { display: flex; flex-direction: column; gap: 8px; }
+  .stat-row { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+  .stat-icon { color: var(--text-secondary); width: 18px; }
+  .stat-label { color: var(--text-secondary); width: 90px; }
+  .stat-value { color: var(--text-primary); font-weight: 500; }
+
+  .car-visual {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  .change-car-btn {
+    background: rgba(34,197,94,0.1);
+    border: 1px solid rgba(34,197,94,0.3);
+    color: var(--accent-green);
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .change-car-btn:hover { background: rgba(34,197,94,0.2); }
+
+  .car-img-placeholder {
+    width: 240px; height: 130px;
+    background: linear-gradient(135deg, rgba(34,197,94,0.05), rgba(59,130,246,0.05));
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 80px;
+    opacity: 0.8;
+  }
+
+  .detail-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .detail-btn:hover { border-color: var(--accent-green); color: var(--accent-green); }
+
+  /* ===== STATS ROW ===== */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: all 0.2s;
+  }
+  .stat-card:hover { border-color: rgba(34,197,94,0.3); transform: translateY(-2px); }
+
+  .stat-card-icon {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .stat-card-body {}
+  .stat-card-label { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; }
+  .stat-card-value { font-size: 26px; font-weight: 700; line-height: 1; }
+  .stat-card-unit { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+
+  /* ===== SECTION ===== */
+  .section { margin-bottom: 24px; }
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .section-title { font-size: 16px; font-weight: 700; }
+  .section-link {
+    font-size: 13px;
+    color: var(--accent-green);
+    cursor: pointer;
+    text-decoration: none;
+    transition: opacity 0.2s;
+  }
+  .section-link:hover { opacity: 0.8; }
+
+  /* ===== REPAIR HISTORY ===== */
+  .repair-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .repair-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: all 0.2s;
+  }
+  .repair-item:hover { background: var(--bg-card-hover); border-color: rgba(34,197,94,0.2); }
+
+  .repair-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .repair-info { flex: 1; }
+  .repair-name { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+  .repair-shop { font-size: 12px; color: var(--text-secondary); }
+
+  .repair-date-km { text-align: center; }
+  .repair-date { font-size: 12px; color: var(--text-secondary); }
+  .repair-km { font-size: 12px; color: var(--text-muted); }
+
+  .repair-cost { text-align: right; font-size: 18px; font-weight: 700; white-space: nowrap; }
+  .repair-cost-unit { font-size: 11px; color: var(--text-secondary); font-weight: 400; }
+
+  /* ===== ALERTS ===== */
+  .alert-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .alert-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: all 0.2s;
+  }
+  .alert-item:hover { background: var(--bg-card-hover); }
+
+  .alert-info { flex: 1; }
+  .alert-name { font-size: 14px; font-weight: 600; }
+  .alert-freq { font-size: 12px; color: var(--text-secondary); }
+
+  .alert-remain { text-align: right; flex-shrink: 0; }
+  .alert-remain-label { font-size: 11px; color: var(--text-secondary); }
+  .alert-remain-value { font-size: 16px; font-weight: 700; }
+  .alert-remain-unit { font-size: 11px; color: var(--text-secondary); }
+
+  .alert-btn {
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .alert-btn.saved { background: rgba(34,197,94,0.15); color: var(--accent-green); }
+  .alert-btn.detail { background: rgba(234,179,8,0.15); color: var(--accent-yellow); }
+  .alert-btn:hover { filter: brightness(1.2); }
+
+  /* ===== BOTTOM NAV (mobile) ===== */
+  .bottom-nav { display: none; }
+
+  /* ===== MODAL ===== */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 28px;
+    width: 90%;
+    max-width: 480px;
+    animation: modalIn 0.25s ease;
+  }
+
+  @keyframes modalIn {
+    from { transform: scale(0.95); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .modal-title { font-size: 18px; font-weight: 700; }
+  .modal-close { background: none; border: none; color: var(--text-secondary); font-size: 20px; cursor: pointer; }
+
+  .form-group { margin-bottom: 16px; }
+  .form-label { font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; display: block; }
+  .form-input {
+    width: 100%;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-family: inherit;
+    transition: border-color 0.2s;
+  }
+  .form-input:focus { outline: none; border-color: var(--accent-green); }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .modal-btn {
+    width: 100%;
+    background: var(--accent-green);
+    color: #000;
+    border: none;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .modal-btn:hover { background: #16a34a; }
+
+  /* ===== TOAST ===== */
+  .toast {
+    position: fixed;
+    bottom: 30px; right: 30px;
+    background: var(--bg-card);
+    border: 1px solid var(--accent-green);
+    color: var(--text-primary);
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 999;
+    display: none;
+    animation: toastIn 0.3s ease;
+    gap: 8px;
+    align-items: center;
+  }
+  .toast.show { display: flex; }
+  @keyframes toastIn {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 900px) {
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .car-img-placeholder { width: 160px; height: 90px; font-size: 55px; }
+  }
+
+  @media (max-width: 700px) {
+    .sidebar { display: none; }
+    .main { margin-left: 0; }
+    .content { padding: 20px 16px 90px; }
+    .topbar { padding: 14px 16px; }
+    .bottom-nav {
+      display: flex;
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border);
+      padding: 10px 0 20px;
+      z-index: 100;
+    }
+    .bn-item {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      gap: 4px; cursor: pointer; color: var(--text-secondary); font-size: 10px;
+      transition: color 0.2s;
+    }
+    .bn-item.active { color: var(--accent-green); }
+    .bn-item .bn-icon { font-size: 20px; }
+    .bn-add {
+      flex: 0;
+      width: 52px; height: 52px;
+      background: var(--accent-green);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin-top: -22px;
+      box-shadow: 0 4px 20px rgba(34,197,94,0.4);
+      cursor: pointer;
+      font-size: 24px;
+      color: #000;
+    }
+    .car-card { flex-direction: column; }
+    .car-visual { align-items: center; width: 100%; }
+    .car-img-placeholder { width: 100%; max-width: 280px; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .greeting-title { font-size: 18px; }
+  }
+
+  @media (max-width: 480px) {
+    .stats-row { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .stat-card-value { font-size: 20px; }
+    .repair-item { flex-wrap: wrap; }
+  }
 </style>
 </head>
-
 <body>
 
-<h2>🚗 Garage Pro</h2>
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-icon">🚗</div>
+    <div class="logo-text">
+      <span class="logo-title">Auto Expert</span>
+      <span class="logo-sub">Your Vehicle Companion</span>
+    </div>
+  </div>
 
-<!-- ➕ เพิ่มงาน -->
-<div class="card">
-  <input id="car" placeholder="รถ">
-  <input id="name" placeholder="ลูกค้า">
-  <input id="phone" placeholder="โทร">
-  <input id="problem" placeholder="ปัญหา">
-  <input id="price" type="number" placeholder="ราคา">
-  <button onclick="addJob()">เพิ่มงาน</button>
-</div>
-
-<h3>📋 รายการงาน</h3>
-<div id="list">กำลังโหลด...</div>
-
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {
-  getFirestore,
-  collection,
-  addDoc,
-  query,
-  orderBy,
-  onSnapshot,
-  doc,
-  updateDoc,
-  deleteDoc,
-  serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-// 🔥 ใส่ของจริง
-const firebaseConfig = {
-  apiKey: "YOUR_KEY",
-  authDomain: "YOUR_DOMAIN",
-  projectId: "garage-system-41587"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-const tenantId = "tenant_001";
-const listBox = document.getElementById("list");
-
-// ✅ เพิ่มงาน (มี error log)
-window.addJob = async () => {
-  try {
-    const data = {
-      car: document.getElementById("car").value || "-",
-      customerName: document.getElementById("name").value || "-",
-      phone: document.getElementById("phone").value || "-",
-      problem: document.getElementById("problem").value || "-",
-      price: Number(document.getElementById("price").value || 0),
-      status: "waiting",
-      createdAt: serverTimestamp()
-    };
-
-    console.log("กำลังเพิ่ม:", data);
-
-    await addDoc(collection(db, "tenants", tenantId, "jobs"), data);
-
-    alert("✅ เพิ่มงานสำเร็จ");
-
-  } catch (err) {
-    console.error("ERROR:", err);
-    alert("❌ เพิ่มไม่สำเร็จ: " + err.message);
-  }
-};
-
-// 🔄 realtime
-const q = query(
-  collection(db, "tenants", tenantId, "jobs"),
-  orderBy("createdAt", "desc")
-);
-
-onSnapshot(q, (snapshot) => {
-  listBox.innerHTML = "";
-
-  if (snapshot.empty) {
-    listBox.innerHTML = "ไม่มีข้อมูล";
-    return;
-  }
-
-  snapshot.forEach((docSnap) => {
-    const d = docSnap.data();
-    const id = docSnap.id;
-
-    listBox.innerHTML += `
-      <div class="card">
-        🚗 ${d.car ?? "-"} <br>
-        👤 ${d.customerName ?? "-"} <br>
-        📞 ${d.phone ?? "-"} <br>
-        🛠 ${d.problem ?? "-"} <br>
-        💰 ${d.price ?? 0} <br>
-        📊 <b>${d.status ?? "waiting"}</b><br><br>
-        📊 <b class="status">
-  ${
-    d.status === "waiting" ? "รอซ่อม" :
-    d.status === "fixing" ? "กำลังซ่อม" :
-    d.status === "done" ? "เสร็จแล้ว" : "-"
-  }
-</b>
-
-        <button class="waiting" onclick="setStatus('${id}','รอซ่อม')">รอ</button>
-        <button class="fixing" onclick="setStatus('${id}','กำลังซ่อม')">กำลังซ่อม</button>
-        <button class="done" onclick="setStatus('${id}','เสร็จแล้ว')">เสร็จ</button>
-        <button class="delete" onclick="del('${id}')">ลบ</button>
+  <nav>
+    <div class="nav-section">
+      <div class="nav-item active" onclick="setNav(this, 'home')">
+        <span class="nav-icon">🏠</span> หน้าหลัก
       </div>
-    `;
-  });
-});
+      <div class="nav-item" onclick="setNav(this, 'car')">
+        <span class="nav-icon">🚘</span> รถของฉัน
+      </div>
+      <div class="nav-item" onclick="setNav(this, 'repair')">
+        <span class="nav-icon">🔧</span> ประวัติการซ่อม
+      </div>
+      <div class="nav-item" onclick="setNav(this, 'expense')">
+        <span class="nav-icon">💸</span> ค่าใช้จ่าย
+      </div>
+      <div class="nav-item" onclick="setNav(this, 'alert')">
+        <span class="nav-icon">🔔</span> แจ้งเตือน
+      </div>
+      <div class="nav-item" onclick="setNav(this, 'docs')">
+        <span class="nav-icon">📄</span> เอกสารรถ
+      </div>
+      <div class="nav-item" onclick="setNav(this, 'appt')">
+        <span class="nav-icon">📅</span> บริการนัดหมาย
+      </div>
+      <div class="nav-item" onclick="setNav(this, 'settings')">
+        <span class="nav-icon">⚙️</span> ตั้งค่า
+      </div>
+    </div>
+  </nav>
 
-// 🟢 เปลี่ยนสถานะ
-window.setStatus = async (id, status) => {
-  
-  try {
-    await updateDoc(doc(db, "tenants", tenantId, "jobs", id), { status });
-  } catch (e) {
-    alert("error: " + e.message);
-  }
-};
+  <div class="sidebar-bottom">
+    <div class="premium-card">
+      <div class="premium-crown">👑</div>
+      <div class="premium-title">Premium Member</div>
+      <div class="premium-desc">ใช้งาน Premium<br>ดูสถิติและฟีเจอร์พิเศษ</div>
+      <button class="premium-btn" onclick="showToast('🌟 อัปเกรดสู่ Premium แล้ว!')">อัปเกรดเลย</button>
+    </div>
+  </div>
+</aside>
 
-// 🗑 ลบ
-window.del = async (id) => {
-  if (!confirm("ลบงานนี้?")) return;
-  try {
-    await deleteDoc(doc(db, "tenants", tenantId, "jobs", id));
-  } catch (e) {
-    alert("error: " + e.message);
-  }
-};
+<!-- MAIN -->
+<main class="main">
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="greeting-section">
+      <div class="greeting-title">สวัสดี คุณเจียบ 👋</div>
+      <div class="greeting-sub">ดูแลรถของคุณให้พร้อมใช้งานเสมอ</div>
+    </div>
+    <div class="topbar-right">
+      <div class="notif-btn" onclick="openModal('alertModal')">
+        🔔
+        <span class="notif-badge">3</span>
+      </div>
+      <div class="user-chip">
+        <div class="user-avatar">จ</div>
+        <span class="user-name">คุณเจียบ</span>
+        <span style="color:var(--text-secondary)">▾</span>
+      </div>
+    </div>
+  </header>
 
-</script>
+  <!-- CONTENT -->
+  <div class="content">
 
-</body>
-</html>
+    <!-- CAR CARD -->
+    <div class="car-card">
+      <div class="car-info">
+        <div class="car-model">Toyota Altis</div>
+        <div class="car-variant">1.6 G AT 2019</div>
+        <div class="plate-tag">🚘 กจ 1234 กรุงเทพฯ</div>
+        <div class="car-stats">
+          <div class="stat-row">
+            <span class="stat-icon">⏱️</span>
+            <span class="stat-label">เลขไมล์ปัจจุบัน</span>
+            <span class="stat-value">78,560 กม.</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-icon">⛽</span>
+            <span class="stat-label">น้ำมัน</span>
+            <span class="stat-value">E20</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-icon">📋</span>
+            <span class="stat-label">วันจดทะเบียน</span>
+            <span class="stat-value">15 ม.ค. 2562</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-icon">🛡️</span>
+            <span class="stat-label">ประกันภัย</span>
+            <span class="stat-value" style="color:#f97316">หมดอายุ 20 ก.พ. 2568</span>
+          </div>
+        </div>
+      </div>
+      <div class="car-visual">
+        <button class="change-car-btn" onclick="openModal('carModal')">🔄 เปลี่ยนรถ</button>
+        <div class="car-img-placeholder">🚗</div>
+        <button class="detail-btn">ดูรายละเอียดรถ →</button>
+      </div>
+    </div>
+
+    <!-- STATS ROW -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-card-icon" style="background:rgba(34,197,94,0.15)">💰</div>
+        <div class="stat-card-body">
+          <div class="stat-card-label">ค่าใช้จ่ายรวมปีนี้</div>
+          <div
