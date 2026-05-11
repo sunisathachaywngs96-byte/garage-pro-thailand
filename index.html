@@ -551,6 +551,106 @@
     .stat-card-value { font-size: 20px; }
     .repair-item { flex-wrap: wrap; }
   }
+  <script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  onSnapshot,
+  doc,
+  updateDoc,
+  deleteDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+
+// 🔥 Firebase เดิมของคุณ
+const firebaseConfig = {
+  apiKey: "AIzaSyDAfm7eDJPFiWrUK_U0aqS7yl2Wt_PpjmA",
+  authDomain: "garage-system-41587.firebaseapp.com",
+  projectId: "garage-system-41587",
+  storageBucket: "garage-system-41587.firebasestorage.app",
+  messagingSenderId: "688480145767",
+  appId: "1:688480145767:web:9bfba3df045ca434d91fc2",
+  measurementId: "G-30329DLNXE"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+
+// ==========================
+// เพิ่มข้อมูลรถ
+// ==========================
+window.saveCar = async () => {
+
+  const carName = document.getElementById("carName").value;
+  const plate = document.getElementById("plate").value;
+  const mileage = document.getElementById("mileage").value;
+
+  await addDoc(collection(db, "cars"), {
+    carName,
+    plate,
+    mileage
+  });
+
+  alert("✅ บันทึกข้อมูลรถแล้ว");
+};
+
+
+// ==========================
+// โหลดข้อมูลขึ้น Dashboard
+// ==========================
+onSnapshot(collection(db, "cars"), (snapshot) => {
+
+  snapshot.forEach((docSnap) => {
+
+    const d = docSnap.data();
+
+    document.querySelector(".car-model").innerText =
+      d.carName || "-";
+
+    document.querySelector(".plate-tag").innerText =
+      "🚘 " + (d.plate || "-");
+
+    document.querySelector(".stat-value").innerText =
+      (d.mileage || "0") + " กม.";
+
+  });
+
+});
+
+
+// ==========================
+// แก้ไขข้อมูล
+// ==========================
+window.editCar = async (id) => {
+
+  const newName = prompt("ชื่อรถใหม่");
+
+  await updateDoc(doc(db, "cars", id), {
+    carName: newName
+  });
+
+};
+
+
+// ==========================
+// ลบข้อมูล
+// ==========================
+window.deleteCar = async (id) => {
+
+  if(confirm("ลบข้อมูลรถ ?")){
+
+    await deleteDoc(doc(db, "cars", id));
+
+  }
+
+};
+
+</script>
 </style>
 </head>
 <body>
