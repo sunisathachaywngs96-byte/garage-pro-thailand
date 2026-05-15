@@ -1,561 +1,486 @@
-<!DOCTYPE html>ทุก
+<!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Auto Expert - Your Vehicle Companion</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Auto Expert</title>
+
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
 <style>
-  :root {
-    --bg-primary: #0d1117;
-    --bg-secondary: #161b22;
-    --bg-card: #1c2230;
-    --bg-card-hover: #222940;
-    --accent-green: #22c55e;
-    --accent-green-dim: #166534;
-    --accent-blue: #3b82f6;
-    --accent-purple: #a855f7;
-    --accent-orange: #f97316;
-    --accent-yellow: #eab308;
-    --text-primary: #f0f6fc;
-    --text-secondary: #8b949e;
-    --text-muted: #6e7681;
-    --border: #30363d;
-    --sidebar-width: 220px;
-    --green-glow: 0 0 20px rgba(34,197,94,0.15);
+
+:root{
+  --bg:#0d1117;
+  --card:#161b22;
+  --card2:#1c2230;
+  --border:#30363d;
+  --green:#22c55e;
+  --blue:#3b82f6;
+  --yellow:#eab308;
+  --text:#f0f6fc;
+  --sub:#8b949e;
+}
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+body{
+  font-family:'IBM Plex Sans Thai',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  padding:20px;
+}
+
+.topbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:20px;
+}
+
+.title{
+  font-size:28px;
+  font-weight:700;
+}
+
+.top-actions{
+  display:flex;
+  gap:10px;
+}
+
+.btn{
+  border:none;
+  border-radius:10px;
+  padding:10px 16px;
+  cursor:pointer;
+  font-weight:600;
+}
+
+.btn-green{
+  background:var(--green);
+  color:#000;
+}
+
+.btn-blue{
+  background:var(--blue);
+  color:#fff;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:320px 1fr;
+  gap:20px;
+}
+
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:20px;
+}
+
+.section-title{
+  font-size:18px;
+  font-weight:700;
+  margin-bottom:14px;
+}
+
+.car-card{
+  background:var(--card2);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:14px;
+  margin-bottom:12px;
+}
+
+.car-name{
+  font-size:18px;
+  font-weight:700;
+}
+
+.car-plate{
+  color:var(--sub);
+  margin-top:4px;
+}
+
+.car-mile{
+  margin-top:8px;
+  color:var(--green);
+  font-weight:600;
+}
+
+.car-actions{
+  display:flex;
+  gap:8px;
+  margin-top:12px;
+}
+
+.small-btn{
+  flex:1;
+  border:none;
+  padding:8px;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:600;
+}
+
+.select-btn{
+  background:rgba(34,197,94,.15);
+  color:var(--green);
+}
+
+.delete-btn{
+  background:rgba(239,68,68,.15);
+  color:#ef4444;
+}
+
+.main-car{
+  background:linear-gradient(135deg,#1c2230,#1a2535);
+  border-radius:20px;
+  padding:24px;
+  border:1px solid var(--border);
+  margin-bottom:20px;
+}
+
+.main-car-name{
+  font-size:30px;
+  font-weight:700;
+}
+
+.main-car-plate{
+  margin-top:8px;
+  display:inline-block;
+  background:rgba(59,130,246,.15);
+  color:var(--blue);
+  padding:6px 14px;
+  border-radius:8px;
+}
+
+.stats{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:14px;
+  margin-top:20px;
+}
+
+.stat{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:16px;
+}
+
+.stat-label{
+  color:var(--sub);
+  font-size:13px;
+}
+
+.stat-value{
+  font-size:26px;
+  font-weight:700;
+  margin-top:8px;
+}
+
+.repair-item{
+  background:var(--card2);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:14px;
+  margin-bottom:12px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.repair-name{
+  font-weight:700;
+}
+
+.repair-sub{
+  color:var(--sub);
+  margin-top:4px;
+  font-size:13px;
+}
+
+.repair-price{
+  color:var(--green);
+  font-size:22px;
+  font-weight:700;
+}
+
+.modal-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.7);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:999;
+}
+
+.modal-overlay.open{
+  display:flex;
+}
+
+.modal{
+  width:90%;
+  max-width:420px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:24px;
+}
+
+.modal-title{
+  font-size:22px;
+  font-weight:700;
+  margin-bottom:20px;
+}
+
+.input{
+  width:100%;
+  padding:12px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:var(--card2);
+  color:var(--text);
+  margin-bottom:12px;
+}
+
+.full-btn{
+  width:100%;
+  border:none;
+  border-radius:10px;
+  padding:12px;
+  background:var(--green);
+  color:#000;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.close-btn{
+  margin-top:10px;
+  width:100%;
+  border:none;
+  border-radius:10px;
+  padding:12px;
+  background:#2d333b;
+  color:#fff;
+  cursor:pointer;
+}
+
+.empty{
+  text-align:center;
+  color:var(--sub);
+  padding:30px;
+}
+
+@media(max-width:900px){
+
+  .grid{
+    grid-template-columns:1fr;
   }
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    font-family: 'IBM Plex Sans Thai', 'Space Grotesk', sans-serif;
-    background: var(--bg-primary);
-    color: var(--text-primary);
-    min-height: 100vh;
-    display: flex;
+  .stats{
+    grid-template-columns:1fr;
   }
 
-  /* ===== SIDEBAR ===== */
-  .sidebar {
-    width: var(--sidebar-width);
-    background: var(--bg-secondary);
-    border-right: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    position: fixed;
-    top: 0; left: 0; bottom: 0;
-    z-index: 100;
-    padding: 20px 0;
-  }
+}
 
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 0 20px 24px;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 16px;
-  }
+</style>
+</head>
 
-  .logo-icon {
-    width: 40px; height: 40px;
-    background: linear-gradient(135deg, #22c55e, #16a34a);
-    border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 20px;
-    box-shadow: var(--green-glow);
-  }
+<body>
 
-  .logo-text { display: flex; flex-direction: column; line-height: 1.2; }
-  .logo-title { font-size: 14px; font-weight: 700; color: var(--text-primary); }
-  .logo-sub { font-size: 10px; color: var(--text-secondary); }
+<div class="topbar">
 
-  .nav-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 20px;
-    cursor: pointer;
-    transition: all 0.2s;
-    border-radius: 0;
-    color: var(--text-secondary);
-    font-size: 14px;
-    font-weight: 500;
-    position: relative;
-  }
+  <div class="title">
+    🚘 Auto Expert
+  </div>
 
-  .nav-item:hover { background: var(--bg-card); color: var(--text-primary); }
+  <div class="top-actions">
 
-  .nav-item.active {
-    background: rgba(34,197,94,0.12);
-    color: var(--accent-green);
-    border-right: 3px solid var(--accent-green);
-  }
+    <button class="btn btn-green" onclick="openCarModal()">
+      + เพิ่มรถ
+    </button>
 
-  .nav-item .nav-icon { width: 20px; text-align: center; font-size: 16px; }
+    <button class="btn btn-blue" onclick="openRepairModal()">
+      + เพิ่มงานซ่อม
+    </button>
 
-  .nav-section { margin-bottom: 4px; }
+  </div>
 
-  .sidebar-bottom {
-    margin-top: auto;
-    padding: 16px 20px;
-    border-top: 1px solid var(--border);
-  }
+</div>
 
-  .premium-card {
-    background: linear-gradient(135deg, rgba(234,179,8,0.15), rgba(234,179,8,0.05));
-    border: 1px solid rgba(234,179,8,0.3);
-    border-radius: 12px;
-    padding: 14px;
-    text-align: center;
-  }
+<div class="grid">
 
-  .premium-crown { font-size: 24px; margin-bottom: 6px; }
-  .premium-title { font-size: 12px; font-weight: 700; color: var(--accent-yellow); }
-  .premium-desc { font-size: 11px; color: var(--text-secondary); margin: 4px 0 10px; line-height: 1.4; }
-  .premium-btn {
-    background: var(--accent-green);
-    color: #000;
-    border: none;
-    padding: 7px 16px;
-    border-radius: 8px;
-    font-size: 12px;
-    font-weight: 700;
-    cursor: pointer;
-    width: 100%;
-    transition: all 0.2s;
-  }
-  .premium-btn:hover { background: #16a34a; transform: translateY(-1px); }
+  <!-- LEFT -->
+  <div class="card">
 
-  /* ===== MAIN ===== */
-  .main {
-    margin-left: var(--sidebar-width);
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-  }
+    <div class="section-title">
+      รถของฉัน
+    </div>
 
-  /* ===== TOPBAR ===== */
-  .topbar {
-    background: var(--bg-secondary);
-    border-bottom: 1px solid var(--border);
-    padding: 16px 32px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky; top: 0; z-index: 50;
-  }
+    <div id="carList"></div>
 
-  .greeting-section {}
-  .greeting-title { font-size: 22px; font-weight: 700; color: var(--text-primary); }
-  .greeting-sub { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+  </div>
 
-  .topbar-right { display: flex; align-items: center; gap: 16px; }
+  <!-- RIGHT -->
+  <div>
 
-  .notif-btn {
-    position: relative;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    color: var(--text-secondary);
-    width: 38px; height: 38px;
-    border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; font-size: 18px;
-    transition: all 0.2s;
-  }
-  .notif-btn:hover { border-color: var(--accent-green); color: var(--accent-green); }
+    <div class="main-car">
 
-  .notif-badge {
-    position: absolute;
-    top: -4px; right: -4px;
-    background: #ef4444;
-    color: #fff;
-    font-size: 10px;
-    width: 18px; height: 18px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-weight: 700;
-  }
+      <div class="main-car-name car-model">
+        ยังไม่มีรถ
+      </div>
 
-  .user-chip {
-    display: flex; align-items: center; gap: 8px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    padding: 6px 12px;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .user-chip:hover { border-color: var(--accent-green); }
-  .user-avatar {
-    width: 28px; height: 28px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #22c55e, #3b82f6);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 12px; font-weight: 700;
-  }
-  .user-name { font-size: 13px; font-weight: 600; }
+      <div class="main-car-plate plate-tag">
+        กรุณาเพิ่มรถ
+      </div>
 
-  /* ===== CONTENT ===== */
-  .content { padding: 28px 32px; flex: 1; }
+      <div class="stats">
 
-  /* ===== CAR CARD ===== */
-  .car-card {
-    background: linear-gradient(135deg, #1c2230, #1a2535);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 24px;
-    margin-bottom: 20px;
-    position: relative;
-    overflow: hidden;
-  }
+        <div class="stat">
+          <div class="stat-label">
+            เลขไมล์
+          </div>
 
-  .car-card::before {
-    content: '';
-    position: absolute;
-    top: 0; right: 0;
-    width: 300px; height: 100%;
-    background: radial-gradient(ellipse at right center, rgba(34,197,94,0.06), transparent 70%);
-    pointer-events: none;
-  }
+          <div class="stat-value" id="mainMileage">
+            0
+          </div>
+        </div>
 
-  .car-info { flex: 1; }
-  .car-model { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
-  .car-variant { font-size: 13px; color: var(--text-secondary); margin-bottom: 10px; }
+        <div class="stat">
+          <div class="stat-label">
+            จำนวนงานซ่อม
+          </div>
 
-  .plate-tag {
-    display: inline-flex;
-    align-items: center;
-    background: rgba(59,130,246,0.15);
-    border: 1px solid rgba(59,130,246,0.3);
-    color: var(--accent-blue);
-    padding: 4px 12px;
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 600;
-    margin-bottom: 16px;
-  }
+          <div class="stat-value" id="repairCount">
+            0
+          </div>
+        </div>
 
-  .car-stats { display: flex; flex-direction: column; gap: 8px; }
-  .stat-row { display: flex; align-items: center; gap: 10px; font-size: 13px; }
-  .stat-icon { color: var(--text-secondary); width: 18px; }
-  .stat-label { color: var(--text-secondary); width: 90px; }
-  .stat-value { color: var(--text-primary); font-weight: 500; }
+        <div class="stat">
+          <div class="stat-label">
+            ค่าใช้จ่ายรวม
+          </div>
 
-  .car-visual {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 12px;
-    flex-shrink: 0;
-  }
+          <div class="stat-value" id="totalCost">
+            0
+          </div>
+        </div>
 
-  .change-car-btn {
-    background: rgba(34,197,94,0.1);
-    border: 1px solid rgba(34,197,94,0.3);
-    color: var(--accent-green);
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .change-car-btn:hover { background: rgba(34,197,94,0.2); }
+      </div>
 
-  .car-img-placeholder {
-    width: 240px; height: 130px;
-    background: linear-gradient(135deg, rgba(34,197,94,0.05), rgba(59,130,246,0.05));
-    border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 80px;
-    opacity: 0.8;
-  }
+    </div>
 
-  .detail-btn {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--text-secondary);
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-size: 13px;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex; align-items: center; gap: 6px;
-  }
-  .detail-btn:hover { border-color: var(--accent-green); color: var(--accent-green); }
+    <div class="card">
 
-  /* ===== STATS ROW ===== */
-  .stats-row {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-    margin-bottom: 24px;
-  }
+      <div class="section-title">
+        ประวัติการซ่อม
+      </div>
 
-  .stat-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 18px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    transition: all 0.2s;
-  }
-  .stat-card:hover { border-color: rgba(34,197,94,0.3); transform: translateY(-2px); }
+      <div id="repairList">
 
-  .stat-card-icon {
-    width: 44px; height: 44px;
-    border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 20px;
-    flex-shrink: 0;
-  }
+        <div class="empty">
+          ยังไม่มีข้อมูล
+        </div>
 
-  .stat-card-body {}
-  .stat-card-label { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; }
-  .stat-card-value { font-size: 26px; font-weight: 700; line-height: 1; }
-  .stat-card-unit { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+      </div>
 
-  /* ===== SECTION ===== */
-  .section { margin-bottom: 24px; }
-  .section-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 14px;
-  }
-  .section-title { font-size: 16px; font-weight: 700; }
-  .section-link {
-    font-size: 13px;
-    color: var(--accent-green);
-    cursor: pointer;
-    text-decoration: none;
-    transition: opacity 0.2s;
-  }
-  .section-link:hover { opacity: 0.8; }
+    </div>
 
-  /* ===== REPAIR HISTORY ===== */
-  .repair-list { display: flex; flex-direction: column; gap: 10px; }
+  </div>
 
-  .repair-item {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 14px 18px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    transition: all 0.2s;
-  }
-  .repair-item:hover { background: var(--bg-card-hover); border-color: rgba(34,197,94,0.2); }
+</div>
 
-  .repair-icon {
-    width: 40px; height: 40px;
-    border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 18px;
-    flex-shrink: 0;
-  }
+<!-- MODAL CAR -->
 
-  .repair-info { flex: 1; }
-  .repair-name { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
-  .repair-shop { font-size: 12px; color: var(--text-secondary); }
+<div class="modal-overlay" id="carModal">
 
-  .repair-date-km { text-align: center; }
-  .repair-date { font-size: 12px; color: var(--text-secondary); }
-  .repair-km { font-size: 12px; color: var(--text-muted); }
+  <div class="modal">
 
-  .repair-cost { text-align: right; font-size: 18px; font-weight: 700; white-space: nowrap; }
-  .repair-cost-unit { font-size: 11px; color: var(--text-secondary); font-weight: 400; }
+    <div class="modal-title">
+      เพิ่มรถ
+    </div>
 
-  /* ===== ALERTS ===== */
-  .alert-list { display: flex; flex-direction: column; gap: 10px; }
+    <input
+      id="carName"
+      class="input"
+      placeholder="ชื่อรถ"
+    />
 
-  .alert-item {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 14px 18px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    transition: all 0.2s;
-  }
-  .alert-item:hover { background: var(--bg-card-hover); }
+    <input
+      id="plate"
+      class="input"
+      placeholder="ทะเบียน"
+    />
 
-  .alert-info { flex: 1; }
-  .alert-name { font-size: 14px; font-weight: 600; }
-  .alert-freq { font-size: 12px; color: var(--text-secondary); }
+    <input
+      id="mileage"
+      class="input"
+      placeholder="เลขไมล์"
+      type="number"
+    />
 
-  .alert-remain { text-align: right; flex-shrink: 0; }
-  .alert-remain-label { font-size: 11px; color: var(--text-secondary); }
-  .alert-remain-value { font-size: 16px; font-weight: 700; }
-  .alert-remain-unit { font-size: 11px; color: var(--text-secondary); }
+    <button class="full-btn" onclick="saveCar()">
+      บันทึกรถ
+    </button>
 
-  .alert-btn {
-    padding: 7px 14px;
-    border-radius: 8px;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
-    transition: all 0.2s;
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-  .alert-btn.saved { background: rgba(34,197,94,0.15); color: var(--accent-green); }
-  .alert-btn.detail { background: rgba(234,179,8,0.15); color: var(--accent-yellow); }
-  .alert-btn:hover { filter: brightness(1.2); }
+    <button class="close-btn" onclick="closeCarModal()">
+      ปิด
+    </button>
 
-  /* ===== BOTTOM NAV (mobile) ===== */
-  .bottom-nav { display: none; }
+  </div>
 
-  /* ===== MODAL ===== */
-  .modal-overlay {
-    display: none;
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.7);
-    z-index: 200;
-    align-items: center; justify-content: center;
-  }
-  .modal-overlay.open { display: flex; }
+</div>
 
-  .modal {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 28px;
-    width: 90%;
-    max-width: 480px;
-    animation: modalIn 0.25s ease;
-  }
+<!-- MODAL REPAIR -->
 
-  @keyframes modalIn {
-    from { transform: scale(0.95); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
-  }
+<div class="modal-overlay" id="repairModal">
 
-  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-  .modal-title { font-size: 18px; font-weight: 700; }
-  .modal-close { background: none; border: none; color: var(--text-secondary); font-size: 20px; cursor: pointer; }
+  <div class="modal">
 
-  .form-group { margin-bottom: 16px; }
-  .form-label { font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; display: block; }
-  .form-input {
-    width: 100%;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    color: var(--text-primary);
-    padding: 10px 14px;
-    border-radius: 10px;
-    font-size: 14px;
-    font-family: inherit;
-    transition: border-color 0.2s;
-  }
-  .form-input:focus { outline: none; border-color: var(--accent-green); }
+    <div class="modal-title">
+      เพิ่มงานซ่อม
+    </div>
 
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .modal-btn {
-    width: 100%;
-    background: var(--accent-green);
-    color: #000;
-    border: none;
-    padding: 12px;
-    border-radius: 10px;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    margin-top: 8px;
-    transition: all 0.2s;
-    font-family: inherit;
-  }
-  .modal-btn:hover { background: #16a34a; }
+    <input
+      id="repairTitle"
+      class="input"
+      placeholder="รายการซ่อม"
+    />
 
-  /* ===== TOAST ===== */
-  .toast {
-    position: fixed;
-    bottom: 30px; right: 30px;
-    background: var(--bg-card);
-    border: 1px solid var(--accent-green);
-    color: var(--text-primary);
-    padding: 12px 20px;
-    border-radius: 12px;
-    font-size: 14px;
-    font-weight: 500;
-    z-index: 999;
-    display: none;
-    animation: toastIn 0.3s ease;
-    gap: 8px;
-    align-items: center;
-  }
-  .toast.show { display: flex; }
-  @keyframes toastIn {
-    from { transform: translateY(20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-  }
+    <input
+      id="repairPrice"
+      class="input"
+      placeholder="ราคา"
+      type="number"
+    />
 
-  /* ===== RESPONSIVE ===== */
-  @media (max-width: 900px) {
-    .stats-row { grid-template-columns: repeat(2, 1fr); }
-    .car-img-placeholder { width: 160px; height: 90px; font-size: 55px; }
-  }
+    <input
+      id="repairMileage"
+      class="input"
+      placeholder="เลขไมล์"
+      type="number"
+    />
 
-  @media (max-width: 700px) {
-    .sidebar { display: none; }
-    .main { margin-left: 0; }
-    .content { padding: 20px 16px 90px; }
-    .topbar { padding: 14px 16px; }
-    .bottom-nav {
-      display: flex;
-      position: fixed; bottom: 0; left: 0; right: 0;
-      background: var(--bg-secondary);
-      border-top: 1px solid var(--border);
-      padding: 10px 0 20px;
-      z-index: 100;
-    }
-    .bn-item {
-      flex: 1; display: flex; flex-direction: column; align-items: center;
-      gap: 4px; cursor: pointer; color: var(--text-secondary); font-size: 10px;
-      transition: color 0.2s;
-    }
-    .bn-item.active { color: var(--accent-green); }
-    .bn-item .bn-icon { font-size: 20px; }
-    .bn-add {
-      flex: 0;
-      width: 52px; height: 52px;
-      background: var(--accent-green);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      margin-top: -22px;
-      box-shadow: 0 4px 20px rgba(34,197,94,0.4);
-      cursor: pointer;
-      font-size: 24px;
-      color: #000;
-    }
-    .car-card { flex-direction: column; }
-    .car-visual { align-items: center; width: 100%; }
-    .car-img-placeholder { width: 100%; max-width: 280px; }
-    .stats-row { grid-template-columns: repeat(2, 1fr); }
-    .greeting-title { font-size: 18px; }
-  }
+    <button class="full-btn" onclick="saveRepair()">
+      บันทึกงานซ่อม
+    </button>
 
-  @media (max-width: 480px) {
-    .stats-row { grid-template-columns: 1fr 1fr; gap: 10px; }
-    .stat-card-value { font-size: 20px; }
-    .repair-item { flex-wrap: wrap; }
-     
-} 
+    <button class="close-btn" onclick="closeRepairModal()">
+      ปิด
+    </button>
 
-    </style>
-  
-  <script type="module">
+  </div>
+
+</div>
+
+<script type="module">
 
 import { initializeApp }
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -566,93 +491,59 @@ import {
   addDoc,
   onSnapshot,
   deleteDoc,
-  doc,
-  updateDoc
+  doc
 }
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
+
   apiKey: "AIzaSyDAfm7eDJPFiWrUK_U0aqS7yl2Wt_PpjmA",
+
   authDomain: "garage-system-41587.firebaseapp.com",
+
   projectId: "garage-system-41587",
+
   storageBucket: "garage-system-41587.firebasestorage.app",
+
   messagingSenderId: "688480145767",
-  appId: "1:688480145767:web:9bfba3df045ca434d91fc2",
-  measurementId: "G-30329DLNXE"
+
+  appId: "1:688480145767:web:9bfba3df045ca434d91fc2"
+
 };
 
 const app = initializeApp(firebaseConfig);
+
 const db = getFirestore(app);
 
 let selectedCarId = null;
 
 // =====================
-// โหลดประวัติซ่อม
+// เปิดปิด Modal
 // =====================
-function loadRepairs(carId){
 
-  onSnapshot(
+window.openCarModal = function(){
 
-    collection(
-      db,
-      "users",
-      "user_001",
-      "cars",
-      carId,
-      "repairs"
-    ),
+  document
+    .getElementById("carModal")
+    .classList.add("open");
 
-    (snapshot) => {
+};
 
-      const repairList =
-        document.getElementById("repairList");
+window.closeCarModal = function(){
 
-      repairList.innerHTML = "";
+  document
+    .getElementById("carModal")
+    .classList.remove("open");
 
-      snapshot.forEach((docSnap) => {
+};
 
-        const d = docSnap.data();
-
-        repairList.innerHTML += `
-
-        <div class="repair-item">
-
-          <div class="repair-info">
-
-            <div class="repair-name">
-              ${d.title}
-            </div>
-
-            <div class="repair-shop">
-              ${d.mileage} กม.
-            </div>
-
-          </div>
-
-          <div class="repair-cost">
-            ${d.price} บาท
-          </div>
-
-        </div>
-
-        `;
-
-      });
-
-    }
-
-  );
-
-}
-
-// =====================
-// เปิด modal ซ่อม
-// =====================
-window.openRepairModal = function () {
+window.openRepairModal = function(){
 
   if(!selectedCarId){
+
     alert("กรุณาเลือกรถก่อน");
     return;
+
   }
 
   document
@@ -661,10 +552,7 @@ window.openRepairModal = function () {
 
 };
 
-// =====================
-// ปิด modal ซ่อม
-// =====================
-window.closeRepairModal = function () {
+window.closeRepairModal = function(){
 
   document
     .getElementById("repairModal")
@@ -673,35 +561,187 @@ window.closeRepairModal = function () {
 };
 
 // =====================
-// เปิด modal รถ
+// เพิ่มรถ
 // =====================
-window.openCarModal = function () {
 
-  document
-    .getElementById("carModal")
-    .classList.add("open");
+window.saveCar = async function(){
+
+  const carName =
+    document.getElementById("carName").value;
+
+  const plate =
+    document.getElementById("plate").value;
+
+  const mileage =
+    document.getElementById("mileage").value;
+
+  if(!carName || !plate){
+
+    alert("กรอกข้อมูลให้ครบ");
+    return;
+
+  }
+
+  await addDoc(
+
+    collection(
+      db,
+      "users",
+      "user_001",
+      "cars"
+    ),
+
+    {
+      carName,
+      plate,
+      mileage,
+      createdAt: Date.now()
+    }
+
+  );
+
+  closeCarModal();
+
+  document.getElementById("carName").value = "";
+  document.getElementById("plate").value = "";
+  document.getElementById("mileage").value = "";
+
+  alert("เพิ่มรถสำเร็จ");
 
 };
 
 // =====================
-// ปิด modal รถ
+// โหลดรถ realtime
 // =====================
-window.closeCarModal = function () {
 
-  document
-    .getElementById("carModal")
-    .classList.remove("open");
+onSnapshot(
+
+  collection(db, "users", "user_001", "cars"),
+
+  (snapshot)=>{
+
+    const carList =
+      document.getElementById("carList");
+
+    carList.innerHTML = "";
+
+    snapshot.forEach((docSnap)=>{
+
+      const d = docSnap.data();
+      const id = docSnap.id;
+
+      if(!selectedCarId){
+
+        selectedCar(id, d);
+
+      }
+
+      carList.innerHTML += `
+
+      <div class="car-card">
+
+        <div class="car-name">
+          ${d.carName}
+        </div>
+
+        <div class="car-plate">
+          🚘 ${d.plate}
+        </div>
+
+        <div class="car-mile">
+          ${d.mileage || 0} กม.
+        </div>
+
+        <div class="car-actions">
+
+          <button
+            class="small-btn select-btn"
+            onclick='selectedCar(
+              "${id}",
+              ${JSON.stringify(d)}
+            )'
+          >
+            เลือก
+          </button>
+
+          <button
+            class="small-btn delete-btn"
+            onclick='deleteCar("${id}")'
+          >
+            ลบ
+          </button>
+
+        </div>
+
+      </div>
+
+      `;
+
+    });
+
+  }
+
+);
+
+// =====================
+// เลือกรถ
+// =====================
+
+window.selectedCar = function(id, d){
+
+  selectedCarId = id;
+
+  document.querySelector(".car-model").innerText =
+    d.carName;
+
+  document.querySelector(".plate-tag").innerText =
+    "🚘 " + d.plate;
+
+  document.getElementById("mainMileage").innerText =
+    d.mileage || 0;
+
+  loadRepairs(id);
 
 };
 
 // =====================
-// เพิ่มประวัติซ่อม
+// ลบรถ
 // =====================
-window.saveRepair = async function () {
+
+window.deleteCar = async function(id){
+
+  const ok =
+    confirm("ลบรถคันนี้ ?");
+
+  if(!ok) return;
+
+  await deleteDoc(
+
+    doc(
+      db,
+      "users",
+      "user_001",
+      "cars",
+      id
+    )
+
+  );
+
+  alert("ลบแล้ว");
+
+};
+
+// =====================
+// เพิ่มงานซ่อม
+// =====================
+
+window.saveRepair = async function(){
 
   if(!selectedCarId){
-    alert("ยังไม่ได้เลือกรถ");
+
+    alert("กรุณาเลือกรถ");
     return;
+
   }
 
   const title =
@@ -714,8 +754,10 @@ window.saveRepair = async function () {
     document.getElementById("repairMileage").value;
 
   if(!title){
+
     alert("กรอกข้อมูล");
     return;
+
   }
 
   await addDoc(
@@ -731,837 +773,109 @@ window.saveRepair = async function () {
 
     {
       title,
-      price,
-      mileage,
+      price:Number(price || 0),
+      mileage:Number(mileage || 0),
       createdAt: Date.now()
     }
 
   );
 
-  alert("บันทึกแล้ว 🔧");
+  document.getElementById("repairTitle").value = "";
+  document.getElementById("repairPrice").value = "";
+  document.getElementById("repairMileage").value = "";
 
   closeRepairModal();
 
-};
-
-// =====================
-// เพิ่มรถ
-// =====================
-window.saveCar = async function () {
-
-  const carName =
-    document.getElementById("carName").value;
-
-  const plate =
-    document.getElementById("plate").value;
-
-  const mileage =
-    document.getElementById("mileage").value;
-
-  if(!carName || !plate){
-    alert("กรอกข้อมูลให้ครบ");
-    return;
-  }
-
-  await addDoc(
-    collection(db, "users", "user_001", "cars"),
-    {
-      carName,
-      plate,
-      mileage,
-      createdAt: Date.now()
-    }
-  );
-
-  alert("เพิ่มรถสำเร็จ 🚘");
-
-  closeCarModal();
+  alert("บันทึกงานซ่อมแล้ว");
 
 };
 
 // =====================
-// โหลดรถ realtime
+// โหลดงานซ่อม
 // =====================
-onSnapshot(
-  collection(db, "users", "user_001", "cars"),
-  (snapshot) => {
 
-    const carList =
-      document.getElementById("carList");
+function loadRepairs(carId){
 
-    carList.innerHTML = "";
+  onSnapshot(
 
-    snapshot.forEach((docSnap) => {
-
-      const d = docSnap.data();
-      const id = docSnap.id;
-
-      if(!selectedCarId){
-  selectedCar(id, d);
-}
-
-carList.innerHTML += `
-
-<div class="repair-item">
-
-  <div class="repair-info">
-
-    <div class="repair-name">
-      ${d.carName}
-    </div>
-
-    <div class="repair-shop">
-      🚘 ${d.plate}
-    </div>
-
-  </div>
-
-  <button
-    class="alert-btn saved"
-    onclick='selectedCar(
-      "${id}",
-      ${JSON.stringify(d)}
-    )'
-  >
-    เลือก
-  </button>
-
-  <button
-    class="alert-btn detail"
-    onclick='deleteCar("${id}")'
-  >
-    ลบ
-  </button>
-
-</div>
-
-`;
-
-    });
-
-  }
-);
-// =====================
-// เลือกรถ
-// =====================
-window.selectedCar = function(id, d){
-
-  selectedCarId = id;
-
-  document.querySelector(".car-model").innerText =
-    d.carName;
-
-  document.querySelector(".plate-tag").innerText =
-    "🚘 " + d.plate;
-
-  const statValue =
-    document.querySelector(".stat-value");
-
-  if(statValue){
-    statValue.innerText =
-      d.mileage || 0;
-  }
-
-  loadRepairs(id);
-
-};
-
-// =====================
-// ลบรถ
-// =====================
-window.deleteCar = async function(id){
-
-  const confirmDelete =
-    confirm("ลบรถคันนี้ ?");
-
-  if(!confirmDelete) return;
-
-  await deleteDoc(
-    doc(
+    collection(
       db,
       "users",
       "user_001",
       "cars",
-      id
-    )
-  );
-
-  alert("ลบแล้ว");
-
-};
-
-  </script>
-
-  alert("บันทึกแล้ว 🔧");
-
-  closeRepairModal();
-
-value;
-
-  const plate =
-    document.getElementById("plate").value;
-
-  const mileage =
-    document.getElementById("mileage").value;
-
-  if(!carName || !plate){
-    alert("กรอกข้อมูลให้ครบ");
-    return;
-  }
-
-  await addDoc(
-    collection(db, "users", "user_001", "cars"),
-    {
-      carName,
-      plate,
-      mileage,
-      createdAt: Date.now()
-    }
-  );
-
-  alert("เพิ่มรถสำเร็จ 🚘");
-  document.getElementById("carName").value = "";
-document.getElementById("plate").value = "";
-document.getElementById("mileage").value = "";
-
-document.getElementById("carModal")
-  .classList.remove("open");
-
-};
-
-// =====================
-// โหลดรถทั้งหมด realtime
-// =====================
-onSnapshot(
-  collection(db, "users", "user_001", "cars"),
-  (snapshot) => {
-
-    const carList =
-
-// =====================
-// ลบรถ
-// =====================
-window.deleteCar = async function(id){
-
-  if(confirm("ลบรถคันนี้ ?")){
-
-    await deleteDoc(
-      doc(db,
-      "users",
-      "user_001",
-      "cars",
-      id)
-    );
-
-  }
-
-};
-
-// แก้ชื่อรถ
-window.editCar = async function () {
-window.editCar = async function () {
-
-  if(!selectedCarId){
-    alert("ยังไม่ได้เลือกรถ");
-    return;
-  }
-
-  const newName = prompt("ชื่อรถใหม่");
-
-  if (!newName) return;
-
-  await updateDoc(
-    doc(
-      db,
-      "users",
-      "user_001",
-      "cars",
-      selectedCarId
+      carId,
+      "repairs"
     ),
-    {
-      carName: newName
+
+    (snapshot)=>{
+
+      const repairList =
+        document.getElementById("repairList");
+
+      repairList.innerHTML = "";
+
+      let total = 0;
+      let count = 0;
+
+      snapshot.forEach((docSnap)=>{
+
+        const d = docSnap.data();
+
+        total += Number(d.price || 0);
+
+        count++;
+
+        repairList.innerHTML += `
+
+        <div class="repair-item">
+
+          <div>
+
+            <div class="repair-name">
+              ${d.title}
+            </div>
+
+            <div class="repair-sub">
+              ${d.mileage} กม.
+            </div>
+
+          </div>
+
+          <div class="repair-price">
+            ${d.price}
+          </div>
+
+        </div>
+
+        `;
+
+      });
+
+      if(count === 0){
+
+        repairList.innerHTML = `
+          <div class="empty">
+            ยังไม่มีประวัติซ่อม
+          </div>
+        `;
+
+      }
+
+      document.getElementById("repairCount").innerText =
+        count;
+
+      document.getElementById("totalCost").innerText =
+        total;
+
     }
+
   );
 
-  alert("แก้ไขแล้ว ✅");
-
-};
-  </script>
-</head>
-  <div class="modal-overlay" id="repairModal">
-
-  <div class="modal">
-
-    <div class="modal-header">
-      <div class="modal-title">
-        เพิ่มประวัติซ่อม
-      </div>
-
-      <button class="modal-close"
-        onclick="closeRepairModal()">
-        ✕
-      </button>
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">
-        รายการซ่อม
-      </label>
-
-      <input
-        type="text"
-        id="repairTitle"
-        class="form-input"
-        placeholder="เช่น เปลี่ยนน้ำมันเครื่อง"
-      >
-    </div>
-
-    <div class="form-row">
-
-      <div class="form-group">
-        <label class="form-label">
-          ราคา
-        </label>
-
-        <input
-          type="number"
-          id="repairPrice"
-          class="form-input"
-        >
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">
-          เลขไมล์
-        </label>
-
-        <input
-          type="number"
-          id="repairMileage"
-          class="form-input"
-        >
-      </div>
-
-    </div>
-
-    <button class="modal-btn"
-      onclick="saveRepair()">
-      บันทึกประวัติ
-    </button>
-
-  </div>
-
-  </div>
-<body>
-
-<!-- SIDEBAR -->
-<aside class="sidebar">
-  <div class="logo">
-    <div class="logo-icon">🚗</div>
-    <div class="logo-text">
-      <span class="logo-title">Auto Expert</span>
-      <span class="logo-sub">Your Vehicle Companion</span>
-    </div>
-  </div>
-
-  <nav>
-    <div class="nav-section">
-      <div class="nav-item active" onclick="setNav(this, 'home')">
-        <span class="nav-icon">🏠</span> หน้าหลัก
-      </div>
-      <div class="nav-item" onclick="setNav(this, 'car')">
-        <span class="nav-icon">🚘</span> รถของฉัน
-      </div>
-      <div class="nav-item" onclick="setNav(this, 'repair')">
-        <span class="nav-icon">🔧</span> ประวัติการซ่อม
-      </div>
-      <div class="nav-item" onclick="setNav(this, 'expense')">
-        <span class="nav-icon">💸</span> ค่าใช้จ่าย
-      </div>
-      <div class="nav-item" onclick="setNav(this, 'alert')">
-        <span class="nav-icon">🔔</span> แจ้งเตือน
-      </div>
-      <div class="nav-item" onclick="setNav(this, 'docs')">
-        <span class="nav-icon">📄</span> เอกสารรถ
-      </div>
-      <div class="nav-item" onclick="setNav(this, 'appt')">
-        <span class="nav-icon">📅</span> บริการนัดหมาย
-      </div>
-      <div class="nav-item" onclick="setNav(this, 'settings')">
-        <span class="nav-icon">⚙️</span> ตั้งค่า
-      </div>
-    </div>
-  </nav>
-
-  <div class="sidebar-bottom">
-    <div class="premium-card">
-      <div class="premium-crown">👑</div>
-      <div class="premium-title">Premium Member</div>
-      <div class="premium-desc">ใช้งาน Premium<br>ดูสถิติและฟีเจอร์พิเศษ</div>
-      <button
-  class="premium-btn"
-  onclick="openCarModal()">
-  + เพิ่มรถ
-      </button>
-      <button
-  class="modal-close"
-  onclick="closeCarModal()">
-  ✕
-      </button>
-      <button class="premium-btn" onclick="showToast('🌟 อัปเกรดสู่ Premium แล้ว!')">อัปเกรดเลย</button>
-    </div>
-  </div>
-</aside>
-
-<!-- MAIN -->
-<main class="main">
-  <!-- TOPBAR -->
-  <header class="topbar">
-    <div class="greeting-section">
-      <div class="greeting-title">สวัสดี คุณเจียบ 👋</div>
-      <div class="greeting-sub">ดูแลรถของคุณให้พร้อมใช้งานเสมอ</div>
-    </div>
-    <div class="topbar-right">
-      <div class="notif-btn" onclick="openModal('alertModal')">
-        🔔
-        <span class="notif-badge">3</span>
-      </div>
-      <div class="user-chip">
-        <div class="user-avatar">จ</div>
-        <span class="user-name">คุณเจียบ</span>
-        <span style="color:var(--text-secondary)">▾</span>
-      </div>
-    </div>
-  </header>
-
-  <!-- CONTENT -->
-
-</button>
-    <!-- CAR CARD -->
-    <div class="car-card">
-      <div class="modal-overlay open" id="carModal">
-
-  <div class="modal">
-
-    <div class="modal-header">
-      <div class="modal-title">
-        เพิ่มรถ
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">
-        ชื่อรถ
-      </label>
-
-      <input
-        id="carName"
-        class="form-input"
-        placeholder="Toyota Camry">
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">
-        ทะเบียน
-      </label>
-
-      <input
-        id="plate"
-        class="form-input"
-        placeholder="กข1234">
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">
-        เลขไมล์
-      </label>
-
-      <input
-        id="mileage"
-        class="form-input"
-        placeholder="85000">
-    </div>
-
-    <button
-      class="modal-btn"
-      onclick="saveCar()">
-      บันทึกรถ
-    </button>
-
-  </div>
-
-      </div>
-      <div class="car-info">
-        <div class="car-model">Toyota Altis</div>
-        <div class="car-variant">1.6 G AT 2019</div>
-        <div class="plate-tag">🚘 กจ 1234 กรุงเทพฯ</div>
-        <div class="car-stats">
-          <div class="stat-row">
-            <span class="stat-icon">⏱️</span>
-            <span class="stat-label">เลขไมล์ปัจจุบัน</span>
-            <span class="stat-value">78,560 กม.</span>
-          </div>
-          <div class="stat-row">
-            <span class="stat-icon">⛽</span>
-            <span class="stat-label">น้ำมัน</span>
-            <span class="stat-value">E20</span>
-          </div>
-          <div class="stat-row">
-            <span class="stat-icon">📋</span>
-            <span class="stat-label">วันจดทะเบียน</span>
-            <span class="stat-value">15 ม.ค. 2562</span>
-          </div>
-          <div class="stat-row">
-            <span class="stat-icon">🛡️</span>
-            <span class="stat-label">ประกันภัย</span>
-            <span class="stat-value" style="color:#f97316">หมดอายุ 20 ก.พ. 2568</span>
-          </div>
-        </div>
-      </div>
-      <div class="car-visual">
-        <button class="change-car-btn" onclick="openModal('carModal')">🔄 เปลี่ยนรถ</button>
-        <div class="car-img-placeholder">🚗</div>
-        <button class="detail-btn">ดูรายละเอียดรถ →</button>
-      </div>
-    </div>
-
-    <!-- STATS ROW -->
-    <div class="stats-row">
-      <div class="stat-card">
-        <div class="stat-card-icon" style="background:rgba(34,197,94,0.15)">💰</div>
-        <div class="stat-card-body">
-          <div class="stat-card-label">ค่าใช้จ่ายรวมปีนี้</div>
-          <div
-            <div class="stat-card">
-        <div class="stat-card-icon" style="background:rgba(59,130,246,0.15)">🔧</div>
-        <div class="stat-card-body">
-          <div class="stat-card-label">รายการซ่อมทั้งหมด</div>
-          <div class="stat-card-value" style="color:var(--accent-blue)">18</div>
-          <div class="stat-card-unit">รายการ</div>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-card-icon" style="background:rgba(168,85,247,0.15)">🏪</div>
-        <div class="stat-card-body">
-          <div class="stat-card-label">เข้าศูนย์/อู่ทั้งหมด</div>
-          <div class="stat-card-value" style="color:var(--accent-purple)">9</div>
-          <div class="stat-card-unit">ครั้ง</div>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-card-icon" style="background:rgba(249,115,22,0.15)">⛽</div>
-        <div class="stat-card-body">
-          <div class="stat-card-label">น้ำมันเฉลี่ย</div>
-          <div class="stat-card-value" style="color:var(--accent-orange)">12.4</div>
-          <div class="stat-card-unit">กม./ลิตร</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- REPAIR HISTORY -->
-    <div class="section">
-      <div class="section-header">
-        <div class="section-title">ประวัติการซ่อมล่าสุด</div>
-        <a class="section-link" onclick="showToast('📋 ดูประวัติทั้งหมด')">ดูทั้งหมด →</a>
-      </div>
-      <div class="repair-list" id="repairList">
-        <!-- filled by JS -->
-      </div>
-    </div>
-
-    <!-- ALERTS -->
-    <div class="section">
-      <div class="section-header">
-        <div class="section-title">การแจ้งเตือนที่ใกล้ถึงกำหนด</div>
-        <button class="change-car-btn" style="font-size:12px;padding:6px 12px" onclick="openModal('addAlertModal')">+ เพิ่มแจ้งเตือน</button>
-      </div>
-      <div class="alert-list" id="alertList">
-        <!-- filled by JS -->
-      </div>
-    </div>
-
-  </div>
-</main>
-
-<!-- BOTTOM NAV (Mobile) -->
-<nav class="bottom-nav">
-  <div class="bn-item active">
-    <span class="bn-icon">🏠</span>
-    <span>หน้าหลัก</span>
-  </div>
-  <div class="bn-item">
-    <span class="bn-icon">🚘</span>
-    <span>รถของฉัน</span>
-  </div>
-  <div class="bn-add" onclick="openModal('addRepairModal')">+</div>
-  <div class="bn-item">
-    <span class="bn-icon">💸</span>
-    <span>ค่าใช้จ่าย</span>
-  </div>
-  <div class="bn-item">
-    <span class="bn-icon">👤</span>
-    <span>โปรไฟล์</span>
-  </div>
-</nav>
-
-<!-- MODAL: เพิ่มการซ่อม -->
-<div class="modal-overlay" id="carModal">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">🔧 เพิ่มประวัติการซ่อม</div>
-      <button class="modal-close" onclick="closeModal('addRepairModal')">✕</button>
-    </div>
-    <div class="form-group">
-      <label class="form-label">ประเภทการซ่อม</label>
-      <input class="form-input" id="repairType" type="text" placeholder="เช่น เปลี่ยนน้ำมันเครื่อง">
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">วันที่</label>
-        <input class="form-input" id="repairDate" type="date">
-      </div>
-      <div class="form-group">
-        <label class="form-label">เลขไมล์ (กม.)</label>
-        <input class="form-input" id="repairKm" type="number" placeholder="78560">
-      </div>
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">ค่าใช้จ่าย (บาท)</label>
-        <input class="form-input" id="repairCost" type="number" placeholder="1250">
-      </div>
-      <div class="form-group">
-        <label class="form-label">อู่/ศูนย์บริการ</label>
-        <input class="form-input" id="repairShop" type="text" placeholder="Auto Expert Garage">
-      </div>
-    </div>
-    <button class="modal-btn" onclick="addRepair()">✅ บันทึกการซ่อม</button>
-  </div>
-</div>
-
-<!-- MODAL: เปลี่ยนรถ -->
-<div class="modal-overlay" id="carModal">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">🚘 ข้อมูลรถ</div>
-      <button class="modal-close" onclick="closeModal('carModal')">✕</button>
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">ยี่ห้อ</label>
-        <input class="form-input" type="text" value="Toyota">
-      </div>
-      <div class="form-group">
-        <label class="form-label">รุ่น</label>
-        <input class="form-input" type="text" value="Altis">
-      </div>
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">ปี</label>
-        <input class="form-input" type="text" value="2019">
-      </div>
-      <div class="form-group">
-        <label class="form-label">ทะเบียน</label>
-        <input class="form-input" type="text" value="กจ 1234">
-      </div>
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">เลขไมล์ปัจจุบัน</label>
-        <input class="form-input" type="number" value="78560">
-      </div>
-      <div class="form-group">
-        <label class="form-label">ประเภทน้ำมัน</label>
-        <input class="form-input" type="text" value="E20">
-      </div>
-    </div>
-    <button class="modal-btn" onclick="closeModal('carModal');showToast('✅ บันทึกข้อมูลรถแล้ว')">💾 บันทึก</button>
-  </div>
-</div>
-
-<!-- MODAL: เพิ่มแจ้งเตือน -->
-<div class="modal-overlay" id="addAlertModal">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">🔔 เพิ่มการแจ้งเตือน</div>
-      <button class="modal-close" onclick="closeModal('addAlertModal')">✕</button>
-    </div>
-    <div class="form-group">
-      <label class="form-label">ชื่อการแจ้งเตือน</label>
-      <input class="form-input" id="alertName" type="text" placeholder="เช่น เปลี่ยนน้ำมันเครื่อง">
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">ทุกๆ (กม.)</label>
-        <input class="form-input" id="alertInterval" type="number" placeholder="10000">
-      </div>
-      <div class="form-group">
-        <label class="form-label">คงเหลือ (กม.)</label>
-        <input class="form-input" id="alertRemain" type="number" placeholder="1440">
-      </div>
-    </div>
-    <button class="modal-btn" onclick="addAlert()">✅ บันทึกการแจ้งเตือน</button>
-  </div>
-</div>
-
-<!-- MODAL: การแจ้งเตือน -->
-<div class="modal-overlay" id="alertModal">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">🔔 การแจ้งเตือนใหม่</div>
-      <button class="modal-close" onclick="closeModal('alertModal')">✕</button>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:10px">
-      <div style="background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.3);border-radius:10px;padding:14px;display:flex;gap:12px;align-items:center">
-        <span style="font-size:24px">🔧</span>
-        <div>
-          <div style="font-size:14px;font-weight:600">ใกล้ถึงเวลาเปลี่ยนน้ำมันเครื่อง</div>
-          <div style="font-size:12px;color:var(--text-secondary)">เหลืออีก 1,440 กม.</div>
-        </div>
-      </div>
-      <div style="background:rgba(234,179,8,0.1);border:1px solid rgba(234,179,8,0.3);border-radius:10px;padding:14px;display:flex;gap:12px;align-items:center">
-        <span style="font-size:24px">🔄</span>
-        <div>
-          <div style="font-size:14px;font-weight:600">ถึงเวลาสลับยาง</div>
-          <div style="font-size:12px;color:var(--text-secondary)">เหลืออีก 1,440 กม.</div>
-        </div>
-      </div>
-      <div style="background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);border-radius:10px;padding:14px;display:flex;gap:12px;align-items:center">
-        <span style="font-size:24px">📋</span>
-        <div>
-          <div style="font-size:14px;font-weight:600">ต่อภาษีรถยนต์ประจำปี</div>
-          <div style="font-size:12px;color:var(--text-secondary)">เหลืออีก 85 วัน</div>
-        </div>
-      </div>
-    </div>
-    <button class="modal-btn" style="margin-top:16px" onclick="closeModal('alertModal')">รับทราบ</button>
-  </div>
-</div>
-
-<!-- TOAST -->
-<div class="toast" id="toast">
-  <span id="toastMsg"></span>
-</div>
-
-<script>
-// ===== DATA =====
-let repairs = [
-  { type: 'เปลี่ยนน้ำมันเครื่อง', shop: 'Auto Expert Garage', date: '15 พ.ค. 2567', km: '78,560', cost: '1,250', icon: '🛢️', color: 'rgba(34,197,94,0.15)' },
-  { type: 'เปลี่ยนผ้าเบรกหน้า', shop: 'Auto Expert Garage', date: '10 มี.ค. 2567', km: '74,200', cost: '2,850', icon: '🔵', color: 'rgba(59,130,246,0.15)' },
-  { type: 'เปลี่ยนแบตเตอรี่', shop: 'Auto Expert Garage', date: '5 ม.ค. 2567', km: '70,100', cost: '2,390', icon: '🔋', color: 'rgba(34,197,94,0.15)' },
-  { type: 'เปลี่ยนยาง 4 เส้น', shop: 'Auto Expert Garage', date: '20 ธ.ค. 2566', km: '68,300', cost: '8,900', icon: '🔘', color: 'rgba(249,115,22,0.15)' },
-];
-
-let alerts = [
-  { name: 'เปลี่ยนน้ำมันเครื่อง', freq: 'ทุก 10,000 กม.', remain: '1,440', unit: 'กม.', saved: true },
-  { name: 'สลับยาง', freq: 'ทุก 10,000 กม.', remain: '1,440', unit: 'กม.', saved: true },
-  { name: 'ต่อภาษีรถยนต์', freq: 'ประจำปี', remain: '85', unit: 'วัน', saved: false },
-];
-
-// ===== RENDER =====
-function renderRepairs() {
-  const list = document.getElementById('repairList');
-  list.innerHTML = repairs.map(r => `
-    <div class="repair-item">
-      <div class="repair-icon" style="background:${r.color}">${r.icon}</div>
-      <div class="repair-info">
-        <div class="repair-name">${r.type}</div>
-        <div class="repair-shop">${r.shop}</div>
-      </div>
-      <div class="repair-date-km">
-        <div class="repair-date">${r.date}</div>
-        <div class="repair-km">${r.km} กม.</div>
-      </div>
-      <div class="repair-cost">${r.cost} <span class="repair-cost-unit">บาท</span></div>
-    </div>
-  `).join('');
 }
 
-function renderAlerts() {
-  const list = document.getElementById('alertList');
-  list.innerHTML = alerts.map((a, i) => `
-    <div class="alert-item">
-      <div class="repair-icon" style="background:${a.saved ? 'rgba(34,197,94,0.15)' : 'rgba(249,115,22,0.15)'}">
-        ${a.saved ? '🔧' : '📋'}
-      </div>
-      <div class="alert-info">
-        <div class="alert-name">${a.name}</div>
-        <div class="alert-freq">${a.freq}</div>
-      </div>
-      <div class="alert-remain">
-        <div class="alert-remain-label">คงเหลือ</div>
-        <div class="alert-remain-value">${a.remain}</div>
-        <div class="alert-remain-unit">${a.unit}</div>
-      </div>
-      ${a.saved
-        ? `<button class="alert-btn saved">✓ บันทึกแล้ว</button>`
-        : `<button class="alert-btn detail" onclick="showToast('📋 ดูรายละเอียด: ${a.name}')">ดูรายละเอียด</button>`
-      }
-    </div>
-  `).join('');
-}
-
-// ===== ACTIONS =====
-function addRepair() {
-  const type = document.getElementById('repairType').value;
-  const date = document.getElementById('repairDate').value;
-  const km = document.getElementById('repairKm').value;
-  const cost = document.getElementById('repairCost').value;
-  const shop = document.getElementById('repairShop').value;
-  if (!type || !cost) { showToast('⚠️ กรุณากรอกข้อมูลให้ครบ'); return; }
-  repairs.unshift({
-    type, shop: shop || 'Auto Expert Garage',
-    date: date || new Date().toLocaleDateString('th-TH'),
-    km: parseInt(km).toLocaleString() || '-',
-    cost: parseInt(cost).toLocaleString(),
-    icon: '🔧', color: 'rgba(59,130,246,0.15)'
-  });
-  renderRepairs();
-  closeModal('addRepairModal');
-  showToast('✅ บันทึกการซ่อมแล้ว!');
-}
-
-function addAlert() {
-  const name = document.getElementById('alertName').value;
-  const interval = document.getElementById('alertInterval').value;
-  const remain = document.getElementById('alertRemain').value;
-  if (!name) { showToast('⚠️ กรุณากรอกชื่อการแจ้งเตือน'); return; }
-  alerts.push({ name, freq: `ทุก ${parseInt(interval).toLocaleString()} กม.`, remain: parseInt(remain).toLocaleString(), unit: 'กม.', saved: true });
-  renderAlerts();
-  closeModal('addAlertModal');
-  showToast('✅ บันทึกการแจ้งเตือนแล้ว!');
-}
-
-// ===== MODAL =====
-function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-document.querySelectorAll('.modal-overlay').forEach(m => {
-  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
-});
-
-// ===== TOAST =====
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  document.getElementById('toastMsg').textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2800);
-}
-
-// ===== NAV =====
-function setNav(el, page) {
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  el.classList.add('active');
-  if (page === 'repair') openModal('addRepairModal');
-  else showToast('📍 ไปที่หน้า: ' + el.textContent.trim());
-}
-
-// ===== INIT =====
-renderRepairs();
-renderAlerts();
-
-// set today as default date
-document.getElementById('repairDate').value = new Date().toISOString().split('T')[0];
 </script>
+
 </body>
-    </html>
+</html>
+
+
