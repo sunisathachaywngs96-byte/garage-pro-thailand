@@ -552,101 +552,9 @@
     .repair-item { flex-wrap: wrap; }
      
 } 
-<script type="module">
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-
-import {
-  getFirestore,
-  collection,
-  addDoc,
-  onSnapshot
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyDAfm7eDJPFiWrUK_U0aqS7yl2Wt_PpjmA",
-  authDomain: "garage-system-41587.firebaseapp.com",
-  projectId: "garage-system-41587",
-  storageBucket: "garage-system-41587.firebasestorage.app",
-  messagingSenderId: "688480145767",
-  appId: "1:688480145767:web:9bfba3df045ca434d91fc2",
-  measurementId: "G-30329DLNXE"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-
-// บันทึกข้อมูลรถ
-window.saveCar = async () => {
-
-  const carName =
-    document.getElementById("carName").value;
-
-  const plate =
-    document.getElementById("plate").value;
-
-  const mileage =
-    document.getElementById("mileage").value;
-
-  await addDoc(collection(db, "cars"), {
-    carName,
-    plate,
-    mileage
-  });
-
-  alert("บันทึกสำเร็จ ✅");
-};
-
-
-// โหลดข้อมูล realtime
-onSnapshot(collection(db, "cars"), (snapshot) => {
-
-  snapshot.forEach((docSnap) => {
-
-    const d = docSnap.data();
-
-    document.querySelector(".car-model").innerText =
-      d.carName;
-
-    document.querySelector(".plate-tag").innerText =
-      "🚘 " + d.plate;
-
-    document.querySelector(".stat-value").innerText =
-      d.mileage + " กม.";
-
-  });
-
-});
-
+  </style>
 </script>
-// ==========================
-// แก้ไขข้อมูล
-// ==========================
-window.editCar = async (id) => {
-
-  const newName = prompt("ชื่อรถใหม่ที่คุณใช้");
-
-  await updateDoc(doc(db, "cars", id), {
-    carName: newName
-  });
-
-};
-
-
-// ==========================
-// ลบข้อมูล
-// ==========================
-window.deleteCar = async (id) => {
-
-  if(confirm("ลบข้อมูลรถ ?")){
-
-    await deleteDoc(doc(db, "cars", id));
-
-  }
-
-};
-<script type="module">
+  <script type="module">
 
 import { initializeApp }
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -674,20 +582,12 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-
-// =====================
 // บันทึกรถ
-// =====================
 window.saveCar = async function () {
 
-  const carName =
-    document.getElementById("carName").value;
-
-  const plate =
-    document.getElementById("plate").value;
-
-  const mileage =
-    document.getElementById("mileage").value;
+  const carName = document.getElementById("carName").value;
+  const plate = document.getElementById("plate").value;
+  const mileage = document.getElementById("mileage").value;
 
   await setDoc(
     doc(db, "users", "user_001", "cars", "main"),
@@ -703,10 +603,7 @@ window.saveCar = async function () {
   loadCar();
 };
 
-
-// =====================
 // โหลดข้อมูลรถ
-// =====================
 async function loadCar() {
 
   const ref =
@@ -727,15 +624,11 @@ async function loadCar() {
     document.querySelector(".stat-value").innerText =
       (d.mileage || "0") + " กม.";
   }
-
 }
 
 loadCar();
 
-
-// =====================
-// ลบข้อมูลรถ
-// =====================
+// ลบรถ
 window.deleteCar = async function () {
 
   await deleteDoc(
@@ -746,10 +639,7 @@ window.deleteCar = async function () {
 
 };
 
-
-// =====================
 // แก้ชื่อรถ
-// =====================
 window.editCar = async function () {
 
   const newName = prompt("ชื่อรถใหม่");
@@ -764,10 +654,9 @@ window.editCar = async function () {
   );
 
   loadCar();
-
 };
 
-</script>
+  </script>
 </head>
 <body>
 
