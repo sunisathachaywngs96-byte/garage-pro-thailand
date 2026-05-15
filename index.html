@@ -552,10 +552,22 @@
     .repair-item { flex-wrap: wrap; }
      
 } 
-  </style>
+
+    </style>
   
   <script type="module">
+  window.openCarModal = function () {
+  document
+    .getElementById("carModal")
+    .classList.add("open");
+};
 
+window.closeCarModal = function () {
+  document
+    .getElementById("carModal")
+    .classList.remove("open");
+};
+    
 import { initializeApp }
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
@@ -719,6 +731,7 @@ window.deleteCar = async function(id){
 
 // แก้ชื่อรถ
 window.editCar = async function () {
+window.editCar = async function () {
 
   if(!selectedCarId){
     alert("ยังไม่ได้เลือกรถ");
@@ -730,7 +743,8 @@ window.editCar = async function () {
   if (!newName) return;
 
   await updateDoc(
-    doc(db,
+    doc(
+      db,
       "users",
       "user_001",
       "cars",
@@ -744,7 +758,6 @@ window.editCar = async function () {
   alert("แก้ไขแล้ว ✅");
 
 };
-
   </script>
 </head>
 <body>
