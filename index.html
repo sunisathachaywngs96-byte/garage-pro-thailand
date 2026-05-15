@@ -760,6 +760,70 @@ window.editCar = async function () {
 };
   </script>
 </head>
+  <div class="modal-overlay" id="repairModal">
+
+  <div class="modal">
+
+    <div class="modal-header">
+      <div class="modal-title">
+        เพิ่มประวัติซ่อม
+      </div>
+
+      <button class="modal-close"
+        onclick="closeRepairModal()">
+        ✕
+      </button>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">
+        รายการซ่อม
+      </label>
+
+      <input
+        type="text"
+        id="repairTitle"
+        class="form-input"
+        placeholder="เช่น เปลี่ยนน้ำมันเครื่อง"
+      >
+    </div>
+
+    <div class="form-row">
+
+      <div class="form-group">
+        <label class="form-label">
+          ราคา
+        </label>
+
+        <input
+          type="number"
+          id="repairPrice"
+          class="form-input"
+        >
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">
+          เลขไมล์
+        </label>
+
+        <input
+          type="number"
+          id="repairMileage"
+          class="form-input"
+        >
+      </div>
+
+    </div>
+
+    <button class="modal-btn"
+      onclick="saveRepair()">
+      บันทึกประวัติ
+    </button>
+
+  </div>
+
+  </div>
 <body>
 
 <!-- SIDEBAR -->
