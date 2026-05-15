@@ -618,6 +618,12 @@ window.saveCar = async function () {
   );
 
   alert("เพิ่มรถสำเร็จ 🚘");
+  document.getElementById("carName").value = "";
+document.getElementById("plate").value = "";
+document.getElementById("mileage").value = "";
+
+document.getElementById("carModal")
+  .classList.remove("open");
 
 };
 
@@ -732,6 +738,19 @@ window.editCar = async function () {
 };
 
   </script>
+  window.openCarModal = function(){
+
+  document.getElementById("carModal")
+    .classList.add("open");
+
+}
+
+window.closeCarModal = function(){
+
+  document.getElementById("carModal")
+    .classList.remove("open");
+
+}
 </head>
 <body>
 
