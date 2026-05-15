@@ -646,12 +646,128 @@ window.deleteCar = async (id) => {
   }
 
 };
+<script type="module">
+
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  getDoc,
+  deleteDoc,
+  updateDoc
+}
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDAfm7eDJPFiWrUK_U0aqS7yl2Wt_PpjmA",
+  authDomain: "garage-system-41587.firebaseapp.com",
+  projectId: "garage-system-41587",
+  storageBucket: "garage-system-41587.firebasestorage.app",
+  messagingSenderId: "688480145767",
+  appId: "1:688480145767:web:9bfba3df045ca434d91fc2",
+  measurementId: "G-30329DLNXE"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+
+// =====================
+// บันทึกรถ
+// =====================
+window.saveCar = async function () {
+
+  const carName =
+    document.getElementById("carName").value;
+
+  const plate =
+    document.getElementById("plate").value;
+
+  const mileage =
+    document.getElementById("mileage").value;
+
+  await setDoc(
+    doc(db, "users", "user_001", "cars", "main"),
+    {
+      carName,
+      plate,
+      mileage
+    }
+  );
+
+  alert("บันทึกสำเร็จ ✅");
+
+  loadCar();
+};
+
+
+// =====================
+// โหลดข้อมูลรถ
+// =====================
+async function loadCar() {
+
+  const ref =
+    doc(db, "users", "user_001", "cars", "main");
+
+  const snap = await getDoc(ref);
+
+  if (snap.exists()) {
+
+    const d = snap.data();
+
+    document.querySelector(".car-model").innerText =
+      d.carName || "-";
+
+    document.querySelector(".plate-tag").innerText =
+      "🚘 " + (d.plate || "-");
+
+    document.querySelector(".stat-value").innerText =
+      (d.mileage || "0") + " กม.";
+  }
+
+}
+
+loadCar();
+
+
+// =====================
+// ลบข้อมูลรถ
+// =====================
+window.deleteCar = async function () {
+
+  await deleteDoc(
+    doc(db, "users", "user_001", "cars", "main")
+  );
+
+  alert("ลบข้อมูลแล้ว");
+
+};
+
+
+// =====================
+// แก้ชื่อรถ
+// =====================
+window.editCar = async function () {
+
+  const newName = prompt("ชื่อรถใหม่");
+
+  if (!newName) return;
+
+  await updateDoc(
+    doc(db, "users", "user_001", "cars", "main"),
+    {
+      carName: newName
+    }
+  );
+
+  loadCar();
+
+};
 
 </script>
-  
-
-</script>
-</style>
 </head>
 <body>
 
