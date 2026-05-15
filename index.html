@@ -648,6 +648,66 @@ window.deleteCar = async (id) => {
 };
 
 </script>
+  <script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+  getFirestore,
+  collection,
+  addDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+
+// Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyDAfm7eDJPFiWrUK_U0aqS7yl2Wt_PpjmA",
+  authDomain: "garage-system-41587.firebaseapp.com",
+  projectId: "garage-system-41587",
+  storageBucket: "garage-system-41587.firebasestorage.app",
+  messagingSenderId: "688480145767",
+  appId: "1:688480145767:web:9bfba3df045ca434d91fc2",
+  measurementId: "G-30329DLNXE"
+};
+
+const app = initializeApp(firebaseConfig);
+
+const db = getFirestore(app);
+
+
+// ปุ่มบันทึก
+window.saveCar = async () => {
+
+  const carName =
+    document.getElementById("carName").value;
+
+  const plate =
+    document.getElementById("plate").value;
+
+  const mileage =
+    document.getElementById("mileage").value;
+
+  try {
+
+    await addDoc(collection(db, "cars"), {
+
+      carName: carName,
+      plate: plate,
+      mileage: mileage
+
+    });
+
+    alert("✅ บันทึกสำเร็จ");
+
+  } catch(err){
+
+    alert(err.message);
+
+  }
+
+};
+
+</script>
 </style>
 </head>
 <body>
@@ -732,7 +792,8 @@ window.deleteCar = async (id) => {
 
 <button onclick="saveCar()">
   บันทึกรถ
-<button onclick="saveCar()">
+<button 
+  </button>
     <!-- CAR CARD -->
     <div class="car-card">
       <div class="car-info">
