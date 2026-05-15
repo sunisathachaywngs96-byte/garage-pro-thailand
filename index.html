@@ -625,7 +625,7 @@ onSnapshot(collection(db, "cars"), (snapshot) => {
 // ==========================
 window.editCar = async (id) => {
 
-  const newName = prompt("ชื่อรถใหม่");
+  const newName = prompt("ชื่อรถใหม่ที่คุณใช้");
 
   await updateDoc(doc(db, "cars", id), {
     carName: newName
