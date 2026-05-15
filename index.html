@@ -647,7 +647,7 @@ window.editCar = async function () {
   if (!newName) return;
 
   await updateDoc(
-    doc(db, "users", "user_001", "cars", "main"),
+    collection(db, "users", "user_001", "cars")
     {
       carName: newName
     }
