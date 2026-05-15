@@ -550,9 +550,9 @@
     .stats-row { grid-template-columns: 1fr 1fr; gap: 10px; }
     .stat-card-value { font-size: 20px; }
     .repair-item { flex-wrap: wrap; }
-    
-}
-  <script type="module">
+     
+} 
+<script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
@@ -560,15 +560,8 @@ import {
   getFirestore,
   collection,
   addDoc,
-  query,
-  orderBy,
-  onSnapshot,
-  doc,
-  updateDoc,
-  deleteDoc,
-  serverTimestamp
+  onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
 
 const firebaseConfig = {
   apiKey: "AIzaSyDAfm7eDJPFiWrUK_U0aqS7yl2Wt_PpjmA",
@@ -583,17 +576,18 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-</script>
 
-
-// ==========================
-// เพิ่มข้อมูลรถ
-// ==========================
+// บันทึกข้อมูลรถ
 window.saveCar = async () => {
 
-  const carName = document.getElementById("carName").value;
-  const plate = document.getElementById("plate").value;
-  const mileage = document.getElementById("mileage").value;
+  const carName =
+    document.getElementById("carName").value;
+
+  const plate =
+    document.getElementById("plate").value;
+
+  const mileage =
+    document.getElementById("mileage").value;
 
   await addDoc(collection(db, "cars"), {
     carName,
@@ -601,13 +595,11 @@ window.saveCar = async () => {
     mileage
   });
 
-  alert("✅ บันทึกข้อมูลรถแล้ว");
+  alert("บันทึกสำเร็จ ✅");
 };
 
 
-// ==========================
-// โหลดข้อมูลขึ้น Dashboard
-// ==========================
+// โหลดข้อมูล realtime
 onSnapshot(collection(db, "cars"), (snapshot) => {
 
   snapshot.forEach((docSnap) => {
@@ -615,19 +607,19 @@ onSnapshot(collection(db, "cars"), (snapshot) => {
     const d = docSnap.data();
 
     document.querySelector(".car-model").innerText =
-      d.carName || "-";
+      d.carName;
 
     document.querySelector(".plate-tag").innerText =
-      "🚘 " + (d.plate || "-");
+      "🚘 " + d.plate;
 
     document.querySelector(".stat-value").innerText =
-      (d.mileage || "0") + " กม.";
+      d.mileage + " กม.";
 
   });
 
 });
 
-
+</script>
 // ==========================
 // แก้ไขข้อมูล
 // ==========================
