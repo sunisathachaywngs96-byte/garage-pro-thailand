@@ -556,6 +556,26 @@
     </style>
   
   <script type="module">
+    window.openRepairModal = function () {
+
+  if(!selectedCarId){
+    alert("กรุณาเลือกรถก่อน");
+    return;
+  }
+
+  document
+    .getElementById("repairModal")
+    .classList.add("open");
+
+};
+
+window.closeRepairModal = function () {
+
+  document
+    .getElementById("repairModal")
+    .classList.remove("open");
+
+};
   window.openCarModal = function () {
   document
     .getElementById("carModal")
@@ -567,7 +587,52 @@ window.closeCarModal = function () {
     .getElementById("carModal")
     .classList.remove("open");
 };
-    
+  window.saveRepair = async function () {
+
+  if(!selectedCarId){
+    alert("ยังไม่ได้เลือกรถ");
+    return;
+  }
+
+  const title =
+    document.getElementById("repairTitle").value;
+
+  const price =
+    document.getElementById("repairPrice").value;
+
+  const mileage =
+    document.getElementById("repairMileage").value;
+
+  if(!title){
+    alert("กรอกข้อมูล");
+    return;
+  }
+
+  await addDoc(
+
+    collection(
+      db,
+      "users",
+      "user_001",
+      "cars",
+      selectedCarId,
+      "repairs"
+    ),
+
+    {
+      title,
+      price,
+      mileage,
+      createdAt: Date.now()
+    }
+
+  );
+
+  alert("บันทึกแล้ว 🔧");
+
+  closeRepairModal();
+
+};  
 import { initializeApp }
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
