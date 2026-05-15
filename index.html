@@ -561,11 +561,11 @@ from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
 import {
   getFirestore,
-  doc,
-  setDoc,
-  getDoc,
+  collection,
+  addDoc,
+  onSnapshot,
   deleteDoc,
-  updateDoc
+  doc
 }
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -583,59 +583,134 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 // บันทึกรถ
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let selectedCarId = null;
+
+// =====================
+// เพิ่มรถ
+// =====================
 window.saveCar = async function () {
 
-  const carName = document.getElementById("carName").value;
-  const plate = document.getElementById("plate").value;
-  const mileage = document.getElementById("mileage").value;
+  const carName =
+    document.getElementById("carName").value;
 
-  await setDoc(
-    doc(db, "users", "user_001", "cars", "main"),
+  const plate =
+    document.getElementById("plate").value;
+
+  const mileage =
+    document.getElementById("mileage").value;
+
+  if(!carName || !plate){
+    alert("กรอกข้อมูลให้ครบ");
+    return;
+  }
+
+  await addDoc(
+    collection(db, "users", "user_001", "cars"),
     {
       carName,
       plate,
-      mileage
+      mileage,
+      createdAt: Date.now()
     }
   );
 
-  alert("บันทึกสำเร็จ ✅");
+  alert("เพิ่มรถสำเร็จ 🚘");
 
-  loadCar();
 };
 
-// โหลดข้อมูลรถ
-async function loadCar() {
+// =====================
+// โหลดรถทั้งหมด realtime
+// =====================
+onSnapshot(
+  collection(db, "users", "user_001", "cars"),
+  (snapshot) => {
 
-  const ref =
-    doc(db, "users", "user_001", "cars", "main");
+    const carList =
+      document.getElementById("carList");
 
-  const snap = await getDoc(ref);
+    carList.innerHTML = "";
 
-  if (snap.exists()) {
+    snapshot.forEach((docSnap) => {
 
-    const d = snap.data();
+      const d = docSnap.data();
+      const id = docSnap.id;
 
-    document.querySelector(".car-model").innerText =
-      d.carName || "-";
+      // รถคันแรก
+      if(!selectedCarId){
+        selectedCar(id, d);
+      }
 
-    document.querySelector(".plate-tag").innerText =
-      "🚘 " + (d.plate || "-");
+      carList.innerHTML += `
+      
+      <div class="repair-item">
 
-    document.querySelector(".stat-value").innerText =
-      (d.mileage || "0") + " กม.";
+        <div class="repair-info">
+          <div class="repair-name">
+            ${d.carName}
+          </div>
+
+          <div class="repair-shop">
+            🚘 ${d.plate}
+          </div>
+        </div>
+
+        <button class="alert-btn saved"
+          onclick='selectedCar(
+            "${id}",
+            ${JSON.stringify(d)}
+          )'>
+          เลือก
+        </button>
+
+        <button class="alert-btn detail"
+          onclick='deleteCar("${id}")'>
+          ลบ
+        </button>
+
+      </div>
+      `;
+    });
+
   }
-}
+);
 
-loadCar();
+// =====================
+// เลือกรถ
+// =====================
+window.selectedCar = function(id, d){
 
+  selectedCarId = id;
+
+  document.querySelector(".car-model").innerText =
+    d.carName;
+
+  document.querySelector(".plate-tag").innerText =
+    "🚘 " + d.plate;
+
+  document.querySelector(".stat-value").innerText =
+    d.mileage + " กม.";
+
+};
+
+// =====================
 // ลบรถ
-window.deleteCar = async function () {
+// =====================
+window.deleteCar = async function(id){
 
-  await deleteDoc(
-    doc(db, "users", "user_001", "cars", "main")
-  );
+  if(confirm("ลบรถคันนี้ ?")){
 
-  alert("ลบข้อมูลแล้ว");
+    await deleteDoc(
+      doc(db,
+      "users",
+      "user_001",
+      "cars",
+      id)
+    );
+
+  }
 
 };
 
