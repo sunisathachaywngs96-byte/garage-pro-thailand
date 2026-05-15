@@ -565,7 +565,8 @@ import {
   addDoc,
   onSnapshot,
   deleteDoc,
-  doc
+  doc,
+  updateDoc
 }
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -723,18 +724,29 @@ window.deleteCar = async function(id){
 // แก้ชื่อรถ
 window.editCar = async function () {
 
+  if(!selectedCarId){
+    alert("ยังไม่ได้เลือกรถ");
+    return;
+  }
+
   const newName = prompt("ชื่อรถใหม่");
 
   if (!newName) return;
 
   await updateDoc(
-    collection(db, "users", "user_001", "cars")
+    doc(db,
+      "users",
+      "user_001",
+      "cars",
+      selectedCarId
+    ),
     {
       carName: newName
     }
   );
 
-  loadCar();
+  alert("แก้ไขแล้ว ✅");
+
 };
 
   </script>
