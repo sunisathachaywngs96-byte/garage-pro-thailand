@@ -797,38 +797,50 @@ onSnapshot(
       const id = docSnap.id;
 
       if(!selectedCarId){
-        selectedCar(id, d);
-      }
+  selectedCar(id, d);
+}
 
-      carList.innerHTML += `
-      
-      <div class="repair-item">
+carList.innerHTML += `
 
-        <div class="repair-info">
-          <div class="repair-name">
-            ${d.carName}
-          </div>
+<div class="repair-item">
 
-          <div class="repair-shop">
-            🚘 ${d.plate}
-          </div>
-        </div>
+  <div class="repair-info">
 
-        <button class="alert-btn saved"
-          onclick='selectedCar(
-            "${id}",
-            ${JSON.stringify(d)}
-          )'>
-          เลือก
-        </button>
+    <div class="repair-name">
+      ${d.carName}
+    </div>
 
-      </div>
-      `;
+    <div class="repair-shop">
+      🚘 ${d.plate}
+    </div>
+
+  </div>
+
+  <button
+    class="alert-btn saved"
+    onclick='selectedCar(
+      "${id}",
+      ${JSON.stringify(d)}
+    )'
+  >
+    เลือก
+  </button>
+
+  <button
+    class="alert-btn detail"
+    onclick='deleteCar("${id}")'
+  >
+    ลบ
+  </button>
+
+</div>
+
+`;
+
     });
 
   }
 );
-
 // =====================
 // เลือกรถ
 // =====================
@@ -842,7 +854,39 @@ window.selectedCar = function(id, d){
   document.querySelector(".plate-tag").innerText =
     "🚘 " + d.plate;
 
+  const statValue =
+    document.querySelector(".stat-value");
+
+  if(statValue){
+    statValue.innerText =
+      d.mileage || 0;
+  }
+
   loadRepairs(id);
+
+};
+
+// =====================
+// ลบรถ
+// =====================
+window.deleteCar = async function(id){
+
+  const confirmDelete =
+    confirm("ลบรถคันนี้ ?");
+
+  if(!confirmDelete) return;
+
+  await deleteDoc(
+    doc(
+      db,
+      "users",
+      "user_001",
+      "cars",
+      id
+    )
+  );
+
+  alert("ลบแล้ว");
 
 };
 
