@@ -557,8 +557,98 @@
   
   <script type="module">
 
->
-    window.openRepairModal = function () {
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  onSnapshot,
+  deleteDoc,
+  doc,
+  updateDoc
+}
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDAfm7eDJPFiWrUK_U0aqS7yl2Wt_PpjmA",
+  authDomain: "garage-system-41587.firebaseapp.com",
+  projectId: "garage-system-41587",
+  storageBucket: "garage-system-41587.firebasestorage.app",
+  messagingSenderId: "688480145767",
+  appId: "1:688480145767:web:9bfba3df045ca434d91fc2",
+  measurementId: "G-30329DLNXE"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let selectedCarId = null;
+
+// =====================
+// โหลดประวัติซ่อม
+// =====================
+function loadRepairs(carId){
+
+  onSnapshot(
+
+    collection(
+      db,
+      "users",
+      "user_001",
+      "cars",
+      carId,
+      "repairs"
+    ),
+
+    (snapshot) => {
+
+      const repairList =
+        document.getElementById("repairList");
+
+      repairList.innerHTML = "";
+
+      snapshot.forEach((docSnap) => {
+
+        const d = docSnap.data();
+
+        repairList.innerHTML += `
+
+        <div class="repair-item">
+
+          <div class="repair-info">
+
+            <div class="repair-name">
+              ${d.title}
+            </div>
+
+            <div class="repair-shop">
+              ${d.mileage} กม.
+            </div>
+
+          </div>
+
+          <div class="repair-cost">
+            ${d.price} บาท
+          </div>
+
+        </div>
+
+        `;
+
+      });
+
+    }
+
+  );
+
+}
+
+// =====================
+// เปิด modal ซ่อม
+// =====================
+window.openRepairModal = function () {
 
   if(!selectedCarId){
     alert("กรุณาเลือกรถก่อน");
@@ -571,6 +661,9 @@
 
 };
 
+// =====================
+// ปิด modal ซ่อม
+// =====================
 window.closeRepairModal = function () {
 
   document
@@ -578,18 +671,33 @@ window.closeRepairModal = function () {
     .classList.remove("open");
 
 };
-  window.openCarModal = function () {
+
+// =====================
+// เปิด modal รถ
+// =====================
+window.openCarModal = function () {
+
   document
     .getElementById("carModal")
     .classList.add("open");
+
 };
 
+// =====================
+// ปิด modal รถ
+// =====================
 window.closeCarModal = function () {
+
   document
     .getElementById("carModal")
     .classList.remove("open");
+
 };
-  window.saveRepair = async function () {
+
+// =====================
+// เพิ่มประวัติซ่อม
+// =====================
+window.saveRepair = async function () {
 
   if(!selectedCarId){
     alert("ยังไม่ได้เลือกรถ");
@@ -634,35 +742,7 @@ window.closeCarModal = function () {
 
   closeRepairModal();
 
-};  
-import { initializeApp }
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-
-import {
-  getFirestore,
-  collection,
-  addDoc,
-  onSnapshot,
-  deleteDoc,
-  doc,
-  updateDoc
-}
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyDAfm7eDJPFiWrUK_U0aqS7yl2Wt_PpjmA",
-  authDomain: "garage-system-41587.firebaseapp.com",
-  projectId: "garage-system-41587",
-  storageBucket: "garage-system-41587.firebasestorage.app",
-  messagingSenderId: "688480145767",
-  appId: "1:688480145767:web:9bfba3df045ca434d91fc2",
-  measurementId: "G-30329DLNXE"
 };
-//บันทึกรถ
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-let selectedCarId = null;
 
 // =====================
 // เพิ่มรถ
@@ -671,6 +751,108 @@ window.saveCar = async function () {
 
   const carName =
     document.getElementById("carName").value;
+
+  const plate =
+    document.getElementById("plate").value;
+
+  const mileage =
+    document.getElementById("mileage").value;
+
+  if(!carName || !plate){
+    alert("กรอกข้อมูลให้ครบ");
+    return;
+  }
+
+  await addDoc(
+    collection(db, "users", "user_001", "cars"),
+    {
+      carName,
+      plate,
+      mileage,
+      createdAt: Date.now()
+    }
+  );
+
+  alert("เพิ่มรถสำเร็จ 🚘");
+
+  closeCarModal();
+
+};
+
+// =====================
+// โหลดรถ realtime
+// =====================
+onSnapshot(
+  collection(db, "users", "user_001", "cars"),
+  (snapshot) => {
+
+    const carList =
+      document.getElementById("carList");
+
+    carList.innerHTML = "";
+
+    snapshot.forEach((docSnap) => {
+
+      const d = docSnap.data();
+      const id = docSnap.id;
+
+      if(!selectedCarId){
+        selectedCar(id, d);
+      }
+
+      carList.innerHTML += `
+      
+      <div class="repair-item">
+
+        <div class="repair-info">
+          <div class="repair-name">
+            ${d.carName}
+          </div>
+
+          <div class="repair-shop">
+            🚘 ${d.plate}
+          </div>
+        </div>
+
+        <button class="alert-btn saved"
+          onclick='selectedCar(
+            "${id}",
+            ${JSON.stringify(d)}
+          )'>
+          เลือก
+        </button>
+
+      </div>
+      `;
+    });
+
+  }
+);
+
+// =====================
+// เลือกรถ
+// =====================
+window.selectedCar = function(id, d){
+
+  selectedCarId = id;
+
+  document.querySelector(".car-model").innerText =
+    d.carName;
+
+  document.querySelector(".plate-tag").innerText =
+    "🚘 " + d.plate;
+
+  loadRepairs(id);
+
+};
+
+  </script>
+
+  alert("บันทึกแล้ว 🔧");
+
+  closeRepairModal();
+
+value;
 
   const plate =
     document.getElementById("plate").value;
@@ -711,71 +893,6 @@ onSnapshot(
   (snapshot) => {
 
     const carList =
-      document.getElementById("carList");
-
-    carList.innerHTML = "";
-
-    snapshot.forEach((docSnap) => {
-
-      const d = docSnap.data();
-      const id = docSnap.id;
-
-      // รถคันแรก
-      if(!selectedCarId){
-        selectedCar(id, d);
-      }
-
-      carList.innerHTML += `
-      
-      <div class="repair-item">
-
-        <div class="repair-info">
-          <div class="repair-name">
-            ${d.carName}
-          </div>
-
-          <div class="repair-shop">
-            🚘 ${d.plate}
-          </div>
-        </div>
-
-        <button class="alert-btn saved"
-          onclick='selectedCar(
-            "${id}",
-            ${JSON.stringify(d)}
-          )'>
-          เลือก
-        </button>
-
-        <button class="alert-btn detail"
-          onclick='deleteCar("${id}")'>
-          ลบ
-        </button>
-
-      </div>
-      `;
-    });
-
-  }
-);
-
-// =====================
-// เลือกรถ
-// =====================
-window.selectedCar = function(id, d){
-
-  selectedCarId = id;
-
-  document.querySelector(".car-model").innerText =
-    d.carName;
-
-  document.querySelector(".plate-tag").innerText =
-    "🚘 " + d.plate;
-
-  document.querySelector(".stat-value").innerText =
-    d.mileage + " กม.";
-
-};
 
 // =====================
 // ลบรถ
