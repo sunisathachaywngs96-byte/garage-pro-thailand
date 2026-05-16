@@ -617,5 +617,83 @@ function showToast(msg){
     toast.classList.remove('show');
   },2500);
 }
-    </script>
-  
+<script>
+
+async function saveRepair() {
+
+  const {
+    db,
+    auth,
+    collection,
+    addDoc,
+    serverTimestamp
+  } = window._fb;
+
+  const user = auth.currentUser;
+
+  if (!user) {
+    alert("กรุณาเข้าสู่ระบบ");
+    return;
+  }
+
+  const repairData = {
+    type: document.getElementById("rType").value,
+    date: document.getElementById("rDate").value,
+    km: Number(document.getElementById("rKm").value),
+    cost: Number(document.getElementById("rCost").value),
+    shop: document.getElementById("rShop").value,
+    note: document.getElementById("rNote").value,
+    createdAt: serverTimestamp()
+  };
+
+  await addDoc(
+    collection(db, "users", user.uid, "repairs"),
+    repairData
+  );
+
+  alert("บันทึกสำเร็จ");
+}
+
+</script>
+async function loadRepairs() {
+
+  const {
+    db,
+    auth,
+    collection,
+    getDocs
+  } = window._fb;
+
+  const user = auth.currentUser;
+
+  const snap = await getDocs(
+    collection(db, "users", user.uid, "repairs")
+  );
+
+  const repairList =
+    document.getElementById("repairList");
+
+  repairList.innerHTML = "";
+
+  snap.forEach(doc => {
+
+    const data = doc.data();
+
+    repairList.innerHTML += `
+      <div class="repair-item">
+        <div>
+          <b>${data.type}</b>
+          <div>${data.date}</div>
+        </div>
+
+        <div style="margin-left:auto">
+          ${data.cost} บาท
+        </div>
+      </div>
+    `;
+
+  });
+
+}
+</body>
+</html>
