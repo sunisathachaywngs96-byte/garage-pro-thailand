@@ -1026,5 +1026,122 @@ window.addEventListener("firebase-ready", () => {
 });
 
   </script>
+  <script>
+
+async function saveRepair() {
+
+  const {
+    db,
+    auth,
+    collection,
+    addDoc,
+    serverTimestamp
+  } = window._fb;
+
+  const user = auth.currentUser;
+
+  if (!user) {
+    alert("กรุณาเข้าสู่ระบบ");
+    return;
+  }
+
+  const repairData = {
+    type: document.getElementById("rType").value,
+    date: document.getElementById("rDate").value,
+    km: Number(document.getElementById("rKm").value),
+    cost: Number(document.getElementById("rCost").value),
+    shop: document.getElementById("rShop").value,
+    note: document.getElementById("rNote").value,
+    createdAt: serverTimestamp()
+  };
+
+  await addDoc(
+    collection(db, "users", user.uid, "repairs"),
+    repairData
+  );
+
+  closeModal("addRepairModal");
+
+  loadRepairs();
+
+  alert("บันทึกสำเร็จ");
+
+}
+
+async function loadRepairs() {
+
+  const {
+    db,
+    auth,
+    collection,
+    getDocs
+  } = window._fb;
+
+  const user = auth.currentUser;
+
+  if (!user) return;
+
+  const snap = await getDocs(
+    collection(db, "users", user.uid, "repairs")
+  );
+
+  const repairList =
+    document.getElementById("repairList");
+
+  repairList.innerHTML = "";
+
+  let total = 0;
+  let count = 0;
+
+  snap.forEach((docItem) => {
+
+    const data = docItem.data();
+
+    total += Number(data.cost || 0);
+    count++;
+
+    repairList.innerHTML += `
+
+      <div class="repair-item">
+
+        <div class="r-icon">🔧</div>
+
+        <div style="flex:1">
+          <div class="r-name">${data.type}</div>
+          <div class="r-shop">${data.shop || "-"}</div>
+        </div>
+
+        <div>
+          <div class="r-date">${data.date}</div>
+          <div class="r-km">${data.km || 0} กม.</div>
+        </div>
+
+        <div class="r-cost">
+          ${Number(data.cost).toLocaleString()}
+          <div class="r-cost-u">บาท</div>
+        </div>
+
+      </div>
+
+    `;
+  });
+
+  document.getElementById("statCost").innerText =
+    total.toLocaleString();
+
+  document.getElementById("statCount").innerText =
+    count;
+
+}
+
+function openModal(id) {
+  document.getElementById(id).classList.add("open");
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove("open");
+}
+
+  </script>
 </body>
 </html>
