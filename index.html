@@ -695,5 +695,233 @@ async function loadRepairs() {
   });
 
 }
+  <script>
+let authMode = "login";
+
+// ===== เปลี่ยนแท็บ Login/Register =====
+function switchTab(mode) {
+  authMode = mode;
+
+  document.getElementById("tabLogin").classList.remove("active");
+  document.getElementById("tabReg").classList.remove("active");
+
+  if (mode === "login") {
+    document.getElementById("tabLogin").classList.add("active");
+    document.getElementById("authSubmit").innerText = "เข้าสู่ระบบ";
+  } else {
+    document.getElementById("tabReg").classList.add("active");
+    document.getElementById("authSubmit").innerText = "สมัครสมาชิก";
+  }
+}
+
+// ===== สมัคร / เข้าสู่ระบบ =====
+async function handleAuth() {
+
+  const {
+    auth,
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword
+  } = window._fb;
+
+  const email = document.getElementById("authEmail").value;
+  const password = document.getElementById("authPass").value;
+
+  try {
+
+    if (authMode === "login") {
+
+      await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+    } else {
+
+      await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+    }
+
+  } catch (err) {
+
+    document.getElementById("authErr").innerText =
+      err.message;
+
+  }
+}
+
+// ===== เช็คสถานะ login =====
+window.addEventListener("firebase-ready", () => {
+
+  const { auth, onAuthStateChanged } = window._fb;
+
+  onAuthStateChanged(auth, (user) => {
+
+    if (user) {
+
+      document.getElementById("authScreen").style.display = "none";
+      document.getElementById("mainApp").style.display = "flex";
+      document.getElementById("sidebar").style.display = "flex";
+
+      document.getElementById("sbEmail").innerText =
+        user.email;
+
+      document.getElementById("sbName").innerText =
+        user.email.split("@")[0];
+
+      document.getElementById("sbAvatar").innerText =
+        user.email.charAt(0).toUpperCase();
+
+      loadRepairs();
+
+    } else {
+
+      document.getElementById("authScreen").style.display = "flex";
+      document.getElementById("mainApp").style.display = "none";
+      document.getElementById("sidebar").style.display = "none";
+
+    }
+
+  });
+
+});
+
+// ===== logout =====
+async function doSignOut() {
+
+  const { auth, signOut } = window._fb;
+
+  await signOut(auth);
+
+}
+
+// ===== modal =====
+function openModal(id) {
+  document.getElementById(id).classList.add("open");
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove("open");
+}
+
+// ===== toast =====
+function showToast(text) {
+
+  let toast = document.createElement("div");
+  toast.className = "toast show";
+  toast.innerText = text;
+
+  document.body.appendChild(toast);
+
+  setTimeout(() => {
+    toast.remove();
+  }, 3000);
+
+}
+
+// ===== save repair =====
+async function saveRepair() {
+
+  const {
+    db,
+    auth,
+    collection,
+    addDoc,
+    serverTimestamp
+  } = window._fb;
+
+  const user = auth.currentUser;
+
+  if (!user) {
+    alert("กรุณาเข้าสู่ระบบ");
+    return;
+  }
+
+  const repairData = {
+    type: document.getElementById("rType").value,
+    date: document.getElementById("rDate").value,
+    km: Number(document.getElementById("rKm").value),
+    cost: Number(document.getElementById("rCost").value),
+    shop: document.getElementById("rShop").value,
+    note: document.getElementById("rNote").value,
+    createdAt: serverTimestamp()
+  };
+
+  await addDoc(
+    collection(db, "users", user.uid, "repairs"),
+    repairData
+  );
+
+  showToast("✅ บันทึกสำเร็จ");
+
+  closeModal("addRepairModal");
+
+  loadRepairs();
+}
+
+// ===== โหลดข้อมูล repairs =====
+async function loadRepairs() {
+
+  const {
+    db,
+    auth,
+    collection,
+    getDocs
+  } = window._fb;
+
+  const user = auth.currentUser;
+
+  if (!user) return;
+
+  const snapshot = await getDocs(
+    collection(db, "users", user.uid, "repairs")
+  );
+
+  const repairList = document.getElementById("repairList");
+
+  repairList.innerHTML = "";
+
+  let totalCost = 0;
+
+  snapshot.forEach((doc) => {
+
+    const data = doc.data();
+
+    totalCost += data.cost || 0;
+
+    repairList.innerHTML += `
+      <div class="repair-item">
+        <div class="r-icon">🔧</div>
+
+        <div style="flex:1">
+          <div class="r-name">${data.type}</div>
+          <div class="r-shop">${data.shop || "-"}</div>
+        </div>
+
+        <div class="r-date">
+          ${data.date || "-"}
+          <div class="r-km">${data.km || 0} กม.</div>
+        </div>
+
+        <div class="r-cost">
+          ฿${data.cost || 0}
+        </div>
+      </div>
+    `;
+
+  });
+
+  document.getElementById("statCount").innerText =
+    snapshot.size;
+
+  document.getElementById("statCost").innerText =
+    totalCost.toLocaleString();
+
+}
+  </script>
 </body>
 </html>
