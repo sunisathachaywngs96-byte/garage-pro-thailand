@@ -983,5 +983,48 @@ window.addEventListener("firebase-ready", () => {
 });
 
   </script>
+  <script>
+
+window.addEventListener("firebase-ready", () => {
+
+  const { auth, onAuthStateChanged } = window._fb;
+
+  onAuthStateChanged(auth, (user) => {
+
+    if (user) {
+
+      console.log("LOGIN OK:", user.uid);
+
+      document.getElementById("authScreen").style.display = "none";
+
+      document.getElementById("sidebar").style.display = "flex";
+
+      document.getElementById("mainApp").style.display = "block";
+
+      document.getElementById("sbEmail").innerText = user.email;
+
+      document.getElementById("sbName").innerText =
+        user.email.split("@")[0];
+
+      document.getElementById("sbAvatar").innerText =
+        user.email[0].toUpperCase();
+
+      loadRepairs();
+
+    } else {
+
+      document.getElementById("authScreen").style.display = "flex";
+
+      document.getElementById("sidebar").style.display = "none";
+
+      document.getElementById("mainApp").style.display = "none";
+
+    }
+
+  });
+
+});
+
+  </script>
 </body>
 </html>
