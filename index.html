@@ -144,7 +144,12 @@ body {
 .stat-card:hover { border-color:rgba(34,197,94,.3); transform:translateY(-2px); }
 .sc-icon { width:42px; height:42px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
 .sc-label { font-size:11px; color:var(--t2); margin-bottom:3px; }
-.sc-val { font-size:24px; font-weight:700; line-height:1; }
+.sc-val {
+  font-size:20px;
+  font-weight:700;
+  line-height:1.1;
+  word-break:break-word;
+}
 .sc-unit { font-size:11px; color:var(--t2); }
 
 /* SECTION */
@@ -209,14 +214,124 @@ body {
 
 @media(max-width:900px){ .stats-row{grid-template-columns:repeat(2,1fr);} }
 @media(max-width:700px){
-  .sidebar{display:none;} .main{margin-left:0;} .content{padding:16px 14px 90px;}
-  .topbar{padding:12px 14px;} .car-card{flex-direction:column;}
-  .stats-row{grid-template-columns:1fr 1fr; gap:10px;}
-  .bottom-nav{ display:flex; position:fixed; bottom:0; left:0; right:0; background:var(--bg2); border-top:1px solid var(--border); padding:10px 0 18px; z-index:100; }
-  .bn-item{ flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; cursor:pointer; color:var(--t2); font-size:10px; }
-  .bn-item.active{color:var(--green);}
-  .bn-icon{font-size:20px;}
-  .bn-add{ flex:0; width:50px; height:50px; background:var(--green); border-radius:50%; display:flex; align-items:center; justify-content:center; margin-top:-20px; box-shadow:0 4px 18px rgba(34,197,94,.4); cursor:pointer; font-size:22px; color:#000; }
+
+  .sidebar{
+    display:none;
+  }
+
+  .main{
+    margin-left:0;
+    width:100%;
+  }
+
+  .content{
+    padding:14px 12px 100px;
+  }
+
+  .topbar{
+    padding:12px 14px;
+  }
+
+  .topbar-title{
+    font-size:18px;
+  }
+
+  .car-card{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+
+  .car-model{
+    font-size:20px;
+  }
+
+  .car-img{
+    font-size:56px;
+    align-self:center;
+  }
+
+  .stats-row{
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+  }
+
+  .stat-card{
+    padding:12px;
+  }
+
+  .repair-item{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:8px;
+  }
+
+  .r-cost{
+    text-align:left;
+  }
+
+  .modal{
+    width:95%;
+    padding:20px;
+    border-radius:16px;
+  }
+
+  .form-row{
+    grid-template-columns:1fr;
+  }
+
+  .bottom-nav{
+    display:flex;
+    position:fixed;
+    bottom:0;
+    left:0;
+    right:0;
+    background:var(--bg2);
+    border-top:1px solid var(--border);
+    padding:10px 0 18px;
+    z-index:100;
+  }
+
+  .bn-item{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:3px;
+    cursor:pointer;
+    color:var(--t2);
+    font-size:10px;
+  }
+
+  .bn-item.active{
+    color:var(--green);
+  }
+
+  .bn-icon{
+    font-size:20px;
+  }
+
+  .bn-add{
+    flex:0;
+    width:54px;
+    height:54px;
+    background:var(--green);
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin-top:-24px;
+    box-shadow:0 4px 18px rgba(34,197,94,.4);
+    cursor:pointer;
+    font-size:24px;
+    color:#000;
+  }
+}
+  button,
+.nav-item,
+.bn-item,
+.add-btn,
+.edit-car-btn {
+  -webkit-tap-highlight-color: transparent;
 }
 </style>
 </head>
