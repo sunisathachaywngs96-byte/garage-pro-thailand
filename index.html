@@ -40,7 +40,14 @@ window.dispatchEvent(new Event('firebase-ready'));
   --sw: 220px;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
-body { font-family:'IBM Plex Sans Thai','Space Grotesk',sans-serif; background:var(--bg); color:var(--t1); min-height:100vh; display:flex; }
+body {
+  font-family:'IBM Plex Sans Thai','Space Grotesk',sans-serif;
+  background:var(--bg);
+  color:var(--t1);
+  min-height:100vh;
+  display:flex;
+  overflow-x:hidden;
+}
 
 /* AUTH SCREEN */
 #authScreen {
@@ -110,7 +117,18 @@ body { font-family:'IBM Plex Sans Thai','Space Grotesk',sans-serif; background:v
 .content { padding:24px 28px; flex:1; }
 
 /* CAR CARD */
-.car-card { background:linear-gradient(135deg,#1c2230,#1a2535); border:1px solid var(--border); border-radius:16px; padding:22px; display:flex; align-items:center; justify-content:space-between; gap:20px; margin-bottom:20px; }
+.car-card {
+  background:linear-gradient(135deg,#1c2230,#1a2535);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:18px;
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:20px;
+  flex-wrap:wrap;
+}
 .car-model { font-size:22px; font-weight:700; }
 .car-variant { font-size:12px; color:var(--t2); margin-bottom:8px; }
 .plate-tag { display:inline-flex; align-items:center; background:rgba(59,130,246,.15); border:1px solid rgba(59,130,246,.3); color:var(--blue); padding:4px 12px; border-radius:6px; font-size:12px; font-weight:600; margin-bottom:14px; }
