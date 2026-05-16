@@ -883,5 +883,105 @@ async function loadRepairs() {
 
 }
   </script>
+  <script>
+
+let authMode = "login";
+
+function switchTab(mode) {
+
+  authMode = mode;
+
+  document.getElementById("authErr").innerText = "";
+
+  if (mode === "login") {
+
+    document.getElementById("tabLogin").classList.add("active");
+    document.getElementById("tabReg").classList.remove("active");
+
+    document.getElementById("authSubmit").innerText = "เข้าสู่ระบบ";
+
+  } else {
+
+    document.getElementById("tabReg").classList.add("active");
+    document.getElementById("tabLogin").classList.remove("active");
+
+    document.getElementById("authSubmit").innerText = "สมัครสมาชิก";
+
+  }
+}
+
+async function handleAuth() {
+
+  const {
+    auth,
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword
+  } = window._fb;
+
+  const email = document.getElementById("authEmail").value;
+  const pass = document.getElementById("authPass").value;
+
+  try {
+
+    if (authMode === "login") {
+
+      await signInWithEmailAndPassword(auth, email, pass);
+
+    } else {
+
+      await createUserWithEmailAndPassword(auth, email, pass);
+
+    }
+
+  } catch (err) {
+
+    document.getElementById("authErr").innerText =
+      "❌ " + err.message;
+
+  }
+}
+
+function doSignOut() {
+
+  const { auth, signOut } = window._fb;
+
+  signOut(auth);
+}
+
+window.addEventListener("firebase-ready", () => {
+
+  const { auth, onAuthStateChanged } = window._fb;
+
+  onAuthStateChanged(auth, (user) => {
+
+    if (user) {
+
+      document.getElementById("authScreen").style.display = "none";
+      document.getElementById("sidebar").style.display = "flex";
+      document.getElementById("mainApp").style.display = "block";
+
+      document.getElementById("sbEmail").innerText = user.email;
+
+      document.getElementById("sbName").innerText =
+        user.email.split("@")[0];
+
+      document.getElementById("sbAvatar").innerText =
+        user.email[0].toUpperCase();
+
+      loadRepairs();
+
+    } else {
+
+      document.getElementById("authScreen").style.display = "flex";
+      document.getElementById("sidebar").style.display = "none";
+      document.getElementById("mainApp").style.display = "none";
+
+    }
+
+  });
+
+});
+
+  </script>
 </body>
 </html>
