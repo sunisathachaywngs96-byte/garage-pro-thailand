@@ -343,5 +343,279 @@ body { font-family:'IBM Plex Sans Thai','Space Grotesk',sans-serif; background:v
     <button class="modal-btn" id="saveRepairBtn" onclick="saveRepair()">💾 บันทึกลง Firebase</button>
   </div>
 </div>
+<script>
+let currentUser = null;
+let isLogin = true;
 
+// ===== Firebase Ready =====
+window.addEventListener('firebase-ready', () => {
+  const fb = window._fb;
+
+  fb.onAuthStateChanged(fb.auth, async (user) => {
+    if (user) {
+      currentUser = user;
+
+      document.getElementById('authScreen').style.display = 'none';
+      document.getElementById('sidebar').style.display = 'flex';
+      document.getElementById('mainApp').style.display = 'flex';
+
+      document.getElementById('sbName').textContent =
+        user.email.split('@')[0];
+
+      document.getElementById('sbEmail').textContent =
+        user.email;
+
+      document.getElementById('sbAvatar').textContent =
+        user.email[0].toUpperCase();
+
+      await loadRepairs();
+
+    } else {
+      currentUser = null;
+
+      document.getElementById('authScreen').style.display = 'flex';
+      document.getElementById('sidebar').style.display = 'none';
+      document.getElementById('mainApp').style.display = 'none';
+    }
+  });
+});
+
+// ===== Switch Login/Register =====
+function switchTab(type){
+  isLogin = type === 'login';
+
+  document.getElementById('tabLogin')
+    .classList.toggle('active', isLogin);
+
+  document.getElementById('tabReg')
+    .classList.toggle('active', !isLogin);
+
+  document.getElementById('authSubmit').textContent =
+    isLogin ? 'เข้าสู่ระบบ' : 'สมัครสมาชิก';
+}
+
+// ===== Login/Register =====
+async function handleAuth(){
+  const fb = window._fb;
+
+  const email =
+    document.getElementById('authEmail').value;
+
+  const password =
+    document.getElementById('authPass').value;
+
+  const err =
+    document.getElementById('authErr');
+
+  err.textContent = '';
+
+  try {
+
+    if(isLogin){
+
+      await fb.signInWithEmailAndPassword(
+        fb.auth,
+        email,
+        password
+      );
+
+    } else {
+
+      await fb.createUserWithEmailAndPassword(
+        fb.auth,
+        email,
+        password
+      );
+
+    }
+
+  } catch(e){
+    err.textContent = e.message;
+  }
+}
+
+// ===== Logout =====
+async function doSignOut(){
+  const fb = window._fb;
+  await fb.signOut(fb.auth);
+}
+
+// ===== Save Repair =====
+async function saveRepair(){
+
+  const fb = window._fb;
+
+  const type =
+    document.getElementById('rType').value;
+
+  const date =
+    document.getElementById('rDate').value;
+
+  const km =
+    Number(document.getElementById('rKm').value);
+
+  const cost =
+    Number(document.getElementById('rCost').value);
+
+  const shop =
+    document.getElementById('rShop').value;
+
+  const note =
+    document.getElementById('rNote').value;
+
+  try {
+
+    await fb.addDoc(
+      fb.collection(
+        fb.db,
+        "users",
+        currentUser.uid,
+        "repairs"
+      ),
+      {
+        type,
+        date,
+        km,
+        cost,
+        shop,
+        note,
+        createdAt: fb.serverTimestamp()
+      }
+    );
+
+    closeModal('addRepairModal');
+
+    showToast('✅ บันทึกข้อมูลแล้ว');
+
+    await loadRepairs();
+
+  } catch(e){
+    alert(e.message);
+  }
+}
+
+// ===== Load Repairs =====
+async function loadRepairs(){
+
+  const fb = window._fb;
+
+  const repairList =
+    document.getElementById('repairList');
+
+  repairList.innerHTML = '⏳ กำลังโหลด...';
+
+  const q = fb.query(
+    fb.collection(
+      fb.db,
+      "users",
+      currentUser.uid,
+      "repairs"
+    ),
+    fb.orderBy("createdAt", "desc")
+  );
+
+  const snap = await fb.getDocs(q);
+
+  repairList.innerHTML = '';
+
+  let totalCost = 0;
+
+  document.getElementById('statCount')
+    .textContent = snap.size;
+
+  if(snap.empty){
+    repairList.innerHTML =
+      '<div class="loading">ยังไม่มีข้อมูล</div>';
+  }
+
+  snap.forEach((docu)=>{
+
+    const d = docu.data();
+
+    totalCost += d.cost || 0;
+
+    repairList.innerHTML += `
+      <div class="repair-item">
+        <div class="r-icon">🔧</div>
+
+        <div style="flex:1">
+          <div class="r-name">${d.type || '-'}</div>
+          <div class="r-shop">${d.shop || '-'}</div>
+        </div>
+
+        <div class="r-date">
+          ${d.date || '-'}
+          <div class="r-km">${d.km || 0} กม.</div>
+        </div>
+
+        <div class="r-cost">
+          ฿${(d.cost || 0).toLocaleString()}
+        </div>
+
+        <button class="del-btn"
+          onclick="deleteRepair('${docu.id}')">
+          🗑️
+        </button>
+      </div>
+    `;
+  });
+
+  document.getElementById('statCost')
+    .textContent = totalCost.toLocaleString();
+}
+
+// ===== Delete Repair =====
+async function deleteRepair(id){
+
+  const fb = window._fb;
+
+  if(!confirm('ลบรายการนี้?')) return;
+
+  await fb.deleteDoc(
+    fb.doc(
+      fb.db,
+      "users",
+      currentUser.uid,
+      "repairs",
+      id
+    )
+  );
+
+  showToast('🗑️ ลบแล้ว');
+
+  await loadRepairs();
+}
+
+// ===== Modal =====
+function openModal(id){
+  document.getElementById(id)
+    .classList.add('open');
+}
+
+function closeModal(id){
+  document.getElementById(id)
+    .classList.remove('open');
+}
+
+// ===== Toast =====
+function showToast(msg){
+
+  let toast =
+    document.querySelector('.toast');
+
+  if(!toast){
+    toast = document.createElement('div');
+    toast.className = 'toast';
+    document.body.appendChild(toast);
+  }
+
+  toast.textContent = msg;
+
+  toast.classList.add('show');
+
+  setTimeout(()=>{
+    toast.classList.remove('show');
+  },2500);
+}
+    </script>
   
