@@ -230,9 +230,106 @@ body {
     display:none;
   }
 
+  .main {
+  margin-left:var(--sw);
+  width:calc(100% - var(--sw));
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  min-height:100vh;
+  }
+  }
+
+  .content{
+    padding:14px 12px 100px;
+  }
+
+  .topbar{
+    padding:12px 14px;
+  }
+
+  .topbar-title{
+    font-size:18px;
+  }
+
+  .car-card{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+
+  .car-model{
+    font-size:20px;
+  }
+
+  .car-img{
+    font-size:56px;
+    align-self:center;
+  }
+
+  .stats-row{
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+  }
+
+  .stat-card{
+    padding:12px;
+  }
+
+  .repair-item{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:8px;
+  }
+
+  .r-cost{
+    text-align:left;
+  }
+
+  .modal{
+    width:95%;
+    padding:20px;
+    border-radius:16px;
+  }
+
+  .form-row{
+    grid-template-columns:1fr;
+  }
+
+  .bottom-nav{
+    display:flex;
+    position:fixed;
+    bottom:0;
+    left:0;
+    right:0;
+    background:var(--bg2);
+    border-top:1px solid var(--border);
+    padding:10px 0 18px;
+    z-index:100;
+/* BOTTOM NAV */
+.bottom-nav {
+  display:none;
+}
+
+@media(max-width:900px){
+
+  .stats-row{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+}
+
+@media(max-width:700px){
+
+  .sidebar{
+    display:none;
+    position:fixed;
+    left:-100%;
+  }
+
   .main{
     margin-left:0;
     width:100%;
+    overflow-x:hidden;
   }
 
   .content{
@@ -336,7 +433,11 @@ body {
     font-size:24px;
     color:#000;
   }
+
 }
+    *{
+  max-width:100%;
+    }
   button,
 .nav-item,
 .bn-item,
@@ -588,4 +689,1070 @@ function loadRepairsRealtime(){
       <div class="stat-card">
         <div class="sc-icon" style="background:rgba(34,197,94,.15)">💰</div>
         <div><div class="sc-label">ค่าใช้จ่ายปีนี้</div><div class="sc-val" style="color:var(--green)" id="statCost">0</div><div class="sc-unit">บาท</div></div>
-      
+      </div>
+      <div class="stat-card">
+        <div class="sc-icon" style="background:rgba(59,130,246,.15)">🔧</div>
+        <div><div class="sc-label">รายการซ่อม</div><div class="sc-val" style="color:var(--blue)" id="statCount">0</div><div class="sc-unit">รายการ</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="sc-icon" style="background:rgba(168,85,247,.15)">🔔</div>
+        <div><div class="sc-label">แจ้งเตือน</div><div class="sc-val" style="color:var(--purple)" id="statAlerts">0</div><div class="sc-unit">รายการ</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="sc-icon" style="background:rgba(249,115,22,.15)">📅</div>
+        <div><div class="sc-label">ซ่อมครั้งสุดท้าย</div><div class="sc-val" style="color:var(--orange);font-size:16px" id="statLast">-</div><div class="sc-unit">วันที่</div></div>
+      </div>
+    </div>
+
+    <!-- REPAIRS -->
+    <div class="section">
+      <div class="sec-hdr">
+        <div class="sec-title">🔧 ประวัติการซ่อม</div>
+        <button class="add-btn" onclick="openModal('addRepairModal')">+ เพิ่ม</button>
+      </div>
+      <div class="repair-list" id="repairList"><div class="loading">⏳ กำลังโหลดข้อมูล...</div></div>
+    </div>
+
+    <!-- ALERTS -->
+    <div class="section">
+      <div class="sec-hdr">
+        <div class="sec-title">🔔 การแจ้งเตือน</div>
+        <button class="add-btn" onclick="openModal('addAlertModal')">+ เพิ่ม</button>
+      </div>
+      <div class="alert-list" id="alertList"><div class="loading">⏳ กำลังโหลดข้อมูล...</div></div>
+    </div>
+  </div>
+</main>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <div class="bn-item active"><span class="bn-icon">🏠</span><span>หน้าหลัก</span></div>
+  <div class="bn-item" onclick="openModal('addRepairModal')"><span class="bn-icon">🔧</span><span>ซ่อม</span></div>
+  <div class="bn-add" onclick="openModal('addRepairModal')">+</div>
+  <div class="bn-item" onclick="openModal('addAlertModal')"><span class="bn-icon">🔔</span><span>แจ้งเตือน</span></div>
+  <div class="bn-item" onclick="openModal('carModal')"><span class="bn-icon">🚘</span><span>รถ</span></div>
+</nav>
+
+<!-- MODAL: เพิ่มการซ่อม -->
+<div class="modal-overlay" id="addRepairModal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title">🔧 เพิ่มประวัติการซ่อม</div>
+      <button class="modal-close" onclick="closeModal('addRepairModal')">✕</button>
+    </div>
+    <div class="form-group"><label class="form-label">ประเภทการซ่อม</label><input class="form-input" id="rType" placeholder="เช่น เปลี่ยนน้ำมันเครื่อง"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">วันที่</label><input class="form-input" id="rDate" type="date"></div>
+      <div class="form-group"><label class="form-label">เลขไมล์ (กม.)</label><input class="form-input" id="rKm" type="number" placeholder="78560"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">ค่าใช้จ่าย (บาท)</label><input class="form-input" id="rCost" type="number" placeholder="1250"></div>
+      <div class="form-group"><label class="form-label">อู่/ศูนย์บริการ</label><input class="form-input" id="rShop" placeholder="Auto Expert Garage"></div>
+    </div>
+    <div class="form-group"><label class="form-label">หมายเหตุ</label><input class="form-input" id="rNote" placeholder="(ไม่บังคับ)"></div>
+    <button class="modal-btn" id="saveRepairBtn" onclick="saveRepair()">💾 บันทึกลง Firebase</button>
+  </div>
+</div>
+<script>
+let currentUser = null;
+let isLogin = true;
+
+// ===== Firebase Ready =====
+window.addEventListener("firebase-ready", () => {
+
+  const { auth, onAuthStateChanged } = window._fb;
+
+  onAuthStateChanged(auth, (user) => {
+
+    if (user) {
+
+      currentUser = user;
+
+      document.getElementById("authScreen").style.display = "none";
+      document.getElementById("sidebar").style.display = "flex";
+      document.getElementById("mainApp").style.display = "block";
+
+      document.getElementById("sbEmail").innerText = user.email;
+
+      document.getElementById("sbName").innerText =
+        user.email.split("@")[0];
+
+      document.getElementById("sbAvatar").innerText =
+        user.email[0].toUpperCase();
+
+      loadRepairsRealtime();
+
+    }
+
+  });
+
+});
+
+// ===== Switch Login/Register =====
+function switchTab(type){
+  isLogin = type === 'login';
+
+  document.getElementById('tabLogin')
+    .classList.toggle('active', isLogin);
+
+  document.getElementById('tabReg')
+    .classList.toggle('active', !isLogin);
+
+  document.getElementById('authSubmit').textContent =
+    isLogin ? 'เข้าสู่ระบบ' : 'สมัครสมาชิก';
+}
+
+// ===== Login/Register =====
+async function handleAuth(){
+  const fb = window._fb;
+
+  const email =
+    document.getElementById('authEmail').value;
+
+  const password =
+    document.getElementById('authPass').value;
+
+  const err =
+    document.getElementById('authErr');
+
+  err.textContent = '';
+
+  try {
+
+    if(isLogin){
+
+      await fb.signInWithEmailAndPassword(
+        fb.auth,
+        email,
+        password
+      );
+
+    } else {
+
+      await fb.createUserWithEmailAndPassword(
+        fb.auth,
+        email,
+        password
+      );
+
+    }
+
+  } catch(e){
+    err.textContent = e.message;
+  }
+}
+
+// ===== Logout =====
+async function doSignOut(){
+  const fb = window._fb;
+  await fb.signOut(fb.auth);
+}
+
+// ===== Save Repair =====
+async function saveRepair(){
+
+  const fb = window._fb;
+
+  const type =
+    document.getElementById('rType').value;
+
+  const date =
+    document.getElementById('rDate').value;
+
+  const km =
+    Number(document.getElementById('rKm').value);
+
+  const cost =
+    Number(document.getElementById('rCost').value);
+
+  const shop =
+    document.getElementById('rShop').value;
+
+  const note =
+    document.getElementById('rNote').value;
+
+  try {
+
+    await fb.addDoc(
+      fb.collection(
+        fb.db,
+        "users",
+        currentUser.uid,
+        "repairs"
+      ),
+      {
+        type,
+        date,
+        km,
+        cost,
+        shop,
+        note,
+        createdAt: fb.serverTimestamp()
+      }
+    );
+
+    closeModal('addRepairModal');
+
+    showToast('✅ บันทึกข้อมูลแล้ว');
+
+    await loadRepairs();
+
+  } catch(e){
+    alert(e.message);
+  }
+}
+// ลบงานซ่อม
+window.deleteRepair = async function(repairId){
+
+  await deleteDoc(
+
+    doc(
+      db,
+      "users",
+      "user_001",
+      "cars",
+      selectedCarId,
+      "repairs",
+      repairId
+    )
+
+  );
+
+  alert("ลบแล้ว");
+
+};
+
+// แก้ไขงานซ่อม
+window.editRepair = async function(
+  repairId,
+  oldTitle,
+  oldPrice,
+  oldMileage
+){
+
+  const title =
+    prompt("ชื่องาน", oldTitle);
+
+  if(title === null) return;
+
+  const price =
+    prompt("ราคา", oldPrice);
+
+  if(price === null) return;
+
+  const mileage =
+    prompt("เลขไมล์", oldMileage);
+
+  if(mileage === null) return;
+
+  await updateDoc(
+
+    doc(
+      db,
+      "users",
+      "user_001",
+      "cars",
+      selectedCarId,
+      "repairs",
+      repairId
+    ),
+
+    {
+      title,
+      price,
+      mileage
+    }
+
+  );
+
+  alert("แก้ไขแล้ว");
+
+};
+
+      async function loadRepairs(){
+
+  try{
+
+    const fb = window._fb;
+
+    if(!currentUser){
+      console.log("No user");
+      return;
+    }
+
+    const repairList =
+      document.getElementById('repairList');
+
+    repairList.innerHTML =
+      '⏳ กำลังโหลด...';
+
+    const q = fb.query(
+      fb.collection(
+        fb.db,
+        "users",
+        currentUser.uid,
+        "repairs"
+      ),
+      fb.orderBy("createdAt", "desc")
+    );
+
+    const snap = await fb.getDocs(q);
+
+    repairList.innerHTML = '';
+
+    let totalCost = 0;
+
+    document.getElementById('statCount')
+      .textContent = snap.size;
+
+    if(snap.empty){
+
+      repairList.innerHTML =
+        '<div class="loading">ยังไม่มีข้อมูล</div>';
+
+      return;
+    }
+
+    snap.forEach((docSnap)=>{
+
+      const d = docSnap.data();
+      const repairId = docSnap.id;
+
+      totalCost += Number(d.price || 0);
+
+      repairList.innerHTML += `
+
+      <div class="repair-item">
+
+        <div class="repair-info">
+
+          <div class="repair-name">
+            ${d.title || '-'}
+          </div>
+
+          <div class="repair-shop">
+            ${d.mileage || 0} กม.
+          </div>
+
+        </div>
+
+        <div style="
+          display:flex;
+          align-items:center;
+          gap:10px;
+        ">
+
+          <div class="repair-cost">
+            ${(d.price || 0)} บาท
+          </div>
+
+          <button
+            class="alert-btn saved"
+            onclick="editRepair(
+              '${repairId}',
+              '${d.title || ''}',
+              '${d.price || ''}',
+              '${d.mileage || ''}'
+            )">
+
+            แก้ไข
+
+          </button>
+
+          <button
+            class="alert-btn detail"
+            onclick="deleteRepair('${repairId}')">
+
+            ลบ
+
+          </button>
+
+        </div>
+
+      </div>
+
+      `;
+
+    });
+
+    document.getElementById('statCost')
+      .textContent =
+      totalCost.toLocaleString();
+
+  }catch(err){
+
+    console.error(err);
+
+  }
+
+      }
+
+
+  document.getElementById('statCost')
+    .textContent = totalCost.toLocaleString();
+
+}
+
+// ===== Delete Repair =====
+async function deleteRepair(id){
+
+  const fb = window._fb;
+
+  if(!confirm('ลบรายการนี้?')) return;
+
+  await fb.deleteDoc(
+    fb.doc(
+      fb.db,
+      "users",
+      currentUser.uid,
+      "repairs",
+      id
+    )
+  );
+
+  showToast('🗑️ ลบแล้ว');
+
+  await loadRepairs();
+}
+
+// ===== Modal =====
+function openModal(id){
+  document.getElementById(id)
+    .classList.add('open');
+}
+
+function closeModal(id){
+  document.getElementById(id)
+    .classList.remove('open');
+}
+
+// ===== Toast =====
+function showToast(msg){
+
+  let toast =
+    document.querySelector('.toast');
+
+  if(!toast){
+    toast = document.createElement('div');
+    toast.className = 'toast';
+    document.body.appendChild(toast);
+  }
+
+  toast.textContent = msg;
+
+  toast.classList.add('show');
+
+  setTimeout(()=>{
+    toast.classList.remove('show');
+  },2500);
+}
+<script>
+
+async function saveRepair() {
+
+  const {
+    db,
+    auth,
+    collection,
+    addDoc,
+    serverTimestamp
+  } = window._fb;
+
+  const user = auth.currentUser;
+
+  if (!user) {
+    alert("กรุณาเข้าสู่ระบบ");
+    return;
+  }
+
+  const repairData = {
+    type: document.getElementById("rType").value,
+    date: document.getElementById("rDate").value,
+    km: Number(document.getElementById("rKm").value),
+    cost: Number(document.getElementById("rCost").value),
+    shop: document.getElementById("rShop").value,
+    note: document.getElementById("rNote").value,
+    createdAt: serverTimestamp()
+  };
+
+  await addDoc(
+    collection(db, "users", user.uid, "repairs"),
+    repairData
+  );
+
+  alert("บันทึกสำเร็จ");
+}
+
+
+  <script>
+let authMode = "login";
+
+// ===== เปลี่ยนแท็บ Login/Register =====
+function switchTab(mode) {
+  authMode = mode;
+
+  document.getElementById("tabLogin").classList.remove("active");
+  document.getElementById("tabReg").classList.remove("active");
+
+  if (mode === "login") {
+    document.getElementById("tabLogin").classList.add("active");
+    document.getElementById("authSubmit").innerText = "เข้าสู่ระบบ";
+  } else {
+    document.getElementById("tabReg").classList.add("active");
+    document.getElementById("authSubmit").innerText = "สมัครสมาชิก";
+  }
+}
+
+// ===== สมัคร / เข้าสู่ระบบ =====
+async function handleAuth() {
+
+  const {
+    auth,
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword
+  } = window._fb;
+
+  const email = document.getElementById("authEmail").value;
+  const password = document.getElementById("authPass").value;
+
+  try {
+
+    if (authMode === "login") {
+
+      await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+    } else {
+
+      await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+    }
+
+  } catch (err) {
+
+    document.getElementById("authErr").innerText =
+      err.message;
+
+  }
+}
+
+// ===== เช็คสถานะ login =====
+window.addEventListener("firebase-ready", () => {
+
+  const { auth, onAuthStateChanged } = window._fb;
+
+  onAuthStateChanged(auth, (user) => {
+
+    if (user) {
+
+      document.getElementById("authScreen").style.display = "none";
+      document.getElementById("mainApp").style.display = "flex";
+      document.getElementById("sidebar").style.display = "flex";
+
+      document.getElementById("sbEmail").innerText =
+        user.email;
+
+      document.getElementById("sbName").innerText =
+        user.email.split("@")[0];
+
+      document.getElementById("sbAvatar").innerText =
+        user.email.charAt(0).toUpperCase();
+
+      loadRepairs();
+
+    } else {
+
+      document.getElementById("authScreen").style.display = "flex";
+      document.getElementById("mainApp").style.display = "none";
+      document.getElementById("sidebar").style.display = "none";
+
+    }
+
+  });
+
+});
+
+// ===== logout =====
+async function doSignOut() {
+
+  const { auth, signOut } = window._fb;
+
+  await signOut(auth);
+
+}
+
+// ===== modal =====
+function openModal(id) {
+  document.getElementById(id).classList.add("open");
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove("open");
+}
+
+// ===== toast =====
+function showToast(text) {
+
+  let toast = document.createElement("div");
+  toast.className = "toast show";
+  toast.innerText = text;
+
+  document.body.appendChild(toast);
+
+  setTimeout(() => {
+    toast.remove();
+  }, 3000);
+
+}
+
+//save repairs
+  <script>
+
+async function saveRepair(){
+
+  const fb = window._fb;
+
+  if(!currentUser){
+
+    alert("กรุณาเข้าสู่ระบบ");
+    return;
+
+  }
+
+  // ===== get values =====
+
+  const type =
+    document.getElementById("rType").value;
+
+  const date =
+    document.getElementById("rDate").value;
+
+  const km =
+    document.getElementById("rKm").value;
+
+  const cost =
+    document.getElementById("rCost").value;
+
+  const shop =
+    document.getElementById("rShop").value;
+
+  const note =
+    document.getElementById("rNote").value;
+
+  // ===== validation =====
+
+  if(!type || !date || !km || !cost){
+
+    alert("กรอกข้อมูลให้ครบ");
+    return;
+
+  }
+
+  try {
+
+    await fb.addDoc(
+
+      fb.collection(
+        fb.db,
+        "users",
+        currentUser.uid,
+        "repairs"
+      ),
+
+      {
+
+        title: type,
+        date: date,
+        mileage: Number(km),
+        price: Number(cost),
+        shop: shop,
+        note: note,
+
+        createdAt:
+          fb.serverTimestamp()
+
+      }
+
+    );
+
+    // ===== reset form =====
+
+    document.getElementById("rType").value = "";
+    document.getElementById("rDate").value = "";
+    document.getElementById("rKm").value = "";
+    document.getElementById("rCost").value = "";
+    document.getElementById("rShop").value = "";
+    document.getElementById("rNote").value = "";
+
+    // ===== close modal =====
+
+    closeModal("addRepairModal");
+
+    // ===== success =====
+
+    showToast("✅ บันทึกสำเร็จ");
+
+  } catch(err){
+
+    console.error(err);
+
+    alert(err.message);
+
+  }
+
+}
+
+
+  </script>
+  <script>
+
+let authMode = "login";
+
+function switchTab(mode) {
+
+  authMode = mode;
+
+  document.getElementById("authErr").innerText = "";
+
+  if (mode === "login") {
+
+    document.getElementById("tabLogin").classList.add("active");
+    document.getElementById("tabReg").classList.remove("active");
+
+    document.getElementById("authSubmit").innerText = "เข้าสู่ระบบ";
+
+  } else {
+
+    document.getElementById("tabReg").classList.add("active");
+    document.getElementById("tabLogin").classList.remove("active");
+
+    document.getElementById("authSubmit").innerText = "สมัครสมาชิก";
+
+  }
+}
+
+async function handleAuth() {
+
+  const {
+    auth,
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword
+  } = window._fb;
+
+  const email = document.getElementById("authEmail").value;
+  const pass = document.getElementById("authPass").value;
+
+  try {
+
+    if (authMode === "login") {
+
+      await signInWithEmailAndPassword(auth, email, pass);
+
+    } else {
+
+      await createUserWithEmailAndPassword(auth, email, pass);
+
+    }
+
+  } catch (err) {
+
+    document.getElementById("authErr").innerText =
+      "❌ " + err.message;
+
+  }
+}
+
+function doSignOut() {
+
+  const { auth, signOut } = window._fb;
+
+  signOut(auth);
+}
+
+window.addEventListener("firebase-ready", () => {
+
+  const { auth, onAuthStateChanged } = window._fb;
+
+  onAuthStateChanged(auth, (user) => {
+
+    if (user) {
+
+      currentUser = user;
+
+      document.getElementById("authScreen")
+        .style.display = "none";
+
+      document.getElementById("sidebar")
+        .style.display = "flex";
+
+      document.getElementById("mainApp")
+        .style.display = "block";
+
+      document.getElementById("sbEmail")
+        .innerText = user.email;
+
+      document.getElementById("sbName")
+        .innerText =
+        user.email.split("@")[0];
+
+      document.getElementById("sbAvatar")
+        .innerText =
+        user.email[0].toUpperCase();
+
+      loadRepairsRealtime();
+
+    }
+
+  });
+
+});
+
+  </script>
+  <script>
+
+window.addEventListener("firebase-ready", () => {
+
+  const { auth, onAuthStateChanged } = window._fb;
+
+  onAuthStateChanged(auth, (user) => {
+
+    if (user) {
+
+      console.log("LOGIN OK:", user.uid);
+
+      document.getElementById("authScreen").style.display = "none";
+
+      document.getElementById("sidebar").style.display = "flex";
+
+      document.getElementById("mainApp").style.display = "block";
+
+      document.getElementById("sbEmail").innerText = user.email;
+
+      document.getElementById("sbName").innerText =
+        user.email.split("@")[0];
+
+      document.getElementById("sbAvatar").innerText =
+        user.email[0].toUpperCase();
+
+      loadRepairs();
+
+    } else {
+
+      document.getElementById("authScreen").style.display = "flex";
+
+      document.getElementById("sidebar").style.display = "none";
+
+      document.getElementById("mainApp").style.display = "none";
+
+    }
+
+  });
+
+});
+
+  </script>
+  <script>
+
+async function saveRepair() {
+
+  const {
+    db,
+    auth,
+    collection,
+    addDoc,
+    serverTimestamp
+  } = window._fb;
+
+  const user = auth.currentUser;
+
+  if (!user) {
+    alert("กรุณาเข้าสู่ระบบ");
+    return;
+  }
+
+  const repairData = {
+    type: document.getElementById("rType").value,
+    date: document.getElementById("rDate").value,
+    km: Number(document.getElementById("rKm").value),
+    cost: Number(document.getElementById("rCost").value),
+    shop: document.getElementById("rShop").value,
+    note: document.getElementById("rNote").value,
+    createdAt: serverTimestamp()
+  };
+
+  await addDoc(
+    collection(db, "users", user.uid, "repairs"),
+    repairData
+  );
+
+  closeModal("addRepairModal");
+
+  loadRepairs();
+
+  alert("บันทึกสำเร็จ");
+
+}
+
+async function loadRepairs() {
+
+  const {
+    db,
+    auth,
+    collection,
+    getDocs
+  } = window._fb;
+
+  const user = auth.currentUser;
+
+  if (!user) return;
+
+  const snap = await getDocs(
+    collection(db, "users", user.uid, "repairs")
+  );
+
+  const repairList =
+    document.getElementById("repairList");
+
+  repairList.innerHTML = "";
+
+  let total = 0;
+  let count = 0;
+
+  snap.forEach((docItem) => {
+
+    const data = docItem.data();
+
+    total += Number(data.cost || 0);
+    count++;
+
+    repairList.innerHTML += `
+
+      <div class="repair-item">
+
+        <div class="r-icon">🔧</div>
+
+        <div style="flex:1">
+          <div class="r-name">${data.type}</div>
+          <div class="r-shop">${data.shop || "-"}</div>
+        </div>
+
+        <div>
+          <div class="r-date">${data.date}</div>
+          <div class="r-km">${data.km || 0} กม.</div>
+        </div>
+
+        <div class="r-cost">
+          ${Number(data.cost).toLocaleString()}
+          <div class="r-cost-u">บาท</div>
+        </div>
+
+      </div>
+
+    `;
+  });
+
+  document.getElementById("statCost").innerText =
+    total.toLocaleString();
+
+  document.getElementById("statCount").innerText =
+    count;
+
+}
+
+function openModal(id) {
+  document.getElementById(id).classList.add("open");
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove("open");
+}
+
+  </script>
+  <script>
+
+async function loadRepairs() {
+
+  const {
+    db,
+    auth,
+    collection,
+    getDocs
+  } = window._fb;
+
+  const user = auth.currentUser;
+
+  if (!user) return;
+
+  const repairList = document.getElementById("repairList");
+
+  repairList.innerHTML = "⏳ กำลังโหลด...";
+
+  const snap = await getDocs(
+    collection(db, "users", user.uid, "repairs")
+  );
+
+  repairList.innerHTML = "";
+
+  if (snap.empty) {
+    repairList.innerHTML = `
+      <div class="repair-item">
+        ยังไม่มีรายการซ่อม
+      </div>
+    `;
+    return;
+  }
+
+  snap.forEach((docItem) => {
+
+    const data = docItem.data();
+
+    repairList.innerHTML += `
+
+      <div class="repair-item">
+
+        <div class="r-icon">
+          🔧
+        </div>
+
+        <div style="flex:1">
+
+          <div class="r-name">
+            ${data.type || "-"}
+          </div>
+
+          <div class="r-shop">
+            ${data.shop || "-"}
+          </div>
+
+        </div>
+
+        <div class="r-date">
+          ${data.date || "-"}
+        </div>
+
+        <div class="r-cost">
+
+          ${data.cost || 0}
+
+          <div class="r-cost-u">
+            บาท
+          </div>
+
+        </div>
+
+      </div>
+
+    `;
+  });
+}
+
+  </script>
+</body>
+</html>
