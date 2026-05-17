@@ -762,7 +762,7 @@ window.addEventListener("firebase-ready", () => {
 
   const { auth, onAuthStateChanged } = window._fb;
 
-  onAuthStateChanged(auth, (user) => {
+  onAuthStateChanged(auth, async (user) => {
 
     if (user) {
 
@@ -773,74 +773,19 @@ window.addEventListener("firebase-ready", () => {
       document.getElementById("mainApp").style.display = "block";
 
       document.getElementById("sbEmail").innerText = user.email;
+      document.getElementById("sbName").innerText = user.email.split("@")[0];
+      document.getElementById("sbAvatar").innerText = user.email[0].toUpperCase();
 
-      document.getElementById("sbName").innerText =
-        user.email.split("@")[0];
-
-      document.getElementById("sbAvatar").innerText =
-        user.email[0].toUpperCase();
-
+      // 🔥 สำคัญ: ต้อง await ได้
+      await loadCars();         
       loadRepairsRealtime();
+      loadAlerts();              
 
     }
 
   });
 
 });
-
-// ===== Switch Login/Register =====
-function switchTab(type){
-  isLogin = type === 'login';
-
-  document.getElementById('tabLogin')
-    .classList.toggle('active', isLogin);
-
-  document.getElementById('tabReg')
-    .classList.toggle('active', !isLogin);
-
-  document.getElementById('authSubmit').textContent =
-    isLogin ? 'เข้าสู่ระบบ' : 'สมัครสมาชิก';
-}
-
-// ===== Login/Register =====
-async function handleAuth(){
-  const fb = window._fb;
-
-  const email =
-    document.getElementById('authEmail').value;
-
-  const password =
-    document.getElementById('authPass').value;
-
-  const err =
-    document.getElementById('authErr');
-
-  err.textContent = '';
-
-  try {
-
-    if(isLogin){
-
-      await fb.signInWithEmailAndPassword(
-        fb.auth,
-        email,
-        password
-      );
-
-    } else {
-
-      await fb.createUserWithEmailAndPassword(
-        fb.auth,
-        email,
-        password
-      );
-
-    }
-
-  } catch(e){
-    err.textContent = e.message;
-  }
-}
 
 // ===== Logout =====
 async function doSignOut(){
