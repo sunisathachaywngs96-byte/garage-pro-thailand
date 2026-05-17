@@ -7,20 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <!-- Firebase SDK -->
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {
-  getFirestore,
-  collection,
-  addDoc,
-  getDocs,
-  deleteDoc,
-  doc,
-  query,
-  orderBy,
-  serverTimestamp,
-  onSnapshot
-}
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
 import { initializeApp }
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
@@ -31,21 +18,53 @@ from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 import {
   getAuth,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged
+  signInWithEmailAndPassword
 }
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
+const firebaseConfig = {
+  apiKey: "AIza...",
+  authDomain: "garage-system-41587.firebaseapp.com",
+  projectId: "garage-system-41587",
+  storageBucket: "garage-system-41587.firebasestorage.app",
+  messagingSenderId: "688480145767",
+  appId: "1:688480145767:web:9bf..."
+};
+
 const app = initializeApp(firebaseConfig);
+
 const db = getFirestore(app);
+
 const auth = getAuth(app);
 
-// ===== expose to window =====
-window._fb = { db, auth, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy, serverTimestamp,onSnapshot, 
-  signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged };
-window.dispatchEvent(new Event('firebase-ready'));
+window.login = async function () {
+
+  const email =
+    document.getElementById("email").value;
+
+  const password =
+    document.getElementById("password").value;
+
+  try {
+
+    const userCredential =
+      await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+    alert("Login Success");
+
+  } catch (error) {
+
+    console.error(error);
+    alert(error.message);
+
+  }
+
+};
+
 </script>
 <style>
 :root {
