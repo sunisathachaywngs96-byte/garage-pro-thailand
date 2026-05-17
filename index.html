@@ -787,6 +787,26 @@ window.addEventListener("firebase-ready", () => {
   });
 
 });
+  // ===== GLOBAL STATE =====
+let currentUser = null;
+let selectedCarId = null;
+let currentMileage = 0;
+
+
+// ===== LOAD CARS =====
+async function loadCars() {
+
+  const fb = window._fb;
+
+  const snap = await fb.getDocs(
+    fb.collection(fb.db, "users", currentUser.uid, "cars")
+  );
+
+  if (snap.empty) return;
+
+  selectedCarId = snap.docs[0].id;
+  currentMileage = snap.docs[0].data().mileage || 0;
+}
 // ===== Logout =====
 async function doSignOut(){
   const fb = window._fb;
