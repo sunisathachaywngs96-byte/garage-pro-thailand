@@ -626,7 +626,73 @@ async function saveRepair(){
     alert(e.message);
   }
 }
+// ลบงานซ่อม
+window.deleteRepair = async function(repairId){
 
+  await deleteDoc(
+
+    doc(
+      db,
+      "users",
+      "user_001",
+      "cars",
+      selectedCarId,
+      "repairs",
+      repairId
+    )
+
+  );
+
+  alert("ลบแล้ว");
+
+};
+
+// แก้ไขงานซ่อม
+window.editRepair = async function(
+  repairId,
+  oldTitle,
+  oldPrice,
+  oldMileage
+){
+
+  const title =
+    prompt("ชื่องาน", oldTitle);
+
+  if(title === null) return;
+
+  const price =
+    prompt("ราคา", oldPrice);
+
+  if(price === null) return;
+
+  const mileage =
+    prompt("เลขไมล์", oldMileage);
+
+  if(mileage === null) return;
+
+  await updateDoc(
+
+    doc(
+      db,
+      "users",
+      "user_001",
+      "cars",
+      selectedCarId,
+      "repairs",
+      repairId
+    ),
+
+    {
+      title,
+      price,
+      mileage
+    }
+
+  );
+
+  alert("แก้ไขแล้ว");
+
+};
 // ===== Load Repairs =====
 async function loadRepairs(){
 
@@ -666,32 +732,59 @@ async function loadRepairs(){
     const d = docu.data();
 
     totalCost += d.cost || 0;
+const repairId = docSnap.id;
+ repairList.innerHTML += `
 
-    repairList.innerHTML += `
-      <div class="repair-item">
-        <div class="r-icon">🔧</div>
+<div class="repair-item">
 
-        <div style="flex:1">
-          <div class="r-name">${d.type || '-'}</div>
-          <div class="r-shop">${d.shop || '-'}</div>
-        </div>
+  <div class="repair-info">
 
-        <div class="r-date">
-          ${d.date || '-'}
-          <div class="r-km">${d.km || 0} กม.</div>
-        </div>
+    <div class="repair-name">
+      ${d.title}
+    </div>
 
-        <div class="r-cost">
-          ฿${(d.cost || 0).toLocaleString()}
-        </div>
+    <div class="repair-shop">
+      ${d.mileage} กม.
+    </div>
 
-        <button class="del-btn"
-          onclick="deleteRepair('${docu.id}')">
-          🗑️
-        </button>
-      </div>
-    `;
-  });
+  </div>
+
+  <div style="
+    display:flex;
+    align-items:center;
+    gap:10px;
+  ">
+
+    <div class="repair-cost">
+      ${d.price} บาท
+    </div>
+
+    <button
+      class="alert-btn saved"
+      onclick="editRepair(
+        '${repairId}',
+        '${d.title}',
+        '${d.price}',
+        '${d.mileage}'
+      )">
+
+      แก้ไข
+
+    </button>
+
+    <button
+      class="alert-btn detail"
+      onclick="deleteRepair('${repairId}')">
+
+      ลบ
+
+    </button>
+
+  </div>
+
+</div>
+
+`;
 
   document.getElementById('statCost')
     .textContent = totalCost.toLocaleString();
