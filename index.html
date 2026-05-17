@@ -1,178 +1,177 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Auto Expert - Firebase</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Auto Expert</title>
 
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-<!-- ================= FIREBASE SDK ================= -->
+<style>
+body { margin:0; font-family:IBM Plex Sans Thai; background:#0d1117; color:#fff; }
+.hidden { display:none; }
+
+.sidebar { width:220px; background:#161b22; position:fixed; top:0; bottom:0; left:0; padding:20px; }
+.main { margin-left:220px; padding:20px; }
+
+.card { background:#161b22; padding:15px; border-radius:12px; margin-bottom:12px; }
+
+button { cursor:pointer; }
+
+.repair-item, .alert-item {
+  background:#1c2230;
+  padding:12px;
+  border-radius:10px;
+  margin-bottom:8px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- AUTH -->
+<div id="authScreen">
+  <h2>Login</h2>
+  <input id="authEmail" placeholder="email"/>
+  <input id="authPass" type="password" placeholder="password"/>
+  <button onclick="handleAuth()">เข้าสู่ระบบ</button>
+  <div id="authErr"></div>
+</div>
+
+<!-- SIDEBAR -->
+<div class="sidebar hidden" id="sidebar">
+  <h3>🚗 Auto Expert</h3>
+  <p id="sbEmail"></p>
+  <button onclick="doSignOut()">Logout</button>
+</div>
+
+<!-- MAIN -->
+<div class="main hidden" id="mainApp">
+
+  <div class="card">
+    <h3 id="carModel">Car</h3>
+    <div id="carMileage">0 กม.</div>
+  </div>
+
+  <div class="card">
+    <h3>💰 ค่าใช้จ่าย: <span id="statCost">0</span></h3>
+    <h3>🔧 งานซ่อม: <span id="statCount">0</span></h3>
+    <h3>🔔 Alerts: <span id="statAlerts">0</span></h3>
+  </div>
+
+  <div class="card">
+    <h3>🔧 Repairs</h3>
+    <div id="repairList"></div>
+  </div>
+
+  <div class="card">
+    <h3>🔔 Alerts</h3>
+    <div id="alertList"></div>
+  </div>
+
+</div>
+
+<!-- FIREBASE -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-  getFirestore,
-  collection,
-  addDoc,
-  getDocs,
-  deleteDoc,
-  doc,
-  query,
-  orderBy,
-  serverTimestamp,
-  onSnapshot
+  getFirestore, collection, addDoc, getDocs, query, orderBy, onSnapshot, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
 import {
-  getAuth,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged
+  getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
-  apiKey: "YOUR_KEY",
-  authDomain: "garage-system.firebaseapp.com",
-  projectId: "garage-system",
+  apiKey: "xxx",
+  authDomain: "xxx",
+  projectId: "xxx"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-window._fb = {
+window.fb = {
   db,
   auth,
   collection,
   addDoc,
   getDocs,
-  deleteDoc,
-  doc,
   query,
   orderBy,
-  serverTimestamp,
   onSnapshot,
+  serverTimestamp,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
   onAuthStateChanged
 };
 
-window.dispatchEvent(new Event("firebase-ready"));
+window.dispatchEvent(new Event("fb-ready"));
 </script>
 
-<style>
-/* ====== MINIMAL UI (ใช้ของเดิมคุณได้) ====== */
-body { font-family: IBM Plex Sans Thai; background:#0d1117; color:#fff; margin:0; }
-
-#authScreen { display:flex; align-items:center; justify-content:center; height:100vh; }
-
-.hidden { display:none; }
-
-.main { display:none; padding:20px; }
-.sidebar { display:none; }
-
-.repair-item, .alert-item { padding:10px; border:1px solid #333; margin:8px 0; border-radius:8px; }
-</style>
-</head>
-
-<body>
-
-<!-- ================= AUTH ================= -->
-<div id="authScreen">
-  <div>
-    <input id="authEmail" placeholder="email">
-    <input id="authPass" type="password" placeholder="password">
-
-    <button onclick="handleAuth()">Login / Register</button>
-    <div id="authErr"></div>
-  </div>
-</div>
-
-<!-- ================= APP ================= -->
-<div class="sidebar" id="sidebar"></div>
-
-<div class="main" id="mainApp">
-
-  <h2>🚗 Auto Expert</h2>
-
-  <div>
-    <h3 id="carModel">-</h3>
-    <div id="carMileage">0 กม.</div>
-  </div>
-
-  <hr>
-
-  <h3>🔧 Repairs</h3>
-  <div id="repairList"></div>
-
-  <h3>🔔 Alerts</h3>
-  <div id="alertList"></div>
-
-</div>
-
+<!-- APP -->
 <script>
-
-/* ================= STATE ================= */
-let currentUser = null;
+let user = null;
 let selectedCarId = null;
 let currentMileage = 0;
 
-/* ================= AUTH FLOW ================= */
-window.addEventListener("firebase-ready", () => {
+// ================= AUTH =================
+window.addEventListener("fb-ready", () => {
 
-  const { auth, onAuthStateChanged } = window._fb;
+  const fb = window.fb;
 
-  onAuthStateChanged(auth, async (user) => {
+  fb.onAuthStateChanged(fb.auth, async (u) => {
 
-    if (!user) {
-      document.getElementById("authScreen").style.display = "flex";
-      document.getElementById("mainApp").style.display = "none";
+    if (!u) {
+      document.getElementById("authScreen").style.display = "block";
+      document.getElementById("sidebar").classList.add("hidden");
+      document.getElementById("mainApp").classList.add("hidden");
       return;
     }
 
-    currentUser = user;
+    user = u;
 
     document.getElementById("authScreen").style.display = "none";
-    document.getElementById("mainApp").style.display = "block";
+    document.getElementById("sidebar").classList.remove("hidden");
+    document.getElementById("mainApp").classList.remove("hidden");
+
+    document.getElementById("sbEmail").innerText = user.email;
 
     await loadCars();
-    loadRepairsRealtime();
-    loadAlertsRealtime();
+    loadRepairs();
+    loadAlerts();
 
   });
 
 });
 
-
-/* ================= AUTH ACTION ================= */
+// ================= AUTH ACTION =================
 async function handleAuth() {
-
-  const fb = window._fb;
+  const fb = window.fb;
 
   const email = document.getElementById("authEmail").value;
   const pass = document.getElementById("authPass").value;
 
   try {
-
     await fb.signInWithEmailAndPassword(fb.auth, email, pass);
-
-  } catch {
-
-    await fb.createUserWithEmailAndPassword(fb.auth, email, pass);
-
+  } catch (e) {
+    document.getElementById("authErr").innerText = e.message;
   }
 }
 
+// ================= LOGOUT =================
+async function doSignOut(){
+  await window.fb.signOut(window.fb.auth);
+}
 
-/* ================= LOAD CARS ================= */
-async function loadCars() {
+// ================= LOAD CAR =================
+async function loadCars(){
 
-  const fb = window._fb;
+  const fb = window.fb;
 
   const snap = await fb.getDocs(
-    fb.collection(fb.db, "users", currentUser.uid, "cars")
+    fb.collection(fb.db, "users", user.uid, "cars")
   );
 
   if (snap.empty) return;
@@ -183,91 +182,77 @@ async function loadCars() {
   currentMileage = car.data().mileage || 0;
 
   document.getElementById("carModel").innerText =
-    car.data().model || "Car";
+    car.data().model || "My Car";
 
   document.getElementById("carMileage").innerText =
     currentMileage.toLocaleString() + " กม.";
 }
 
+// ================= REPAIRS =================
+function loadRepairs(){
 
-/* ================= REPAIRS (REALTIME) ================= */
-function loadRepairsRealtime() {
-
-  const fb = window._fb;
-
-  const list = document.getElementById("repairList");
+  const fb = window.fb;
 
   const q = fb.query(
-    fb.collection(fb.db, "users", currentUser.uid, "repairs"),
-    fb.orderBy("createdAt", "desc")
+    fb.collection(fb.db, "users", user.uid, "repairs"),
+    fb.orderBy("createdAt","desc")
   );
 
-  fb.onSnapshot(q, (snap) => {
+  fb.onSnapshot(q,(snap)=>{
 
+    let total = 0;
+
+    const list = document.getElementById("repairList");
     list.innerHTML = "";
 
-    snap.forEach(doc => {
+    snap.forEach(doc=>{
+
+      const d = doc.data();
+      total += Number(d.price || 0);
+
+      list.innerHTML += `
+        <div class="repair-item">
+          🔧 ${d.title} - ${d.price} บาท
+        </div>
+      `;
+    });
+
+    document.getElementById("statCost").innerText = total;
+    document.getElementById("statCount").innerText = snap.size;
+
+  });
+}
+
+// ================= ALERTS =================
+function loadAlerts(){
+
+  const fb = window.fb;
+
+  const q = fb.query(
+    fb.collection(fb.db, "users", user.uid, "alerts"),
+    fb.orderBy("createdAt","desc")
+  );
+
+  fb.onSnapshot(q,(snap)=>{
+
+    const list = document.getElementById("alertList");
+    list.innerHTML = "";
+
+    document.getElementById("statAlerts").innerText = snap.size;
+
+    snap.forEach(doc=>{
 
       const d = doc.data();
 
       list.innerHTML += `
-        <div class="repair-item">
-          🔧 ${d.title} - ${d.price || 0} บาท
-        </div>
-      `;
-    });
-
-  });
-}
-
-
-/* ================= ALERTS (REALTIME) ================= */
-function loadAlertsRealtime() {
-
-  const fb = window._fb;
-
-  const list = document.getElementById("alertList");
-
-  const q = fb.query(
-    fb.collection(fb.db, "users", currentUser.uid, "alerts"),
-    fb.orderBy("createdAt", "desc")
-  );
-
-  fb.onSnapshot(q, (snap) => {
-
-    list.innerHTML = "";
-
-    snap.forEach(doc => {
-
-      const a = doc.data();
-
-      list.innerHTML += `
         <div class="alert-item">
-          🔔 ${a.title} (${a.nextDue || 0} km)
+          🔔 ${d.title} ทุก ${d.everyKm} กม.
         </div>
       `;
     });
 
   });
 }
-
-
-/* ================= SAVE REPAIR ================= */
-async function saveRepair() {
-
-  const fb = window._fb;
-
-  await fb.addDoc(
-    fb.collection(fb.db, "users", currentUser.uid, "repairs"),
-    {
-      title: "Test Repair",
-      price: 100,
-      createdAt: fb.serverTimestamp()
-    }
-  );
-
-}
-
 </script>
 
 </body>
