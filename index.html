@@ -1,209 +1,362 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Auto Expert PRO</title>
-
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auto Expert</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{
-  --bg:#0d1117;--card:#1c2230;--card2:#222940;--green:#22c55e;
-  --text:#f0f6fc;--muted:#8b949e;--border:#30363d;
+:root {
+  --bg:#0d1117; --bg2:#161b22; --card:#1c2230; --card2:#222940;
+  --green:#22c55e; --blue:#3b82f6; --orange:#f97316; --yellow:#eab308;
+  --red:#ef4444; --purple:#a855f7;
+  --t1:#f0f6fc; --t2:#8b949e; --t3:#6e7681; --border:#30363d;
 }
-*{box-sizing:border-box;margin:0;padding:0;font-family:"IBM Plex Sans Thai",sans-serif;}
-body{background:var(--bg);color:var(--text);display:flex;min-height:100vh}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'IBM Plex Sans Thai',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;}
 
-/* LOGIN */
-#auth{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg);z-index:10}
-.box{background:var(--card);padding:30px;border-radius:16px;width:350px;border:1px solid var(--border)}
-input{width:100%;padding:10px;margin:6px 0;background:var(--card2);border:1px solid var(--border);color:#fff;border-radius:8px}
-button{width:100%;padding:10px;background:var(--green);border:none;font-weight:700;border-radius:8px;cursor:pointer}
+/* ── LOADER ── */
+#globalLoader{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:14px;}
+.spin{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-/* SIDEBAR */
-aside{width:220px;background:var(--card);padding:20px;border-right:1px solid var(--border)}
-main{flex:1;padding:20px}
+/* ── AUTH ── */
+#authWrap{display:none;min-height:100vh;align-items:center;justify-content:center;}
+.auth-box{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:36px;width:90%;max-width:420px;}
+.auth-logo{text-align:center;margin-bottom:24px;}
+.auth-logo .ic{font-size:52px;}
+.auth-logo h1{font-size:22px;font-weight:700;margin-top:6px;}
+.auth-logo p{font-size:13px;color:var(--t2);}
+.tabs{display:flex;gap:8px;margin-bottom:20px;}
+.tab{flex:1;padding:9px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--t2);font-size:13px;font-weight:600;cursor:pointer;transition:.2s;font-family:inherit;}
+.tab.on{background:rgba(34,197,94,.15);border-color:var(--green);color:var(--green);}
+.fi{margin-bottom:13px;}
+.fi label{font-size:12px;color:var(--t2);display:block;margin-bottom:5px;}
+.fi input,.fi select{width:100%;background:var(--card);border:1px solid var(--border);color:var(--t1);padding:10px 13px;border-radius:10px;font-size:13px;font-family:inherit;transition:.2s;}
+.fi input:focus,.fi select:focus{outline:none;border-color:var(--green);}
+.auth-err{color:var(--red);font-size:12px;text-align:center;min-height:18px;margin-bottom:6px;}
+.btn-green{width:100%;background:var(--green);color:#000;border:none;padding:12px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s;}
+.btn-green:hover{background:#16a34a;}
+.btn-green:disabled{opacity:.5;cursor:not-allowed;}
 
-/* CARDS */
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.card{background:var(--card);padding:15px;border-radius:12px;border:1px solid var(--border)}
-.big{font-size:22px;font-weight:700}
+/* ── LAYOUT ── */
+#app{display:none;min-height:100vh;}
+.sidebar{width:230px;background:var(--bg2);border-right:1px solid var(--border);position:fixed;top:0;left:0;bottom:0;z-index:100;display:flex;flex-direction:column;padding:0;}
+.logo{display:flex;align-items:center;gap:10px;padding:20px;border-bottom:1px solid var(--border);}
+.logo-ic{width:38px;height:38px;background:linear-gradient(135deg,#22c55e,#16a34a);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-t{font-size:13px;font-weight:700;}
+.logo-s{font-size:10px;color:var(--t2);}
+nav{flex:1;padding:10px 0;overflow-y:auto;}
+.nav-it{display:flex;align-items:center;gap:11px;padding:10px 20px;cursor:pointer;color:var(--t2);font-size:13px;font-weight:500;transition:.2s;border-right:3px solid transparent;}
+.nav-it:hover{background:var(--card);color:var(--t1);}
+.nav-it.on{background:rgba(34,197,94,.1);color:var(--green);border-right-color:var(--green);}
+.sb-bot{padding:14px;border-top:1px solid var(--border);}
+.user-chip{background:var(--card);border-radius:12px;padding:11px;margin-bottom:8px;}
+.user-em{font-size:11px;color:var(--t2);word-break:break-all;margin-top:2px;}
+.btn-out{width:100%;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:var(--red);padding:8px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:.2s;}
+.btn-out:hover{background:rgba(239,68,68,.2);}
+.main{margin-left:230px;display:flex;flex-direction:column;min-height:100vh;}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.topbar h2{font-size:18px;font-weight:700;}
+.topbar p{font-size:12px;color:var(--t2);}
+.content{padding:24px 28px;flex:1;}
 
-/* LIST */
-.item{padding:10px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between}
-small{color:var(--muted)}
+/* ── PAGES ── */
+.page{display:none;}
+.page.on{display:block;}
+
+/* ── CARS ── */
+.cars-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-top:4px;}
+.car-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;cursor:pointer;transition:.2s;position:relative;}
+.car-card:hover{border-color:rgba(34,197,94,.4);transform:translateY(-2px);}
+.car-card.selected{border-color:var(--green);background:rgba(34,197,94,.06);}
+.car-card .car-ic{font-size:42px;margin-bottom:10px;}
+.car-card h3{font-size:16px;font-weight:700;}
+.car-card .plate{display:inline-block;background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3);color:var(--blue);padding:3px 10px;border-radius:6px;font-size:12px;font-weight:600;margin:6px 0;}
+.car-card .meta{font-size:12px;color:var(--t2);margin-top:2px;}
+.car-actions{position:absolute;top:12px;right:12px;display:flex;gap:6px;}
+.ic-btn{background:none;border:none;font-size:16px;cursor:pointer;padding:4px;border-radius:6px;transition:.2s;}
+.ic-btn:hover{background:var(--card2);}
+.add-car-card{background:transparent;border:2px dashed var(--border);border-radius:16px;padding:20px;cursor:pointer;transition:.2s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:160px;color:var(--t2);font-size:13px;}
+.add-car-card:hover{border-color:var(--green);color:var(--green);}
+.add-car-card .plus{font-size:32px;}
+
+/* ── STATS ── */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;display:flex;align-items:center;gap:12px;transition:.2s;}
+.stat-card:hover{border-color:rgba(34,197,94,.3);transform:translateY(-2px);}
+.sc-ic{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.sc-lbl{font-size:11px;color:var(--t2);margin-bottom:3px;}
+.sc-val{font-size:22px;font-weight:700;line-height:1;}
+.sc-unit{font-size:11px;color:var(--t2);}
+
+/* ── REPAIR LIST ── */
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.sec-title{font-size:15px;font-weight:700;}
+.add-btn{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:var(--green);padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;transition:.2s;}
+.add-btn:hover{background:rgba(34,197,94,.2);}
+.repair-list{display:flex;flex-direction:column;gap:9px;}
+.repair-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px 16px;display:flex;align-items:center;gap:12px;transition:.2s;}
+.repair-item:hover{background:var(--card2);}
+.r-ic{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;background:rgba(34,197,94,.12);}
+.r-main{flex:1;}
+.r-name{font-size:13px;font-weight:600;}
+.r-shop{font-size:11px;color:var(--t2);}
+.r-note{font-size:11px;color:var(--t3);margin-top:1px;}
+.r-meta{text-align:center;min-width:80px;}
+.r-date{font-size:11px;color:var(--t2);}
+.r-km{font-size:11px;color:var(--t3);}
+.r-cost{font-size:16px;font-weight:700;white-space:nowrap;text-align:right;}
+.r-cost-u{font-size:10px;color:var(--t2);font-weight:400;}
+.r-btns{display:flex;gap:4px;flex-shrink:0;}
+.del-btn{background:none;border:none;font-size:15px;cursor:pointer;padding:5px;border-radius:7px;color:var(--t3);transition:.2s;}
+.del-btn:hover{color:var(--red);background:rgba(239,68,68,.1);}
+.edit-btn2{background:none;border:none;font-size:15px;cursor:pointer;padding:5px;border-radius:7px;color:var(--t3);transition:.2s;}
+.edit-btn2:hover{color:var(--blue);background:rgba(59,130,246,.1);}
+
+/* ── EMPTY ── */
+.empty{text-align:center;padding:40px 20px;color:var(--t2);font-size:13px;}
+.empty .ei{font-size:36px;margin-bottom:8px;}
+
+/* ── MODAL ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:300;align-items:center;justify-content:center;}
+.overlay.open{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:26px;width:92%;max-width:500px;animation:mIn .22s ease;max-height:90vh;overflow-y:auto;}
+@keyframes mIn{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
+.modal-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
+.modal-title{font-size:16px;font-weight:700;}
+.modal-x{background:none;border:none;color:var(--t2);font-size:18px;cursor:pointer;padding:2px 6px;border-radius:6px;}
+.modal-x:hover{color:var(--t1);background:var(--card);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.modal-btn{width:100%;background:var(--green);color:#000;border:none;padding:12px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;margin-top:8px;transition:.2s;font-family:inherit;}
+.modal-btn:hover{background:#16a34a;}
+.modal-btn:disabled{opacity:.5;cursor:not-allowed;}
+.btn-del-modal{width:100%;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:var(--red);padding:10px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;margin-top:6px;font-family:inherit;transition:.2s;}
+.btn-del-modal:hover{background:rgba(239,68,68,.2);}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:26px;right:26px;background:var(--card);border:1px solid var(--green);color:var(--t1);padding:11px 18px;border-radius:12px;font-size:13px;font-weight:500;z-index:999;display:none;align-items:center;gap:8px;box-shadow:0 4px 20px rgba(0,0,0,.4);}
+.toast.show{display:flex;}
+.toast.err{border-color:var(--red);}
+
+/* ── SELECT CAR BAR ── */
+.car-select-bar{background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);border-radius:12px;padding:12px 16px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.car-select-bar span{font-size:13px;color:var(--green);font-weight:600;}
+.car-picker{display:flex;gap:8px;flex-wrap:wrap;}
+.car-pick-btn{background:var(--card);border:1px solid var(--border);color:var(--t2);padding:5px 12px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;transition:.2s;}
+.car-pick-btn.on{background:rgba(34,197,94,.15);border-color:var(--green);color:var(--green);}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){.stats-row{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:700px){
+  .sidebar{display:none;}
+  .main{margin-left:0;}
+  .content{padding:16px 14px 80px;}
+  .topbar{padding:12px 14px;}
+  .stats-row{grid-template-columns:1fr 1fr;gap:10px;}
+  .sc-val{font-size:18px;}
+}
 </style>
 </head>
-
 <body>
 
-<!-- LOGIN -->
-<div id="auth">
-  <div class="box">
-    <h2>Auto Expert PRO</h2>
-    <input id="email" placeholder="email">
-    <input id="pass" type="password" placeholder="password">
-    <button onclick="login()">Login / Register</button>
+<!-- GLOBAL LOADER -->
+<div id="globalLoader">
+  <div class="spin"></div>
+  <span style="font-size:13px;color:var(--t2);">กำลังเชื่อมต่อ Firebase...</span>
+</div>
+
+<!-- AUTH -->
+<div id="authWrap" style="display:none">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <div class="ic">🚗</div>
+      <h1>Auto Expert</h1>
+      <p>ระบบดูแลรถยนต์ของคุณ</p>
+    </div>
+    <div class="tabs">
+      <button class="tab on" id="tabLogin" onclick="switchTab('login')">เข้าสู่ระบบ</button>
+      <button class="tab" id="tabReg" onclick="switchTab('reg')">สมัครสมาชิก</button>
+    </div>
+    <div class="fi"><label>อีเมล</label><input type="email" id="aEmail" placeholder="you@email.com"></div>
+    <div class="fi"><label>รหัสผ่าน</label><input type="password" id="aPass" placeholder="อย่างน้อย 6 ตัวอักษร"></div>
+    <div class="auth-err" id="aErr"></div>
+    <button class="btn-green" id="aSubmit" onclick="doAuth()">เข้าสู่ระบบ</button>
   </div>
 </div>
 
 <!-- APP -->
-<aside id="app" style="display:none">
-  <h3>🚗 Auto Expert</h3>
-  <br>
-  <button onclick="logout()">Logout</button>
-</aside>
-
-<main id="main" style="display:none">
-
-  <!-- DASHBOARD -->
-  <div class="grid">
-    <div class="card">
-      <div>จำนวนรายการ</div>
-      <div class="big" id="count">0</div>
+<div id="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-ic">🚗</div>
+      <div><div class="logo-t">Auto Expert</div><div class="logo-s">Firebase ✅</div></div>
     </div>
-    <div class="card">
-      <div>ค่าใช้จ่ายรวม</div>
-      <div class="big" id="total">0</div>
+    <nav>
+      <div class="nav-it on" onclick="showPage('pgHome',this)"><span>🏠</span> หน้าหลัก</div>
+      <div class="nav-it" onclick="showPage('pgCars',this)"><span>🚘</span> รถของฉัน</div>
+      <div class="nav-it" onclick="showPage('pgRepairs',this)"><span>🔧</span> ประวัติการซ่อม</div>
+      <div class="nav-it" onclick="showPage('pgExpense',this)"><span>💸</span> ค่าใช้จ่าย</div>
+    </nav>
+    <div class="sb-bot">
+      <div class="user-chip">
+        <div style="font-size:12px;font-weight:600" id="sbName">-</div>
+        <div class="user-em" id="sbEmail">-</div>
+      </div>
+      <button class="btn-out" onclick="doSignOut()">🚪 ออกจากระบบ</button>
     </div>
-    <div class="card">
-      <div>แจ้งเตือน</div>
-      <div class="big" id="alert">0</div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <header class="topbar">
+      <div>
+        <h2 id="pgTitle">หน้าหลัก</h2>
+        <p id="pgSub">ยินดีต้อนรับ</p>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <!-- HOME PAGE -->
+      <div class="page on" id="pgHome">
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="sc-ic" style="background:rgba(34,197,94,.15)">🚘</div>
+            <div><div class="sc-lbl">รถทั้งหมด</div><div class="sc-val" style="color:var(--green)" id="stCars">0</div><div class="sc-unit">คัน</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="sc-ic" style="background:rgba(59,130,246,.15)">🔧</div>
+            <div><div class="sc-lbl">รายการซ่อม</div><div class="sc-val" style="color:var(--blue)" id="stRepairs">0</div><div class="sc-unit">รายการ</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="sc-ic" style="background:rgba(34,197,94,.15)">💰</div>
+            <div><div class="sc-lbl">ค่าใช้จ่ายปีนี้</div><div class="sc-val" style="color:var(--green)" id="stCost">0</div><div class="sc-unit">บาท</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="sc-ic" style="background:rgba(249,115,22,.15)">📅</div>
+            <div><div class="sc-lbl">ซ่อมล่าสุด</div><div class="sc-val" style="color:var(--orange);font-size:15px" id="stLast">-</div><div class="sc-unit">วันที่</div></div>
+          </div>
+        </div>
+        <div class="sec-hdr"><div class="sec-title">🔧 การซ่อมล่าสุด 5 รายการ</div></div>
+        <div class="repair-list" id="homeRepairList"><div class="empty"><div class="ei">🔧</div>ยังไม่มีข้อมูล</div></div>
+      </div>
+
+      <!-- CARS PAGE -->
+      <div class="page" id="pgCars">
+        <div class="cars-grid" id="carsGrid">
+          <div class="empty" style="grid-column:1/-1"><div class="ei">⏳</div>กำลังโหลด...</div>
+        </div>
+      </div>
+
+      <!-- REPAIRS PAGE -->
+      <div class="page" id="pgRepairs">
+        <div class="car-select-bar">
+          <span>🚘 เลือกรถ:</span>
+          <div class="car-picker" id="repairCarPicker">-</div>
+        </div>
+        <div class="sec-hdr">
+          <div class="sec-title">📋 ประวัติการซ่อม</div>
+          <button class="add-btn" onclick="openAddRepair()">+ เพิ่มรายการ</button>
+        </div>
+        <div class="repair-list" id="repairList"><div class="empty"><div class="ei">⏳</div>กำลังโหลด...</div></div>
+      </div>
+
+      <!-- EXPENSE PAGE -->
+      <div class="page" id="pgExpense">
+        <div class="car-select-bar">
+          <span>🚘 เลือกรถ:</span>
+          <div class="car-picker" id="expCarPicker">-</div>
+        </div>
+        <div class="sec-hdr"><div class="sec-title">💸 สรุปค่าใช้จ่าย</div></div>
+        <div id="expenseContent"><div class="empty"><div class="ei">💸</div>เลือกรถเพื่อดูค่าใช้จ่าย</div></div>
+      </div>
+
     </div>
   </div>
+</div>
 
-  <br>
-
-  <!-- ADD -->
-  <div class="card">
-    <input id="title" placeholder="รายการซ่อม">
-    <input id="price" placeholder="ราคา">
-    <input id="km" placeholder="เลขไมล์">
-    <button onclick="addRepair()">+ เพิ่ม</button>
+<!-- MODAL: เพิ่ม/แก้ไข รถ -->
+<div class="overlay" id="mCar">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title" id="mCarTitle">🚘 เพิ่มรถ</div>
+      <button class="modal-x" onclick="closeModal('mCar')">✕</button>
+    </div>
+    <input type="hidden" id="carId">
+    <div class="form-row">
+      <div class="fi"><label>ยี่ห้อ</label><input class="form-input" id="cBrand" placeholder="Toyota"></div>
+      <div class="fi"><label>รุ่น</label><input class="form-input" id="cModel" placeholder="Altis"></div>
+    </div>
+    <div class="form-row">
+      <div class="fi"><label>ปีรถ</label><input class="form-input" id="cYear" placeholder="2019"></div>
+      <div class="fi"><label>สี</label><input class="form-input" id="cColor" placeholder="ขาว"></div>
+    </div>
+    <div class="form-row">
+      <div class="fi"><label>ทะเบียน</label><input class="form-input" id="cPlate" placeholder="กจ 1234"></div>
+      <div class="fi"><label>จังหวัด</label><input class="form-input" id="cProvince" placeholder="กรุงเทพฯ"></div>
+    </div>
+    <div class="form-row">
+      <div class="fi"><label>เลขไมล์ (กม.)</label><input class="form-input" id="cMile" type="number" placeholder="78560"></div>
+      <div class="fi"><label>ประเภทน้ำมัน</label>
+        <select class="form-input" id="cFuel">
+          <option value="เบนซิน">เบนซิน</option>
+          <option value="ดีเซล">ดีเซล</option>
+          <option value="E20">E20</option>
+          <option value="E85">E85</option>
+          <option value="NGV">NGV</option>
+          <option value="ไฟฟ้า">ไฟฟ้า (EV)</option>
+          <option value="Hybrid">Hybrid</option>
+        </select>
+      </div>
+    </div>
+    <button class="modal-btn" id="saveCarBtn" onclick="saveCar()">💾 บันทึก</button>
+    <button class="btn-del-modal" id="delCarBtn" style="display:none" onclick="deleteCar()">🗑️ ลบรถคันนี้</button>
   </div>
+</div>
 
-  <br>
-
-  <!-- LIST -->
-  <div class="card">
-    <h3>รายการซ่อม</h3>
-    <div id="list"></div>
+<!-- MODAL: เพิ่ม/แก้ไข การซ่อม -->
+<div class="overlay" id="mRepair">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title" id="mRepairTitle">🔧 เพิ่มการซ่อม</div>
+      <button class="modal-x" onclick="closeModal('mRepair')">✕</button>
+    </div>
+    <input type="hidden" id="repairId">
+    <div class="fi"><label>ประเภทการซ่อม *</label><input class="form-input" id="rType" placeholder="เช่น เปลี่ยนน้ำมันเครื่อง"></div>
+    <div class="form-row">
+      <div class="fi"><label>วันที่ *</label><input class="form-input" id="rDate" type="date"></div>
+      <div class="fi"><label>เลขไมล์ (กม.)</label><input class="form-input" id="rKm" type="number" placeholder="78560"></div>
+    </div>
+    <div class="form-row">
+      <div class="fi"><label>ค่าใช้จ่าย (บาท) *</label><input class="form-input" id="rCost" type="number" placeholder="1250"></div>
+      <div class="fi"><label>อู่/ศูนย์บริการ</label><input class="form-input" id="rShop" placeholder="Auto Expert Garage"></div>
+    </div>
+    <div class="fi"><label>หมายเหตุ</label><input class="form-input" id="rNote" placeholder="รายละเอียดเพิ่มเติม (ไม่บังคับ)"></div>
+    <button class="modal-btn" id="saveRepairBtn" onclick="saveRepair()">💾 บันทึก</button>
+    <button class="btn-del-modal" id="delRepairBtn" style="display:none" onclick="deleteRepair()">🗑️ ลบรายการนี้</button>
   </div>
+</div>
 
-</main>
+<!-- TOAST -->
+<div class="toast" id="toast"><span id="toastMsg"></span></div>
 
+<!-- FIREBASE + APP LOGIC -->
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {
-  getFirestore, collection, addDoc, deleteDoc, doc,
-  query, orderBy, onSnapshot, serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { initializeApp }              from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged,
+         signInWithEmailAndPassword,
+         createUserWithEmailAndPassword,
+         signOut }                     from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection,
+         doc, addDoc, setDoc, getDoc,
+         getDocs, deleteDoc,
+         query, orderBy, where,
+         serverTimestamp }             from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-import {
-  getAuth,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
+// ── CONFIG ──
 const firebaseConfig = {
   apiKey: "AIzaSyDAfm7eDJPFiWrUK_U0aqS7yl2Wt_PpjmA",
   authDomain: "garage-system-41587.firebaseapp.com",
-  projectId: "garage-system-41587",
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
-
-let user = null;
-
-/* AUTH */
-window.login = async () => {
-  const email = emailEl.value;
-  const pass = passEl.value;
-
-  try {
-    user = (await signInWithEmailAndPassword(auth,email,pass)).user;
-  } catch {
-    user = (await createUserWithEmailAndPassword(auth,email,pass)).user;
-  }
-};
-
-/* LOGOUT */
-window.logout = () => signOut(auth);
-
-/* REPAIR ADD */
-window.addRepair = async () => {
-  await addDoc(collection(db,"users",user.uid,"repairs"),{
-    title:title.value,
-    price:Number(price.value),
-    km:Number(km.value),
-    createdAt:serverTimestamp()
-  });
-  title.value="";price.value="";km.value="";
-};
-
-/* DELETE */
-window.del = async (id)=>{
-  await deleteDoc(doc(db,"users",user.uid,"repairs",id));
-};
-
-/* REALTIME */
-function load(){
-  const q = query(collection(db,"users",user.uid,"repairs"),orderBy("createdAt","desc"));
-
-  onSnapshot(q,(snap)=>{
-    list.innerHTML="";
-    let total=0;
-
-    snap.forEach(d=>{
-      const x=d.data();
-      total+=Number(x.price||0);
-
-      list.innerHTML+=`
-        <div class="item">
-          <div>
-            <b>${x.title}</b><br>
-            <small>${x.km} km</small>
-          </div>
-          <div>
-            ฿${x.price}
-            <button onclick="del('${d.id}')">x</button>
-          </div>
-        </div>
-      `;
-    });
-
-    count.innerText=snap.size;
-    totalEl.innerText=total;
-
-    // ALERT LOGIC
-    alert.innerText = snap.size > 5 ? "⚠️ Service due" : "OK";
-  });
-}
-
-/* AUTH STATE */
-onAuthStateChanged(auth,(u)=>{
-  if(u){
-    user=u;
-    auth.style.display="none";
-    app.style.display="block";
-    main.style.display="block";
-    load();
-  }
-});
-
-/* ELEMENTS */
-const emailEl=document.getElementById("email");
-const passEl=document.getElementById("pass");
-const list=document.getElementById("list");
-const count=document.getElementById("count");
-const totalEl=document.getElementById("total");
-const alert=document.getElementById("alert");
-</script>
-
-</body>
-</html>
+  pr
