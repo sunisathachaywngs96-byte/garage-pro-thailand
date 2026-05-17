@@ -776,17 +776,17 @@ window.addEventListener("firebase-ready", () => {
       document.getElementById("sbName").innerText = user.email.split("@")[0];
       document.getElementById("sbAvatar").innerText = user.email[0].toUpperCase();
 
-      // 🔥 สำคัญ: ต้อง await ได้
-      await loadCars();         
+      // 🔥 ต้องเรียกจริง ไม่ใช่ประกาศ
+      await loadCars();
+
       loadRepairsRealtime();
-      loadAlerts();              
+      loadAlerts();
 
     }
 
   });
 
 });
-
 // ===== Logout =====
 async function doSignOut(){
   const fb = window._fb;
