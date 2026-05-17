@@ -1312,25 +1312,29 @@ window.addEventListener("firebase-ready", () => {
 
     if (user) {
 
-      document.getElementById("authScreen").style.display = "none";
-      document.getElementById("sidebar").style.display = "flex";
-      document.getElementById("mainApp").style.display = "block";
+      currentUser = user;
 
-      document.getElementById("sbEmail").innerText = user.email;
+      document.getElementById("authScreen")
+        .style.display = "none";
 
-      document.getElementById("sbName").innerText =
+      document.getElementById("sidebar")
+        .style.display = "flex";
+
+      document.getElementById("mainApp")
+        .style.display = "block";
+
+      document.getElementById("sbEmail")
+        .innerText = user.email;
+
+      document.getElementById("sbName")
+        .innerText =
         user.email.split("@")[0];
 
-      document.getElementById("sbAvatar").innerText =
+      document.getElementById("sbAvatar")
+        .innerText =
         user.email[0].toUpperCase();
 
-      loadRepairs();
-
-    } else {
-
-      document.getElementById("authScreen").style.display = "flex";
-      document.getElementById("sidebar").style.display = "none";
-      document.getElementById("mainApp").style.display = "none";
+      loadRepairsRealtime();
 
     }
 
