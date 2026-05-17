@@ -657,36 +657,34 @@ let currentUser = null;
 let isLogin = true;
 
 // ===== Firebase Ready =====
-window.addEventListener('firebase-ready', () => {
-  const fb = window._fb;
+window.addEventListener("firebase-ready", () => {
 
-  fb.onAuthStateChanged(fb.auth, async (user) => {
+  const { auth, onAuthStateChanged } = window._fb;
+
+  onAuthStateChanged(auth, (user) => {
+
     if (user) {
+
       currentUser = user;
 
-      document.getElementById('authScreen').style.display = 'none';
-      document.getElementById('sidebar').style.display = 'flex';
-      document.getElementById('mainApp').style.display = 'flex';
+      document.getElementById("authScreen").style.display = "none";
+      document.getElementById("sidebar").style.display = "flex";
+      document.getElementById("mainApp").style.display = "block";
 
-      document.getElementById('sbName').textContent =
-        user.email.split('@')[0];
+      document.getElementById("sbEmail").innerText = user.email;
 
-      document.getElementById('sbEmail').textContent =
-        user.email;
+      document.getElementById("sbName").innerText =
+        user.email.split("@")[0];
 
-      document.getElementById('sbAvatar').textContent =
+      document.getElementById("sbAvatar").innerText =
         user.email[0].toUpperCase();
 
-      await loadRepairs();
+      loadRepairsRealtime();
 
-    } else {
-      currentUser = null;
-
-      document.getElementById('authScreen').style.display = 'flex';
-      document.getElementById('sidebar').style.display = 'none';
-      document.getElementById('mainApp').style.display = 'none';
     }
+
   });
+
 });
 
 // ===== Switch Login/Register =====
