@@ -727,64 +727,65 @@ async function loadRepairs(){
       '<div class="loading">ยังไม่มีข้อมูล</div>';
   }
 
-  snap.forEach((docu)=>{
+  snapshot.forEach((docSnap) => {
 
-    const d = docu.data();
+  const d = docSnap.data();
+  const repairId = docSnap.id;
 
-    totalCost += d.cost || 0;
-const repairId = docSnap.id;
- repairList.innerHTML += `
+  repairList.innerHTML += `
 
-<div class="repair-item">
+  <div class="repair-item">
 
-  <div class="repair-info">
+    <div class="repair-info">
 
-    <div class="repair-name">
-      ${d.title}
+      <div class="repair-name">
+        ${d.title}
+      </div>
+
+      <div class="repair-shop">
+        ${d.mileage} กม.
+      </div>
+
     </div>
 
-    <div class="repair-shop">
-      ${d.mileage} กม.
+    <div style="
+      display:flex;
+      align-items:center;
+      gap:10px;
+    ">
+
+      <div class="repair-cost">
+        ${d.price} บาท
+      </div>
+
+      <button
+        class="alert-btn saved"
+        onclick="editRepair(
+          '${repairId}',
+          '${d.title}',
+          '${d.price}',
+          '${d.mileage}'
+        )">
+
+        แก้ไข
+
+      </button>
+
+      <button
+        class="alert-btn detail"
+        onclick="deleteRepair('${repairId}')">
+
+        ลบ
+
+      </button>
+
     </div>
 
   </div>
 
-  <div style="
-    display:flex;
-    align-items:center;
-    gap:10px;
-  ">
+  `;
 
-    <div class="repair-cost">
-      ${d.price} บาท
-    </div>
-
-    <button
-      class="alert-btn saved"
-      onclick="editRepair(
-        '${repairId}',
-        '${d.title}',
-        '${d.price}',
-        '${d.mileage}'
-      )">
-
-      แก้ไข
-
-    </button>
-
-    <button
-      class="alert-btn detail"
-      onclick="deleteRepair('${repairId}')">
-
-      ลบ
-
-    </button>
-
-  </div>
-
-</div>
-
-`;
+});
 
   document.getElementById('statCost')
     .textContent = totalCost.toLocaleString();
