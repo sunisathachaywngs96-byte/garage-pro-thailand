@@ -406,22 +406,95 @@ function loadRepairsRealtime(){
       repairList.innerHTML += `
 
         <div class="repair-item">
+<script>
+
+// ===== REALTIME REPAIRS =====
+
+function loadRepairsRealtime(){
+
+  const fb = window._fb;
+
+  if(!currentUser) return;
+
+  const repairList =
+    document.getElementById("repairList");
+
+  repairList.innerHTML =
+    '<div class="loading">⏳ กำลังโหลด...</div>';
+
+  const q = fb.query(
+
+    fb.collection(
+      fb.db,
+      "users",
+      currentUser.uid,
+      "repairs"
+    ),
+
+    fb.orderBy("createdAt", "desc")
+
+  );
+
+  fb.onSnapshot(q, (snap)=>{
+
+    repairList.innerHTML = '';
+
+    let totalCost = 0;
+
+    document.getElementById("statCount")
+      .textContent = snap.size;
+
+    if(snap.empty){
+
+      repairList.innerHTML = `
+        <div class="loading">
+          ยังไม่มีข้อมูล
+        </div>
+      `;
+
+      return;
+    }
+
+    snap.forEach((docSnap)=>{
+
+      const d = docSnap.data();
+
+      totalCost += Number(d.price || 0);
+
+      repairList.innerHTML += `
+
+        <div class="repair-item">
+
+          <div class="r-icon">
+            🔧
+          </div>
 
           <div style="flex:1">
 
             <div class="r-name">
-              🔧 ${d.title || '-'}
+              ${d.title || '-'}
             </div>
 
             <div class="r-shop">
+              ${d.shop || '-'}
+            </div>
+
+          </div>
+
+          <div class="r-date">
+
+            ${d.date || '-'}
+
+            <div class="r-km">
               ${Number(d.mileage || 0).toLocaleString()} กม.
             </div>
 
           </div>
 
           <div class="r-cost">
-            ${Number(d.price || 0).toLocaleString()}
-            <div class="r-cost-u">บาท</div>
+
+            ฿${Number(d.price || 0).toLocaleString()}
+
           </div>
 
         </div>
@@ -430,7 +503,7 @@ function loadRepairsRealtime(){
 
     });
 
-    document.getElementById('statCost')
+    document.getElementById("statCost")
       .textContent =
       totalCost.toLocaleString();
 
@@ -438,7 +511,8 @@ function loadRepairsRealtime(){
 
 }
 
-  </script>
+</script>
+  
 <body>
 <div id="authScreen">
   <div class="auth-box">
@@ -1139,105 +1213,104 @@ function showToast(text) {
 
 }
 
-// ===== save repair =====
-async function saveRepair() {
+//save repairs
+  <script>
 
-  const {
-    db,
-    auth,
-    collection,
-    addDoc,
-    serverTimestamp
-  } = window._fb;
+async function saveRepair(){
 
-  const user = auth.currentUser;
+  const fb = window._fb;
 
-  if (!user) {
+  if(!currentUser){
+
     alert("กรุณาเข้าสู่ระบบ");
     return;
+
   }
 
-  const repairData = {
-    type: document.getElementById("rType").value,
-    date: document.getElementById("rDate").value,
-    km: Number(document.getElementById("rKm").value),
-    cost: Number(document.getElementById("rCost").value),
-    shop: document.getElementById("rShop").value,
-    note: document.getElementById("rNote").value,
-    createdAt: serverTimestamp()
-  };
+  // ===== get values =====
 
-  await addDoc(
-    collection(db, "users", user.uid, "repairs"),
-    repairData
-  );
+  const type =
+    document.getElementById("rType").value;
 
-  showToast("✅ บันทึกสำเร็จ");
+  const date =
+    document.getElementById("rDate").value;
 
-  closeModal("addRepairModal");
+  const km =
+    document.getElementById("rKm").value;
 
-  loadRepairs();
+  const cost =
+    document.getElementById("rCost").value;
+
+  const shop =
+    document.getElementById("rShop").value;
+
+  const note =
+    document.getElementById("rNote").value;
+
+  // ===== validation =====
+
+  if(!type || !date || !km || !cost){
+
+    alert("กรอกข้อมูลให้ครบ");
+    return;
+
+  }
+
+  try {
+
+    await fb.addDoc(
+
+      fb.collection(
+        fb.db,
+        "users",
+        currentUser.uid,
+        "repairs"
+      ),
+
+      {
+
+        title: type,
+        date: date,
+        mileage: Number(km),
+        price: Number(cost),
+        shop: shop,
+        note: note,
+
+        createdAt:
+          fb.serverTimestamp()
+
+      }
+
+    );
+
+    // ===== reset form =====
+
+    document.getElementById("rType").value = "";
+    document.getElementById("rDate").value = "";
+    document.getElementById("rKm").value = "";
+    document.getElementById("rCost").value = "";
+    document.getElementById("rShop").value = "";
+    document.getElementById("rNote").value = "";
+
+    // ===== close modal =====
+
+    closeModal("addRepairModal");
+
+    // ===== success =====
+
+    showToast("✅ บันทึกสำเร็จ");
+
+  } catch(err){
+
+    console.error(err);
+
+    alert(err.message);
+
+  }
+
 }
 
-// ===== โหลดข้อมูล repairs =====
-async function loadRepairs() {
 
-  const {
-    db,
-    auth,
-    collection,
-    getDocs
-  } = window._fb;
-
-  const user = auth.currentUser;
-
-  if (!user) return;
-
-  const snapshot = await getDocs(
-    collection(db, "users", user.uid, "repairs")
-  );
-
-  const repairList = document.getElementById("repairList");
-
-  repairList.innerHTML = "";
-
-  let totalCost = 0;
-
-  snapshot.forEach((doc) => {
-
-    const data = doc.data();
-
-    totalCost += data.cost || 0;
-
-    repairList.innerHTML += `
-      <div class="repair-item">
-        <div class="r-icon">🔧</div>
-
-        <div style="flex:1">
-          <div class="r-name">${data.type}</div>
-          <div class="r-shop">${data.shop || "-"}</div>
-        </div>
-
-        <div class="r-date">
-          ${data.date || "-"}
-          <div class="r-km">${data.km || 0} กม.</div>
-        </div>
-
-        <div class="r-cost">
-          ฿${data.cost || 0}
-        </div>
-      </div>
-    `;
-
-  });
-
-  document.getElementById("statCount").innerText =
-    snapshot.size;
-
-  document.getElementById("statCost").innerText =
-    totalCost.toLocaleString();
-
-}
   </script>
   <script>
 
