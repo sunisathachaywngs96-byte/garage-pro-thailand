@@ -8,7 +8,19 @@
 <!-- Firebase SDK -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy, serverTimestamp }
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  getDocs,
+  deleteDoc,
+  doc,
+  query,
+  orderBy,
+  serverTimestamp,
+  onSnapshot
+}
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -28,7 +40,7 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 
 // ===== expose to window =====
-window._fb = { db, auth, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy, serverTimestamp,
+window._fb = { db, auth, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy, serverTimestamp,onSnapshot, 
   signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged };
 window.dispatchEvent(new Event('firebase-ready'));
 </script>
@@ -336,7 +348,92 @@ body {
 </style>
 </head>
 <body>
+function loadRepairsRealtime(){
 
+  const fb = window._fb;
+
+  if(!currentUser) return;
+
+  const repairList =
+    document.getElementById('repairList');
+
+  repairList.innerHTML =
+    '⏳ กำลังโหลด...';
+
+  const q = fb.query(
+
+    fb.collection(
+      fb.db,
+      "users",
+      currentUser.uid,
+      "repairs"
+    ),
+
+    fb.orderBy("createdAt", "desc")
+
+  );
+
+  fb.onSnapshot(q, (snap)=>{
+
+    repairList.innerHTML = '';
+
+    let totalCost = 0;
+
+    document.getElementById('statCount')
+      .textContent = snap.size;
+
+    if(snap.empty){
+
+      repairList.innerHTML = `
+        <div class="loading">
+          ยังไม่มีข้อมูล
+        </div>
+      `;
+
+      return;
+    }
+
+    snap.forEach((docSnap)=>{
+
+      const d = docSnap.data();
+
+      totalCost += Number(d.price || 0);
+
+      repairList.innerHTML += `
+
+      <div class="repair-item">
+
+        <div style="flex:1">
+
+          <div class="r-name">
+            🔧 ${d.title || '-'}
+          </div>
+
+          <div class="r-shop">
+            ${Number(d.mileage || 0).toLocaleString()}
+            กม.
+          </div>
+
+        </div>
+
+        <div class="r-cost">
+          ${Number(d.price || 0).toLocaleString()}
+          <div class="r-cost-u">บาท</div>
+        </div>
+
+      </div>
+
+      `;
+
+    });
+
+    document.getElementById('statCost')
+      .textContent =
+      totalCost.toLocaleString();
+
+  });
+
+}
 <!-- AUTH SCREEN -->
 <div id="authScreen">
   <div class="auth-box">
