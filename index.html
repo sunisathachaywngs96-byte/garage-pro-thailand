@@ -1389,28 +1389,104 @@ async function saveRepair(){
     document.getElementById("rKm").value = "";
     document.getElementById("rCost").value = "";
     document.getElementById("rShop").value = "";
-    document.getElementById("rNote").value = "";
+<script>
 
-    // ===== close modal =====
+// ===== SAVE REPAIR =====
+
+async function saveRepair(){
+
+  const fb = window._fb;
+
+  if(!currentUser){
+
+    showToast("กรุณาเข้าสู่ระบบ");
+    return;
+
+  }
+
+  const title =
+    document.getElementById("rType").value;
+
+  const date =
+    document.getElementById("rDate").value;
+
+  const mileage =
+    document.getElementById("rKm").value;
+
+  const price =
+    document.getElementById("rCost").value;
+
+  const shop =
+    document.getElementById("rShop").value;
+
+  const note =
+    document.getElementById("rNote").value;
+
+  if(!title){
+
+    showToast("กรอกประเภทการซ่อม");
+    return;
+
+  }
+
+  try{
+
+    const btn =
+      document.getElementById("saveRepairBtn");
+
+    btn.disabled = true;
+    btn.innerText = "⏳ กำลังบันทึก...";
+
+    await fb.addDoc(
+
+      fb.collection(
+        fb.db,
+        "users",
+        currentUser.uid,
+        "repairs"
+      ),
+
+      {
+        title,
+        date,
+        mileage: Number(mileage || 0),
+        price: Number(price || 0),
+        shop,
+        note,
+        createdAt: fb.serverTimestamp()
+      }
+
+    );
 
     closeModal("addRepairModal");
 
-    // ===== success =====
+    document.getElementById("rType").value = "";
+    document.getElementById("rDate").value = "";
+    document.getElementById("rKm").value = "";
+    document.getElementById("rCost").value = "";
+    document.getElementById("rShop").value = "";
+    document.getElementById("rNote").value = "";
 
     showToast("✅ บันทึกสำเร็จ");
 
-  } catch(err){
+  }catch(err){
 
     console.error(err);
 
-    alert(err.message);
+    showToast("❌ บันทึกล้มเหลว");
+
+  }finally{
+
+    const btn =
+      document.getElementById("saveRepairBtn");
+
+    btn.disabled = false;
+    btn.innerText = "💾 บันทึกลง Firebase";
 
   }
 
 }
 
-
-  </script>
   <script>
 
 let authMode = "login";
