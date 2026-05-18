@@ -1254,130 +1254,133 @@ let authMode = "login";
 
 // ===== เปลี่ยนแท็บ Login/Register =====
 function switchTab(mode) {
+<script>
+
+let currentUser = null;
+let authMode = "login";
+
+function switchTab(mode){
+
   authMode = mode;
 
-  document.getElementById("tabLogin").classList.remove("active");
-  document.getElementById("tabReg").classList.remove("active");
+  document.getElementById("authErr").innerText = "";
 
-  if (mode === "login") {
-    document.getElementById("tabLogin").classList.add("active");
-    document.getElementById("authSubmit").innerText = "เข้าสู่ระบบ";
-  } else {
-    document.getElementById("tabReg").classList.add("active");
-    document.getElementById("authSubmit").innerText = "สมัครสมาชิก";
-  }
+  document.getElementById("tabLogin")
+    .classList.toggle("active", mode === "login");
+
+  document.getElementById("tabReg")
+    .classList.toggle("active", mode === "register");
+
+  document.getElementById("authSubmit").innerText =
+    mode === "login"
+      ? "เข้าสู่ระบบ"
+      : "สมัครสมาชิก";
 }
 
-// ===== สมัคร / เข้าสู่ระบบ =====
-async function handleAuth() {
+async function handleAuth(){
 
-  const {
-    auth,
-    signInWithEmailAndPassword,
-    createUserWithEmailAndPassword
-  } = window._fb;
+  const fb = window._fb;
 
-  const email = document.getElementById("authEmail").value;
-  const password = document.getElementById("authPass").value;
+  const email =
+    document.getElementById("authEmail").value;
+
+  const password =
+    document.getElementById("authPass").value;
 
   try {
 
-    if (authMode === "login") {
+    if(authMode === "login"){
 
-      await signInWithEmailAndPassword(
-        auth,
+      await fb.signInWithEmailAndPassword(
+        fb.auth,
         email,
         password
       );
 
     } else {
 
-      await createUserWithEmailAndPassword(
-        auth,
+      await fb.createUserWithEmailAndPassword(
+        fb.auth,
         email,
         password
       );
 
     }
 
-  } catch (err) {
+  } catch(err){
 
-    document.getElementById("authErr").innerText =
-      err.message;
+    console.error(err);
+
+    document.getElementById("authErr")
+      .innerText = err.message;
 
   }
-}
-
-// ===== เช็คสถานะ login =====
-window.addEventListener("firebase-ready", () => {
-
-  const { auth, onAuthStateChanged } = window._fb;
-
-  onAuthStateChanged(auth, (user) => {
-
-    if (user) {
-
-      document.getElementById("authScreen").style.display = "none";
-      document.getElementById("mainApp").style.display = "flex";
-      document.getElementById("sidebar").style.display = "flex";
-
-      document.getElementById("sbEmail").innerText =
-        user.email;
-
-      document.getElementById("sbName").innerText =
-        user.email.split("@")[0];
-
-      document.getElementById("sbAvatar").innerText =
-        user.email.charAt(0).toUpperCase();
-
-      loadRepairs();
-
-    } else {
-
-      document.getElementById("authScreen").style.display = "flex";
-      document.getElementById("mainApp").style.display = "none";
-      document.getElementById("sidebar").style.display = "none";
-
-    }
-
-  });
-
-});
-
-// ===== logout =====
-async function doSignOut() {
-
-  const { auth, signOut } = window._fb;
-
-  await signOut(auth);
 
 }
 
-// ===== modal =====
-function openModal(id) {
-  document.getElementById(id).classList.add("open");
+window.addEventListener(
+  "firebase-ready",
+  ()=>{
+
+    const fb = window._fb;
+
+    fb.onAuthStateChanged(
+      fb.auth,
+      (user)=>{
+
+        if(user){
+
+          currentUser = user;
+
+          document.getElementById("authScreen")
+            .style.display = "none";
+
+          document.getElementById("sidebar")
+            .style.display = "flex";
+
+          document.getElementById("mainApp")
+            .style.display = "block";
+
+          document.getElementById("sbEmail")
+            .innerText = user.email;
+
+          document.getElementById("sbName")
+            .innerText =
+            user.email.split("@")[0];
+
+          document.getElementById("sbAvatar")
+            .innerText =
+            user.email[0].toUpperCase();
+
+          loadRepairs();
+
+        } else {
+
+          document.getElementById("authScreen")
+            .style.display = "flex";
+
+          document.getElementById("sidebar")
+            .style.display = "none";
+
+          document.getElementById("mainApp")
+            .style.display = "none";
+
+        }
+
+      }
+    );
+
+  }
+);
+
+async function doSignOut(){
+
+  const fb = window._fb;
+
+  await fb.signOut(fb.auth);
+
 }
 
-function closeModal(id) {
-  document.getElementById(id).classList.remove("open");
-}
-
-// ===== toast =====
-function showToast(text) {
-
-  let toast = document.createElement("div");
-  toast.className = "toast show";
-  toast.innerText = text;
-
-  document.body.appendChild(toast);
-
-  setTimeout(() => {
-    toast.remove();
-  }, 3000);
-
-}
-
-//save repairs
   <script>
 
 async function saveRepair(){
