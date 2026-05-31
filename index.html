@@ -1,188 +1,359 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Auto Expert - Firebase</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auto Expert</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0d1117; --bg2:#161b22; --card:#1c2230; --card2:#222940;
+  --green:#22c55e; --blue:#3b82f6; --orange:#f97316; --yellow:#eab308;
+  --red:#ef4444; --purple:#a855f7;
+  --t1:#f0f6fc; --t2:#8b949e; --t3:#6e7681; --border:#30363d;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'IBM Plex Sans Thai',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;}
+
+/* AUTH */
+#authWrap{min-height:100vh;display:flex;align-items:center;justify-content:center;}
+.auth-box{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:36px;width:90%;max-width:420px;}
+.auth-logo{text-align:center;margin-bottom:24px;}
+.auth-logo .ic{font-size:52px;}
+.auth-logo h1{font-size:22px;font-weight:700;margin-top:6px;}
+.auth-logo p{font-size:13px;color:var(--t2);}
+.tabs{display:flex;gap:8px;margin-bottom:20px;}
+.tab{flex:1;padding:9px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--t2);font-size:13px;font-weight:600;cursor:pointer;transition:.2s;font-family:inherit;}
+.tab.on{background:rgba(34,197,94,.15);border-color:var(--green);color:var(--green);}
+.fi{margin-bottom:13px;}
+.fi label{font-size:12px;color:var(--t2);display:block;margin-bottom:5px;}
+.fi input,.fi select{width:100%;background:var(--card);border:1px solid var(--border);color:var(--t1);padding:10px 13px;border-radius:10px;font-size:13px;font-family:inherit;transition:.2s;}
+.fi input:focus,.fi select:focus{outline:none;border-color:var(--green);}
+.auth-err{color:var(--red);font-size:12px;text-align:center;min-height:18px;margin-bottom:6px;}
+.btn-green{width:100%;background:var(--green);color:#000;border:none;padding:12px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s;}
+.btn-green:hover{background:#16a34a;}
+
+/* LAYOUT */
+#app{display:none;min-height:100vh;}
+.sidebar{width:230px;background:var(--bg2);border-right:1px solid var(--border);position:fixed;top:0;left:0;bottom:0;z-index:100;display:flex;flex-direction:column;}
+.logo{display:flex;align-items:center;gap:10px;padding:20px;border-bottom:1px solid var(--border);}
+.logo-ic{width:38px;height:38px;background:linear-gradient(135deg,#22c55e,#16a34a);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-t{font-size:13px;font-weight:700;}
+.logo-s{font-size:10px;color:var(--t2);}
+nav{flex:1;padding:10px 0;}
+.nav-it{display:flex;align-items:center;gap:11px;padding:10px 20px;cursor:pointer;color:var(--t2);font-size:13px;font-weight:500;transition:.2s;border-right:3px solid transparent;}
+.nav-it:hover{background:var(--card);color:var(--t1);}
+.nav-it.on{background:rgba(34,197,94,.1);color:var(--green);border-right-color:var(--green);}
+.sb-bot{padding:14px;border-top:1px solid var(--border);}
+.user-chip{background:var(--card);border-radius:12px;padding:11px;margin-bottom:8px;}
+.user-name-sb{font-size:12px;font-weight:600;}
+.user-em-sb{font-size:11px;color:var(--t2);word-break:break-all;margin-top:2px;}
+.btn-out{width:100%;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:var(--red);padding:8px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:.2s;}
+.btn-out:hover{background:rgba(239,68,68,.2);}
+.main{margin-left:230px;display:flex;flex-direction:column;min-height:100vh;}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.topbar h2{font-size:18px;font-weight:700;}
+.topbar p{font-size:12px;color:var(--t2);}
+.content{padding:24px 28px;flex:1;}
+
+/* PAGES */
+.page{display:none;}
+.page.on{display:block;}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;display:flex;align-items:center;gap:12px;transition:.2s;}
+.stat-card:hover{border-color:rgba(34,197,94,.3);transform:translateY(-2px);}
+.sc-ic{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.sc-lbl{font-size:11px;color:var(--t2);margin-bottom:3px;}
+.sc-val{font-size:22px;font-weight:700;line-height:1;}
+.sc-unit{font-size:11px;color:var(--t2);}
+
+/* CARS GRID */
+.cars-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px;}
+.car-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;transition:.2s;position:relative;}
+.car-card:hover{border-color:rgba(34,197,94,.3);transform:translateY(-2px);}
+.car-ic-big{font-size:44px;margin-bottom:10px;}
+.car-card h3{font-size:16px;font-weight:700;}
+.plate-tag{display:inline-block;background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3);color:var(--blue);padding:3px 10px;border-radius:6px;font-size:12px;font-weight:600;margin:6px 0;}
+.car-meta{font-size:12px;color:var(--t2);margin-top:2px;}
+.car-actions{position:absolute;top:12px;right:12px;display:flex;gap:6px;}
+.ic-btn{background:none;border:none;font-size:16px;cursor:pointer;padding:5px;border-radius:7px;color:var(--t3);transition:.2s;}
+.ic-btn:hover{background:var(--card2);}
+.add-car-card{background:transparent;border:2px dashed var(--border);border-radius:16px;padding:20px;cursor:pointer;transition:.2s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:160px;color:var(--t2);font-size:13px;}
+.add-car-card:hover{border-color:var(--green);color:var(--green);}
+.plus-ic{font-size:32px;}
+
+/* SECTION */
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.sec-title{font-size:15px;font-weight:700;}
+.add-btn{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:var(--green);padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;transition:.2s;}
+.add-btn:hover{background:rgba(34,197,94,.2);}
+
+/* CAR PICKER */
+.car-select-bar{background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);border-radius:12px;padding:12px 16px;margin-bottom:18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.car-select-bar>span{font-size:13px;color:var(--green);font-weight:600;flex-shrink:0;}
+.car-picker{display:flex;gap:8px;flex-wrap:wrap;}
+.cpick-btn{background:var(--card);border:1px solid var(--border);color:var(--t2);padding:5px 12px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;transition:.2s;}
+.cpick-btn.on{background:rgba(34,197,94,.15);border-color:var(--green);color:var(--green);}
+
+/* REPAIR LIST */
+.repair-list{display:flex;flex-direction:column;gap:9px;}
+.repair-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px 16px;display:flex;align-items:center;gap:12px;transition:.2s;}
+.repair-item:hover{background:var(--card2);}
+.r-ic{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;background:rgba(34,197,94,.12);}
+.r-main{flex:1;min-width:0;}
+.r-name{font-size:13px;font-weight:600;}
+.r-shop{font-size:11px;color:var(--t2);}
+.r-note{font-size:11px;color:var(--t3);margin-top:1px;}
+.r-meta{text-align:center;min-width:80px;flex-shrink:0;}
+.r-date{font-size:11px;color:var(--t2);}
+.r-km{font-size:11px;color:var(--t3);}
+.r-cost{font-size:15px;font-weight:700;white-space:nowrap;text-align:right;flex-shrink:0;}
+.r-cost u{font-size:10px;color:var(--t2);font-weight:400;text-decoration:none;}
+.r-btns{display:flex;gap:4px;flex-shrink:0;}
+.edit-btn2{background:none;border:none;font-size:15px;cursor:pointer;padding:5px;border-radius:7px;color:var(--t3);transition:.2s;}
+.edit-btn2:hover{color:var(--blue);background:rgba(59,130,246,.1);}
+.del-btn{background:none;border:none;font-size:15px;cursor:pointer;padding:5px;border-radius:7px;color:var(--t3);transition:.2s;}
+.del-btn:hover{color:var(--red);background:rgba(239,68,68,.1);}
+
+/* EMPTY */
+.empty{text-align:center;padding:40px 20px;color:var(--t2);font-size:13px;}
+.empty-ic{font-size:36px;margin-bottom:8px;}
+
+/* EXPENSE */
+.exp-type-row{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:12px;margin-bottom:8px;}
+.exp-bar-wrap{flex:1;background:var(--bg);border-radius:6px;height:8px;overflow:hidden;}
+.exp-bar{height:8px;border-radius:6px;background:var(--green);}
+
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:300;align-items:center;justify-content:center;}
+.overlay.open{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:26px;width:92%;max-width:500px;animation:mIn .22s ease;max-height:92vh;overflow-y:auto;}
+@keyframes mIn{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
+.modal-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
+.modal-title{font-size:16px;font-weight:700;}
+.modal-x{background:none;border:none;color:var(--t2);font-size:18px;cursor:pointer;padding:2px 6px;border-radius:6px;}
+.modal-x:hover{color:var(--t1);background:var(--card);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.modal-btn{width:100%;background:var(--green);color:#000;border:none;padding:12px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;margin-top:8px;transition:.2s;font-family:inherit;}
+.modal-btn:hover{background:#16a34a;}
+.btn-del-modal{width:100%;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:var(--red);padding:10px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;margin-top:6px;font-family:inherit;transition:.2s;}
+.btn-del-modal:hover{background:rgba(239,68,68,.2);}
+
+/* TOAST */
+.toast{position:fixed;bottom:26px;right:26px;background:var(--card);border:1px solid var(--green);color:var(--t1);padding:11px 18px;border-radius:12px;font-size:13px;font-weight:500;z-index:999;display:none;align-items:center;gap:8px;box-shadow:0 4px 20px rgba(0,0,0,.4);}
+.toast.show{display:flex;}
+.toast.err{border-color:var(--red);}
+
+/* BOTTOM NAV mobile */
+.bnav{display:none;}
+
+@media(max-width:900px){.stats-row{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:700px){
+  .sidebar{display:none;}
+  .main{margin-left:0;}
+  .content{padding:16px 14px 80px;}
+  .topbar{padding:12px 14px;}
+  .stats-row{grid-template-columns:1fr 1fr;gap:10px;}
+  .sc-val{font-size:18px;}
+  .bnav{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);padding:10px 0 18px;z-index:100;}
+  .bn-it{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;color:var(--t2);font-size:10px;}
+  .bn-it.on{color:var(--green);}
+  .bn-ic{font-size:20px;}
+  .bn-add{flex:0;width:50px;height:50px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;margin-top:-20px;box-shadow:0 4px 18px rgba(34,197,94,.4);cursor:pointer;font-size:22px;color:#000;}
+}
+</style>
 </head>
 <body>
 
-  <h2 id="status">⏳ กำลังเชื่อมต่อ Firebase...</h2>
-  <p id="user">ยังไม่ได้ Login</p>
+<!-- AUTH -->
+<div id="authWrap">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <div class="ic">🚗</div>
+      <h1>Auto Expert</h1>
+      <p>ระบบดูแลรถยนต์ของคุณ</p>
+    </div>
+    <div class="tabs">
+      <button class="tab on" id="tabLogin" onclick="switchTab('login')">เข้าสู่ระบบ</button>
+      <button class="tab" id="tabReg" onclick="switchTab('reg')">สมัครสมาชิก</button>
+    </div>
+    <div class="fi"><label>อีเมล</label><input type="email" id="aEmail" placeholder="you@email.com" onkeydown="if(event.key==='Enter')doAuth()"></div>
+    <div class="fi"><label>รหัสผ่าน</label><input type="password" id="aPass" placeholder="อย่างน้อย 6 ตัวอักษร" onkeydown="if(event.key==='Enter')doAuth()"></div>
+    <div id="regFields" style="display:none">
+      <div class="fi"><label>ชื่อ-นามสกุล</label><input type="text" id="aName" placeholder="คุณเจียบ"></div>
+      <div class="fi"><label>ยืนยันรหัสผ่าน</label><input type="password" id="aPass2" placeholder="พิมพ์รหัสผ่านอีกครั้ง"></div>
+    </div>
+    <div class="auth-err" id="aErr"></div>
+    <button class="btn-green" id="aSubmit" onclick="doAuth()">เข้าสู่ระบบ</button>
+  </div>
+</div>
 
-  <!--
-    ════════════════════════════════════════════════
-    วิธีใช้งาน Firebase ใน HTML ไฟล์เดียว
-    ใช้ type="module" + import จาก CDN ของ Firebase
-    ════════════════════════════════════════════════
-  -->
-  <script type="module">
+<!-- APP -->
+<div id="app">
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-ic">🚗</div>
+      <div><div class="logo-t">Auto Expert</div><div class="logo-s">ระบบดูแลรถยนต์</div></div>
+    </div>
+    <nav>
+      <div class="nav-it on" onclick="showPage('pgHome',this,'🏠 หน้าหลัก')"><span>🏠</span> หน้าหลัก</div>
+      <div class="nav-it" onclick="showPage('pgCars',this,'🚘 รถของฉัน')"><span>🚘</span> รถของฉัน</div>
+      <div class="nav-it" onclick="showPage('pgRepairs',this,'🔧 ประวัติการซ่อม')"><span>🔧</span> ประวัติการซ่อม</div>
+      <div class="nav-it" onclick="showPage('pgExpense',this,'💸 ค่าใช้จ่าย')"><span>💸</span> ค่าใช้จ่าย</div>
+    </nav>
+    <div class="sb-bot">
+      <div class="user-chip">
+        <div class="user-name-sb" id="sbName">-</div>
+        <div class="user-em-sb" id="sbEmail">-</div>
+      </div>
+      <button class="btn-out" onclick="doSignOut()">🚪 ออกจากระบบ</button>
+    </div>
+  </aside>
 
-    // ── 1. Import Firebase SDK จาก CDN ──────────────────────────────
-    import { initializeApp }
-      from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  <div class="main">
+    <header class="topbar">
+      <div>
+        <h2 id="pgTitle">🏠 หน้าหลัก</h2>
+        <p id="pgSub">ยินดีต้อนรับ</p>
+      </div>
+    </header>
+    <div class="content">
 
-    import { getAnalytics }
-      from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
+      <!-- HOME -->
+      <div class="page on" id="pgHome">
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="sc-ic" style="background:rgba(34,197,94,.15)">🚘</div>
+            <div><div class="sc-lbl">รถทั้งหมด</div><div class="sc-val" style="color:var(--green)" id="stCars">0</div><div class="sc-unit">คัน</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="sc-ic" style="background:rgba(59,130,246,.15)">🔧</div>
+            <div><div class="sc-lbl">รายการซ่อม</div><div class="sc-val" style="color:var(--blue)" id="stRepairs">0</div><div class="sc-unit">รายการ</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="sc-ic" style="background:rgba(34,197,94,.15)">💰</div>
+            <div><div class="sc-lbl">ค่าใช้จ่ายปีนี้</div><div class="sc-val" style="color:var(--green)" id="stCost">0</div><div class="sc-unit">บาท</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="sc-ic" style="background:rgba(249,115,22,.15)">📅</div>
+            <div><div class="sc-lbl">ซ่อมล่าสุด</div><div class="sc-val" style="color:var(--orange);font-size:15px" id="stLast">-</div><div class="sc-unit">วันที่</div></div>
+          </div>
+        </div>
+        <div class="sec-hdr"><div class="sec-title">🔧 การซ่อมล่าสุด 5 รายการ</div></div>
+        <div class="repair-list" id="homeList"></div>
+      </div>
 
-    import {
-      getAuth,
-      onAuthStateChanged,
-      signInWithEmailAndPassword,
-      createUserWithEmailAndPassword,
-      signOut
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+      <!-- CARS -->
+      <div class="page" id="pgCars">
+        <div class="cars-grid" id="carsGrid"></div>
+      </div>
 
-    import {
-      getFirestore,
-      collection,
-      doc,
-      addDoc,
-      setDoc,
-      getDoc,
-      getDocs,
-      deleteDoc,
-      query,
-      orderBy,
-      where,
-      serverTimestamp
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+      <!-- REPAIRS -->
+      <div class="page" id="pgRepairs">
+        <div class="car-select-bar">
+          <span>🚘 เลือกรถ:</span>
+          <div class="car-picker" id="repPicker"></div>
+        </div>
+        <div class="sec-hdr">
+          <div class="sec-title">📋 ประวัติการซ่อม</div>
+          <button class="add-btn" onclick="openAddRepair()">+ เพิ่มรายการ</button>
+        </div>
+        <div class="repair-list" id="repairList"></div>
+      </div>
 
+      <!-- EXPENSE -->
+      <div class="page" id="pgExpense">
+        <div class="car-select-bar">
+          <span>🚘 เลือกรถ:</span>
+          <div class="car-picker" id="expPicker"></div>
+        </div>
+        <div id="expContent"></div>
+      </div>
 
-    // ── 2. Firebase Config (copy มาจาก Firebase Console) ───────────
-    const firebaseConfig = {
-      apiKey:            "AIzaSyDAfm7eDJPFiWrUK_U0aqS7yl2Wt_PpjmA",
-      authDomain:        "garage-system-41587.firebaseapp.com",
-      projectId:         "garage-system-41587",
-      storageBucket:     "garage-system-41587.firebasestorage.app",
-      messagingSenderId: "688480145767",
-      appId:             "1:688480145767:web:9bfba3df045ca434d91fc2",
-      measurementId:     "G-30329DLNXE"
-    };
+    </div>
+  </div>
+</div>
 
+<!-- BOTTOM NAV mobile -->
+<nav class="bnav">
+  <div class="bn-it on" onclick="showPage('pgHome',null,'🏠 หน้าหลัก')"><span class="bn-ic">🏠</span><span>หน้าหลัก</span></div>
+  <div class="bn-it" onclick="showPage('pgCars',null,'🚘 รถของฉัน')"><span class="bn-ic">🚘</span><span>รถ</span></div>
+  <div class="bn-add" onclick="openAddRepair()">+</div>
+  <div class="bn-it" onclick="showPage('pgRepairs',null,'🔧 ซ่อม')"><span class="bn-ic">🔧</span><span>ซ่อม</span></div>
+  <div class="bn-it" onclick="showPage('pgExpense',null,'💸 ค่าใช้จ่าย')"><span class="bn-ic">💸</span><span>ค่าใช้จ่าย</span></div>
+</nav>
 
-    // ── 3. Initialize Firebase ───────────────────────────────────────
-    const app       = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);       // Google Analytics
-    const auth      = getAuth(app);            // Authentication
-    const db        = getFirestore(app);       // Firestore Database
+<!-- MODAL: รถ -->
+<div class="overlay" id="mCar">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title" id="mCarTitle">🚘 เพิ่มรถใหม่</div>
+      <button class="modal-x" onclick="closeModal('mCar')">✕</button>
+    </div>
+    <div class="form-row">
+      <div class="fi"><label>ยี่ห้อ *</label><input id="cBrand" placeholder="Toyota"></div>
+      <div class="fi"><label>รุ่น *</label><input id="cModel" placeholder="Altis"></div>
+    </div>
+    <div class="form-row">
+      <div class="fi"><label>ปีรถ</label><input id="cYear" placeholder="2019"></div>
+      <div class="fi"><label>สี</label><input id="cColor" placeholder="ขาว"></div>
+    </div>
+    <div class="form-row">
+      <div class="fi"><label>ทะเบียน</label><input id="cPlate" placeholder="กจ 1234"></div>
+      <div class="fi"><label>จังหวัด</label><input id="cProvince" placeholder="กรุงเทพฯ"></div>
+    </div>
+    <div class="form-row">
+      <div class="fi"><label>เลขไมล์ (กม.)</label><input id="cMile" type="number" placeholder="78560"></div>
+      <div class="fi"><label>ประเภทน้ำมัน</label>
+        <select id="cFuel">
+          <option>เบนซิน</option><option>ดีเซล</option><option>E20</option>
+          <option>E85</option><option>NGV</option><option>ไฟฟ้า (EV)</option><option>Hybrid</option>
+        </select>
+      </div>
+    </div>
+    <button class="modal-btn" onclick="saveCar()">💾 บันทึก</button>
+    <button class="btn-del-modal" id="delCarBtn" style="display:none" onclick="deleteCar()">🗑️ ลบรถคันนี้</button>
+  </div>
+</div>
 
+<!-- MODAL: การซ่อม -->
+<div class="overlay" id="mRepair">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title" id="mRepTitle">🔧 เพิ่มการซ่อม</div>
+      <button class="modal-x" onclick="closeModal('mRepair')">✕</button>
+    </div>
+    <!-- เลือกรถ (สำหรับ add จากหน้า home) -->
+    <div class="fi" id="repCarField">
+      <label>รถ *</label>
+      <select id="rCarId"></select>
+    </div>
+    <div class="fi"><label>ประเภทการซ่อม *</label><input id="rType" placeholder="เช่น เปลี่ยนน้ำมันเครื่อง"></div>
+    <div class="form-row">
+      <div class="fi"><label>วันที่ *</label><input id="rDate" type="date"></div>
+      <div class="fi"><label>เลขไมล์ (กม.)</label><input id="rKm" type="number" placeholder="78560"></div>
+    </div>
+    <div class="form-row">
+      <div class="fi"><label>ค่าใช้จ่าย (บาท) *</label><input id="rCost" type="number" placeholder="1250"></div>
+      <div class="fi"><label>อู่/ศูนย์บริการ</label><input id="rShop" placeholder="Auto Expert Garage"></div>
+    </div>
+    <div class="fi"><label>หมายเหตุ</label><input id="rNote" placeholder="รายละเอียดเพิ่มเติม (ไม่บังคับ)"></div>
+    <button class="modal-btn" onclick="saveRepair()">💾 บันทึก</button>
+    <button class="btn-del-modal" id="delRepBtn" style="display:none" onclick="deleteRepairFromModal()">🗑️ ลบรายการนี้</button>
+  </div>
+</div>
 
-    // ── 4. ตรวจสอบสถานะ Firebase เชื่อมต่อสำเร็จ ──────────────────
-    document.getElementById('status').textContent = '✅ Firebase เชื่อมต่อสำเร็จ!';
-    console.log('✅ Firebase initialized:', app.name);
+<!-- TOAST -->
+<div class="toast" id="toast"><span id="toastMsg"></span></div>
 
+<script>
+// ══════════════════════════════════════════
+//  STATE  (In-memory, no Firebase)
+// ══════════════════════════════════════════
+let users   = JSON.parse(localStorage.getItem('ae_users')   || '{}');
+let carsDB  = JSON.parse(localStorage.getItem('ae_cars')    || '{}'); // { uid: [car,...] }
+let repDB   = JSON.parse(localStorage.getItem('ae_repairs') || '{}'); // { uid: [rep,...] }
 
-    // ── 5. ตรวจสอบสถานะ Login ────────────────────────────────────────
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        document.getElementById('user').textContent =
-          `✅ Login แล้ว: ${user.email} (uid: ${user.uid})`;
-        console.log('User logged in:', user);
-      } else {
-        document.getElementById('user').textContent = '🔒 ยังไม่ได้ Login';
-        console.log('No user logged in');
-      }
-    });
-
-
-    // ══════════════════════════════════════════════════════════════════
-    //  ตัวอย่างฟังก์ชันที่ใช้ได้ทันที (ก็อปไปใช้ในโปรเจกต์ได้เลย)
-    // ══════════════════════════════════════════════════════════════════
-
-    // ── Auth: สมัครสมาชิก ────────────────────────────────────────────
-    async function register(email, password) {
-      try {
-        const cred = await createUserWithEmailAndPassword(auth, email, password);
-        console.log('Registered:', cred.user.email);
-        return cred.user;
-      } catch (e) {
-        console.error('Register error:', e.code, e.message);
-        throw e;
-      }
-    }
-
-    // ── Auth: เข้าสู่ระบบ ────────────────────────────────────────────
-    async function login(email, password) {
-      try {
-        const cred = await signInWithEmailAndPassword(auth, email, password);
-        console.log('Logged in:', cred.user.email);
-        return cred.user;
-      } catch (e) {
-        console.error('Login error:', e.code, e.message);
-        throw e;
-      }
-    }
-
-    // ── Auth: ออกจากระบบ ─────────────────────────────────────────────
-    async function logout() {
-      await signOut(auth);
-      console.log('Logged out');
-    }
-
-    // ── Firestore: เพิ่มข้อมูล ──────────────────────────────────────
-    async function addData(collectionName, data) {
-      const ref = await addDoc(collection(db, collectionName), {
-        ...data,
-        createdAt: serverTimestamp()
-      });
-      console.log('Added doc id:', ref.id);
-      return ref.id;
-    }
-
-    // ── Firestore: อ่านข้อมูลทั้งหมด ────────────────────────────────
-    async function getData(collectionName) {
-      const snap = await getDocs(collection(db, collectionName));
-      return snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    }
-
-    // ── Firestore: แก้ไขข้อมูล ──────────────────────────────────────
-    async function updateData(collectionName, docId, data) {
-      await setDoc(doc(db, collectionName, docId), {
-        ...data,
-        updatedAt: serverTimestamp()
-      }, { merge: true });
-      console.log('Updated:', docId);
-    }
-
-    // ── Firestore: ลบข้อมูล ─────────────────────────────────────────
-    async function deleteData(collectionName, docId) {
-      await deleteDoc(doc(db, collectionName, docId));
-      console.log('Deleted:', docId);
-    }
-
-    // ── Firestore: Query ข้อมูลแบบมีเงื่อนไข ───────────────────────
-    async function queryData(collectionName, fieldName, value) {
-      const q = query(
-        collection(db, collectionName),
-        where(fieldName, '==', value),
-        orderBy('createdAt', 'desc')
-      );
-      const snap = await getDocs(q);
-      return snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    }
-
-
-    // ── Expose ฟังก์ชันให้ใช้งานจาก HTML ───────────────────────────
-    // (ถ้าต้องการเรียกจาก onclick="..." ใน HTML ต้อง expose ผ่าน window)
-    window.fbAuth   = { register, login, logout };
-    window.fbDB     = { addData, getData, updateData, deleteData, queryData };
-    window.fbApp    = app;
-    window.fbDb     = db;
-
-    // ── ตัวอย่างโครงสร้าง Firestore สำหรับ Auto Expert ────────────
-    //
-    //  users/{uid}                    → ข้อมูลผู้ใช้
-    //  users/{uid}/cars/{carId}       → รถแต่ละคัน
-    //  users/{uid}/repairs/{repairId} → ประวัติการซ่อม
-    //
-    //  ตัวอย่าง เพิ่มรถ:
-    //  await addDoc(collection(db, 'users', uid, 'cars'), { brand: 'Toyota', model: 'Altis', ... })
-    //
-    //  ตัวอย่าง อ่านประวัติซ่อมของรถ:
-    //  await getDocs(query(collection(db,'users',uid,'repairs'), where('carId','==',carId)))
-
-  </script>
-
-</body>
-</html>
+let cur
