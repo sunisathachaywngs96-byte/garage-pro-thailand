@@ -347,7 +347,6 @@ nav{flex:1;padding:10px 0;}
 
 <!-- TOAST -->
 <div class="toast" id="toast"><span id="toastMsg"></span></div>
-
 <script>
 // ══════════════════════════════════════════
 //  STATE  (In-memory, no Firebase)
@@ -356,4 +355,427 @@ let users   = JSON.parse(localStorage.getItem('ae_users')   || '{}');
 let carsDB  = JSON.parse(localStorage.getItem('ae_cars')    || '{}'); // { uid: [car,...] }
 let repDB   = JSON.parse(localStorage.getItem('ae_repairs') || '{}'); // { uid: [rep,...] }
 
-let cur
+let currentUser = null;   // { uid, email, name }
+let selCarId    = null;   // repairs page
+let expCarId    = null;   // expense page
+let editCarId   = null;
+let editRepId   = null;
+
+const save = () => {
+  localStorage.setItem('ae_users',   JSON.stringify(users));
+  localStorage.setItem('ae_cars',    JSON.stringify(carsDB));
+  localStorage.setItem('ae_repairs', JSON.stringify(repDB));
+};
+const uid  = () => currentUser.uid;
+const myCars   = () => carsDB[uid()]  || [];
+const myReps   = () => repDB[uid()]   || [];
+const setMyCars = v => { carsDB[uid()]  = v; save(); };
+const setMyReps = v => { repDB[uid()]   = v; save(); };
+const newId = () => '_' + Math.random().toString(36).slice(2,10);
+const today = () => new Date().toISOString().split('T')[0];
+
+// ══════════════════════════════════════════
+//  AUTH
+// ══════════════════════════════════════════
+let authMode = 'login';
+function switchTab(m) {
+  authMode = m;
+  document.getElementById('tabLogin').classList.toggle('on', m==='login');
+  document.getElementById('tabReg').classList.toggle('on', m==='reg');
+  document.getElementById('aSubmit').textContent = m==='login' ? 'เข้าสู่ระบบ' : 'สมัครสมาชิก';
+  document.getElementById('regFields').style.display = m==='reg' ? 'block' : 'none';
+  document.getElementById('aErr').textContent = '';
+}
+
+function doAuth() {
+  const email = document.getElementById('aEmail').value.trim();
+  const pass  = document.getElementById('aPass').value;
+  const errEl = document.getElementById('aErr');
+  errEl.textContent = '';
+  if (!email || !pass) { errEl.textContent = 'กรุณากรอกอีเมลและรหัสผ่าน'; return; }
+
+  if (authMode === 'reg') {
+    const name  = document.getElementById('aName').value.trim() || email.split('@')[0];
+    const pass2 = document.getElementById('aPass2').value;
+    if (pass.length < 6) { errEl.textContent = 'รหัสผ่านต้องมีอย่างน้อย 6 ตัว'; return; }
+    if (pass !== pass2)  { errEl.textContent = 'รหัสผ่านไม่ตรงกัน'; return; }
+    if (Object.values(users).find(u => u.email === email)) { errEl.textContent = 'อีเมลนี้มีผู้ใช้งานแล้ว'; return; }
+    const uid = newId();
+    users[uid] = { uid, email, name, pass };
+    save();
+    loginAs(users[uid]);
+  } else {
+    const user = Object.values(users).find(u => u.email === email);
+    if (!user)           { errEl.textContent = 'ไม่พบบัญชีนี้'; return; }
+    if (user.pass !== pass) { errEl.textContent = 'รหัสผ่านไม่ถูกต้อง'; return; }
+    loginAs(user);
+  }
+}
+
+function loginAs(user) {
+  currentUser = user;
+  document.getElementById('authWrap').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('sbName').textContent  = user.name || user.email.split('@')[0];
+  document.getElementById('sbEmail').textContent = user.email;
+  document.getElementById('pgSub').textContent   = `ยินดีต้อนรับ, ${user.name || user.email.split('@')[0]}`;
+  if (!carsDB[uid()]) setMyCars([]);
+  if (!repDB[uid()])  setMyReps([]);
+  if (myCars().length) { selCarId = myCars()[0].id; expCarId = myCars()[0].id; }
+  renderAll();
+}
+
+function doSignOut() {
+  currentUser = null; selCarId = null; expCarId = null;
+  document.getElementById('app').style.display  = 'none';
+  document.getElementById('authWrap').style.display = 'flex';
+  document.getElementById('aEmail').value = '';
+  document.getElementById('aPass').value  = '';
+  document.getElementById('aErr').textContent = '';
+  toast('👋 ออกจากระบบแล้ว');
+}
+
+// ══════════════════════════════════════════
+//  RENDER ALL
+// ══════════════════════════════════════════
+function renderAll() {
+  renderHome();
+  renderCarsGrid();
+  renderPickers();
+  renderRepairList();
+  renderExpense();
+}
+
+// ══════════════════════════════════════════
+//  HOME
+// ══════════════════════════════════════════
+function renderHome() {
+  const reps  = myReps();
+  const cars  = myCars();
+  const yr    = new Date().getFullYear().toString();
+  const cost  = reps.filter(r => (r.date||'').startsWith(yr)).reduce((s,r) => s+Number(r.cost||0), 0);
+  document.getElementById('stCars').textContent    = cars.length;
+  document.getElementById('stRepairs').textContent = reps.length;
+  document.getElementById('stCost').textContent    = cost.toLocaleString();
+  document.getElementById('stLast').textContent    = reps.length ? reps[reps.length-1].date||'-' : '-';
+
+  const top5 = [...reps].reverse().slice(0,5);
+  const icons = ['🛢️','🔧','🔋','🔘','💨'];
+  const list  = document.getElementById('homeList');
+  if (!top5.length) { list.innerHTML='<div class="empty"><div class="empty-ic">🔧</div>ยังไม่มีข้อมูลการซ่อม</div>'; return; }
+  list.innerHTML = top5.map((r,i) => {
+    const car = cars.find(c=>c.id===r.carId);
+    return `<div class="repair-item">
+      <div class="r-ic">${icons[i%icons.length]}</div>
+      <div class="r-main">
+        <div class="r-name">${r.type||'-'}</div>
+        <div class="r-shop">${car ? car.brand+' '+car.model : ''} ${r.shop ? '· '+r.shop : ''}</div>
+      </div>
+      <div class="r-meta"><div class="r-date">${r.date||'-'}</div></div>
+      <div class="r-cost">${Number(r.cost||0).toLocaleString()} <u>บาท</u></div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════
+//  CARS
+// ══════════════════════════════════════════
+const carIcons = ['🚗','🚙','🛻','🚐','🏎️','🚕','🚌','🚑'];
+function renderCarsGrid() {
+  const g = document.getElementById('carsGrid');
+  g.innerHTML = '';
+  myCars().forEach((c,i) => {
+    const d = document.createElement('div');
+    d.className = 'car-card';
+    d.innerHTML = `
+      <div class="car-actions">
+        <button class="ic-btn" title="แก้ไข" onclick="openEditCar('${c.id}',event)">✏️</button>
+      </div>
+      <div class="car-ic-big">${carIcons[i%carIcons.length]}</div>
+      <h3>${c.brand||''} ${c.model||''}</h3>
+      <div class="plate-tag">🚘 ${c.plate||'-'} ${c.province||''}</div>
+      <div class="car-meta">ปี ${c.year||'-'} · ${c.fuel||'-'}</div>
+      <div class="car-meta">เลขไมล์: ${c.mileage ? Number(c.mileage).toLocaleString()+' กม.' : '-'}</div>
+    `;
+    g.appendChild(d);
+  });
+  const add = document.createElement('div');
+  add.className = 'add-car-card';
+  add.onclick = openAddCar;
+  add.innerHTML = `<div class="plus-ic">➕</div><span>เพิ่มรถคันใหม่</span>`;
+  g.appendChild(add);
+}
+
+function openAddCar() {
+  editCarId = null;
+  document.getElementById('mCarTitle').textContent = '🚘 เพิ่มรถใหม่';
+  document.getElementById('delCarBtn').style.display = 'none';
+  ['cBrand','cModel','cYear','cColor','cPlate','cProvince','cMile'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('cFuel').value = 'เบนซิน';
+  openModal('mCar');
+}
+
+function openEditCar(id, e) {
+  e && e.stopPropagation();
+  const c = myCars().find(x=>x.id===id);
+  if (!c) return;
+  editCarId = id;
+  document.getElementById('mCarTitle').textContent = '✏️ แก้ไขข้อมูลรถ';
+  document.getElementById('delCarBtn').style.display = 'block';
+  document.getElementById('cBrand').value    = c.brand||'';
+  document.getElementById('cModel').value    = c.model||'';
+  document.getElementById('cYear').value     = c.year||'';
+  document.getElementById('cColor').value    = c.color||'';
+  document.getElementById('cPlate').value    = c.plate||'';
+  document.getElementById('cProvince').value = c.province||'';
+  document.getElementById('cMile').value     = c.mileage||'';
+  document.getElementById('cFuel').value     = c.fuel||'เบนซิน';
+  openModal('mCar');
+}
+
+function saveCar() {
+  const brand = document.getElementById('cBrand').value.trim();
+  const model = document.getElementById('cModel').value.trim();
+  if (!brand||!model) { toast('⚠️ กรุณากรอกยี่ห้อและรุ่น', true); return; }
+  const data = {
+    brand, model,
+    year:     document.getElementById('cYear').value,
+    color:    document.getElementById('cColor').value,
+    plate:    document.getElementById('cPlate').value,
+    province: document.getElementById('cProvince').value,
+    mileage:  Number(document.getElementById('cMile').value)||0,
+    fuel:     document.getElementById('cFuel').value,
+  };
+  let cars = myCars();
+  if (editCarId) {
+    cars = cars.map(c => c.id===editCarId ? {...c,...data} : c);
+    toast('✅ อัปเดตข้อมูลรถแล้ว');
+  } else {
+    data.id = newId();
+    cars.push(data);
+    if (!selCarId) selCarId = data.id;
+    if (!expCarId) expCarId = data.id;
+    toast('✅ เพิ่มรถใหม่แล้ว');
+  }
+  setMyCars(cars);
+  closeModal('mCar');
+  renderAll();
+}
+
+function deleteCar() {
+  if (!editCarId) return;
+  if (!confirm('ลบรถคันนี้? ประวัติการซ่อมทั้งหมดของรถคันนี้จะถูกลบด้วย')) return;
+  setMyCars(myCars().filter(c=>c.id!==editCarId));
+  setMyReps(myReps().filter(r=>r.carId!==editCarId));
+  if (selCarId===editCarId) selCarId = myCars()[0]?.id||null;
+  if (expCarId===editCarId) expCarId = myCars()[0]?.id||null;
+  toast('🗑️ ลบรถแล้ว');
+  closeModal('mCar');
+  renderAll();
+}
+
+// ══════════════════════════════════════════
+//  PICKERS
+// ══════════════════════════════════════════
+function renderPickers() {
+  renderPicker('repPicker', false);
+  renderPicker('expPicker', true);
+}
+
+function renderPicker(pid, isExp) {
+  const p = document.getElementById(pid);
+  p.innerHTML = '';
+  const cars = myCars();
+  if (!cars.length) { p.innerHTML='<span style="color:var(--t3);font-size:12px">ยังไม่มีรถ กรุณาเพิ่มรถก่อน</span>'; return; }
+  cars.forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'cpick-btn' + (c.id===(isExp?expCarId:selCarId)?' on':'');
+    btn.textContent = `${c.brand} ${c.model} (${c.plate||'-'})`;
+    btn.onclick = () => {
+      if (isExp) { expCarId = c.id; renderExpense(); }
+      else       { selCarId = c.id; renderRepairList(); }
+      renderPicker(pid, isExp);
+    };
+    p.appendChild(btn);
+  });
+}
+
+// ══════════════════════════════════════════
+//  REPAIRS
+// ══════════════════════════════════════════
+const repIcons = ['🛢️','🔧','🔋','🔘','💨','⚙️','🚿','🛞','🔩','🪛'];
+
+function renderRepairList() {
+  const list = document.getElementById('repairList');
+  const reps = selCarId ? myReps().filter(r=>r.carId===selCarId) : myReps();
+  if (!reps.length) { list.innerHTML='<div class="empty"><div class="empty-ic">🔧</div>ยังไม่มีประวัติการซ่อม</div>'; return; }
+  list.innerHTML = [...reps].reverse().map((r,i) => `
+    <div class="repair-item">
+      <div class="r-ic">${repIcons[i%repIcons.length]}</div>
+      <div class="r-main">
+        <div class="r-name">${r.type||'-'}</div>
+        <div class="r-shop">${r.shop||''}</div>
+        ${r.note ? `<div class="r-note">${r.note}</div>` : ''}
+      </div>
+      <div class="r-meta">
+        <div class="r-date">${r.date||'-'}</div>
+        <div class="r-km">${r.km ? Number(r.km).toLocaleString()+' กม.' : ''}</div>
+      </div>
+      <div class="r-cost">${Number(r.cost||0).toLocaleString()} <u>บาท</u></div>
+      <div class="r-btns">
+        <button class="edit-btn2" title="แก้ไข" onclick="openEditRepair('${r.id}')">✏️</button>
+        <button class="del-btn"   title="ลบ"    onclick="deleteRepair('${r.id}')">🗑️</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openAddRepair() {
+  if (!myCars().length) { toast('⚠️ กรุณาเพิ่มรถก่อน', true); return; }
+  editRepId = null;
+  document.getElementById('mRepTitle').textContent = '🔧 เพิ่มการซ่อม';
+  document.getElementById('delRepBtn').style.display = 'none';
+  document.getElementById('repCarField').style.display = 'block';
+  // fill car select
+  const sel = document.getElementById('rCarId');
+  sel.innerHTML = myCars().map(c=>`<option value="${c.id}">${c.brand} ${c.model} (${c.plate||'-'})</option>`).join('');
+  if (selCarId) sel.value = selCarId;
+  ['rType','rKm','rCost','rShop','rNote'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('rDate').value = today();
+  openModal('mRepair');
+}
+
+function openEditRepair(id) {
+  const r = myReps().find(x=>x.id===id);
+  if (!r) return;
+  editRepId = id;
+  document.getElementById('mRepTitle').textContent = '✏️ แก้ไขการซ่อม';
+  document.getElementById('delRepBtn').style.display = 'block';
+  document.getElementById('repCarField').style.display = 'none';
+  document.getElementById('rType').value  = r.type||'';
+  document.getElementById('rDate').value  = r.date||'';
+  document.getElementById('rKm').value    = r.km||'';
+  document.getElementById('rCost').value  = r.cost||'';
+  document.getElementById('rShop').value  = r.shop||'';
+  document.getElementById('rNote').value  = r.note||'';
+  openModal('mRepair');
+}
+
+function saveRepair() {
+  const type = document.getElementById('rType').value.trim();
+  const cost = document.getElementById('rCost').value;
+  const date = document.getElementById('rDate').value;
+  if (!type) { toast('⚠️ กรุณากรอกประเภทการซ่อม', true); return; }
+  if (!cost) { toast('⚠️ กรุณากรอกค่าใช้จ่าย', true); return; }
+  const data = {
+    type, date,
+    cost:  Number(cost)||0,
+    km:    Number(document.getElementById('rKm').value)||0,
+    shop:  document.getElementById('rShop').value||'',
+    note:  document.getElementById('rNote').value||'',
+    carId: editRepId ? myReps().find(r=>r.id===editRepId)?.carId : document.getElementById('rCarId').value,
+  };
+  let reps = myReps();
+  if (editRepId) {
+    reps = reps.map(r => r.id===editRepId ? {...r,...data} : r);
+    toast('✅ อัปเดตการซ่อมแล้ว');
+  } else {
+    data.id = newId();
+    reps.push(data);
+    toast('✅ บันทึกการซ่อมแล้ว');
+  }
+  setMyReps(reps);
+  closeModal('mRepair');
+  renderAll();
+}
+
+function deleteRepair(id) {
+  if (!confirm('ลบรายการซ่อมนี้?')) return;
+  setMyReps(myReps().filter(r=>r.id!==id));
+  toast('🗑️ ลบรายการแล้ว');
+  renderAll();
+}
+
+function deleteRepairFromModal() {
+  if (!editRepId) return;
+  if (!confirm('ลบรายการซ่อมนี้?')) return;
+  setMyReps(myReps().filter(r=>r.id!==editRepId));
+  toast('🗑️ ลบรายการแล้ว');
+  closeModal('mRepair');
+  renderAll();
+}
+
+// ══════════════════════════════════════════
+//  EXPENSE
+// ══════════════════════════════════════════
+function renderExpense() {
+  const el   = document.getElementById('expContent');
+  const reps = expCarId ? myReps().filter(r=>r.carId===expCarId) : [];
+  if (!expCarId||!reps.length) {
+    el.innerHTML='<div class="empty"><div class="empty-ic">💸</div>ไม่มีข้อมูลค่าใช้จ่าย</div>'; return;
+  }
+  const total = reps.reduce((s,r)=>s+Number(r.cost||0),0);
+  const avg   = Math.round(total/reps.length);
+  const yr    = new Date().getFullYear().toString();
+  const yrCost = reps.filter(r=>(r.date||'').startsWith(yr)).reduce((s,r)=>s+Number(r.cost||0),0);
+  const byType = {};
+  reps.forEach(r=>{ byType[r.type]=(byType[r.type]||0)+Number(r.cost||0); });
+  const sorted = Object.entries(byType).sort((a,b)=>b[1]-a[1]);
+  el.innerHTML = `
+    <div class="stats-row" style="margin-bottom:18px">
+      <div class="stat-card"><div class="sc-ic" style="background:rgba(34,197,94,.15)">💰</div>
+        <div><div class="sc-lbl">รวมทั้งหมด</div><div class="sc-val" style="color:var(--green)">${total.toLocaleString()}</div><div class="sc-unit">บาท</div></div></div>
+      <div class="stat-card"><div class="sc-ic" style="background:rgba(59,130,246,.15)">📅</div>
+        <div><div class="sc-lbl">ปีนี้</div><div class="sc-val" style="color:var(--blue)">${yrCost.toLocaleString()}</div><div class="sc-unit">บาท</div></div></div>
+      <div class="stat-card"><div class="sc-ic" style="background:rgba(249,115,22,.15)">📊</div>
+        <div><div class="sc-lbl">เฉลี่ยต่อครั้ง</div><div class="sc-val" style="color:var(--orange)">${avg.toLocaleString()}</div><div class="sc-unit">บาท</div></div></div>
+      <div class="stat-card"><div class="sc-ic" style="background:rgba(168,85,247,.15)">🔧</div>
+        <div><div class="sc-lbl">จำนวนครั้ง</div><div class="sc-val" style="color:var(--purple)">${reps.length}</div><div class="sc-unit">ครั้ง</div></div></div>
+    </div>
+    <div class="sec-hdr"><div class="sec-title">📊 แยกตามประเภท</div></div>
+    ${sorted.map(([type,cost])=>`
+      <div class="exp-type-row">
+        <div style="font-size:13px;font-weight:600;width:180px;flex-shrink:0">${type}</div>
+        <div class="exp-bar-wrap"><div class="exp-bar" style="width:${Math.round(cost/total*100)}%"></div></div>
+        <div style="font-size:12px;color:var(--t2);width:40px;text-align:right">${Math.round(cost/total*100)}%</div>
+        <div style="font-size:14px;font-weight:700;color:var(--green);width:100px;text-align:right">${cost.toLocaleString()} <span style="font-size:10px;color:var(--t2);font-weight:400">บาท</span></div>
+      </div>
+    `).join('')}
+  `;
+}
+
+// ══════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════
+function showPage(pgId, navEl, title) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nav-it').forEach(n=>n.classList.remove('on'));
+  document.querySelectorAll('.bn-it').forEach(n=>n.classList.remove('on'));
+  document.getElementById(pgId).classList.add('on');
+  if (navEl) navEl.classList.add('on');
+  document.getElementById('pgTitle').textContent = title||pgId;
+  if (pgId==='pgRepairs') { renderPickers(); renderRepairList(); }
+  if (pgId==='pgExpense') { renderPickers(); renderExpense(); }
+  if (pgId==='pgCars')    renderCarsGrid();
+  if (pgId==='pgHome')    renderHome();
+}
+
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.overlay').forEach(o => o.addEventListener('click', e => { if(e.target===o) o.classList.remove('open'); }));
+
+let toastTimer;
+function toast(msg, err=false) {
+  const el = document.getElementById('toast');
+  el.className = 'toast show' + (err?' err':'');
+  document.getElementById('toastMsg').textContent = msg;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>el.classList.remove('show'), 3000);
+}
+
+// ── Demo account hint ──
+document.getElementById('aEmail').value = '';
+document.getElementById('aPass').value  = '';
+</script>
+</body>
+</html>
