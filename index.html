@@ -535,16 +535,6 @@ function openEditCar(id, e) {
 
 function saveCar(){
 
-  const cars = carsDB[currUid] || [];
-
-  // จำกัดไม่เกิน 3 คัน (เฉพาะตอนเพิ่มใหม่)
-  if(!editingCarId && cars.length >= 3){
-    toast('เพิ่มรถได้สูงสุด 3 คันต่อบัญชี', true);
-    return;
-  }
-
-  // โค้ดบันทึกเดิม...
-}
   
   const brand = document.getElementById('cBrand').value.trim();
   const model = document.getElementById('cModel').value.trim();
