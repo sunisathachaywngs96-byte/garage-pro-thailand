@@ -6,17 +6,22 @@
 <title>Auto Expert</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg:#0d1117; --bg2:#161b22; --card:#1c2230; --card2:#222940;
-  --green:#22c55e; --blue:#3b82f6; --orange:#f97316; --yellow:#eab308;
-  --red:#ef4444; --purple:#a855f7;
-  --t1:#f0f6fc; --t2:#8b949e; --t3:#6e7681; --border:#30363d;
+:root{
+  --bg:#0d1117;--bg2:#161b22;--card:#1c2230;--card2:#222940;
+  --green:#22c55e;--blue:#3b82f6;--orange:#f97316;--yellow:#eab308;
+  --red:#ef4444;--purple:#a855f7;
+  --t1:#f0f6fc;--t2:#8b949e;--t3:#6e7681;--border:#30363d;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'IBM Plex Sans Thai',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;}
 
+/* LOADER */
+#loader{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:14px;}
+.spin{width:42px;height:42px;border:3px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
 /* AUTH */
-#authWrap{min-height:100vh;display:flex;align-items:center;justify-content:center;}
+#authWrap{display:none;min-height:100vh;align-items:center;justify-content:center;}
 .auth-box{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:36px;width:90%;max-width:420px;}
 .auth-logo{text-align:center;margin-bottom:24px;}
 .auth-logo .ic{font-size:52px;}
@@ -32,6 +37,7 @@ body{font-family:'IBM Plex Sans Thai',sans-serif;background:var(--bg);color:var(
 .auth-err{color:var(--red);font-size:12px;text-align:center;min-height:18px;margin-bottom:6px;}
 .btn-green{width:100%;background:var(--green);color:#000;border:none;padding:12px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s;}
 .btn-green:hover{background:#16a34a;}
+.btn-green:disabled{opacity:.5;cursor:not-allowed;}
 
 /* LAYOUT */
 #app{display:none;min-height:100vh;}
@@ -40,14 +46,17 @@ body{font-family:'IBM Plex Sans Thai',sans-serif;background:var(--bg);color:var(
 .logo-ic{width:38px;height:38px;background:linear-gradient(135deg,#22c55e,#16a34a);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
 .logo-t{font-size:13px;font-weight:700;}
 .logo-s{font-size:10px;color:var(--t2);}
-nav{flex:1;padding:10px 0;}
+nav{flex:1;padding:10px 0;overflow-y:auto;}
 .nav-it{display:flex;align-items:center;gap:11px;padding:10px 20px;cursor:pointer;color:var(--t2);font-size:13px;font-weight:500;transition:.2s;border-right:3px solid transparent;}
 .nav-it:hover{background:var(--card);color:var(--t1);}
 .nav-it.on{background:rgba(34,197,94,.1);color:var(--green);border-right-color:var(--green);}
 .sb-bot{padding:14px;border-top:1px solid var(--border);}
 .user-chip{background:var(--card);border-radius:12px;padding:11px;margin-bottom:8px;}
-.user-name-sb{font-size:12px;font-weight:600;}
-.user-em-sb{font-size:11px;color:var(--t2);word-break:break-all;margin-top:2px;}
+.u-name{font-size:12px;font-weight:600;}
+.u-email{font-size:11px;color:var(--t2);word-break:break-all;margin-top:2px;}
+.plan-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;margin-top:6px;}
+.plan-free{background:rgba(139,148,158,.15);color:var(--t2);}
+.plan-premium{background:rgba(234,179,8,.15);color:var(--yellow);}
 .btn-out{width:100%;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:var(--red);padding:8px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:.2s;}
 .btn-out:hover{background:rgba(239,68,68,.2);}
 .main{margin-left:230px;display:flex;flex-direction:column;min-height:100vh;}
@@ -60,6 +69,16 @@ nav{flex:1;padding:10px 0;}
 .page{display:none;}
 .page.on{display:block;}
 
+/* PLAN BANNER */
+.plan-banner{background:linear-gradient(135deg,rgba(234,179,8,.12),rgba(234,179,8,.04));border:1px solid rgba(234,179,8,.3);border-radius:14px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:22px;flex-wrap:wrap;}
+.plan-banner.premium{background:linear-gradient(135deg,rgba(168,85,247,.12),rgba(168,85,247,.04));border-color:rgba(168,85,247,.3);}
+.plan-banner-left{display:flex;align-items:center;gap:12px;}
+.plan-banner-ic{font-size:28px;}
+.plan-banner-title{font-size:14px;font-weight:700;}
+.plan-banner-sub{font-size:12px;color:var(--t2);margin-top:2px;}
+.upgrade-btn{background:linear-gradient(135deg,#eab308,#f59e0b);color:#000;border:none;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s;white-space:nowrap;}
+.upgrade-btn:hover{opacity:.9;transform:translateY(-1px);}
+
 /* STATS */
 .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
 .stat-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;display:flex;align-items:center;gap:12px;transition:.2s;}
@@ -69,7 +88,7 @@ nav{flex:1;padding:10px 0;}
 .sc-val{font-size:22px;font-weight:700;line-height:1;}
 .sc-unit{font-size:11px;color:var(--t2);}
 
-/* CARS GRID */
+/* CARS */
 .cars-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px;}
 .car-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;transition:.2s;position:relative;}
 .car-card:hover{border-color:rgba(34,197,94,.3);transform:translateY(-2px);}
@@ -82,7 +101,9 @@ nav{flex:1;padding:10px 0;}
 .ic-btn:hover{background:var(--card2);}
 .add-car-card{background:transparent;border:2px dashed var(--border);border-radius:16px;padding:20px;cursor:pointer;transition:.2s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:160px;color:var(--t2);font-size:13px;}
 .add-car-card:hover{border-color:var(--green);color:var(--green);}
-.plus-ic{font-size:32px;}
+.add-car-card.locked{border-color:rgba(234,179,8,.3);cursor:default;}
+.add-car-card.locked:hover{border-color:rgba(234,179,8,.5);color:var(--yellow);}
+.lock-ic{font-size:28px;}
 
 /* SECTION */
 .sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
@@ -97,7 +118,7 @@ nav{flex:1;padding:10px 0;}
 .cpick-btn{background:var(--card);border:1px solid var(--border);color:var(--t2);padding:5px 12px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;transition:.2s;}
 .cpick-btn.on{background:rgba(34,197,94,.15);border-color:var(--green);color:var(--green);}
 
-/* REPAIR LIST */
+/* REPAIR */
 .repair-list{display:flex;flex-direction:column;gap:9px;}
 .repair-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px 16px;display:flex;align-items:center;gap:12px;transition:.2s;}
 .repair-item:hover{background:var(--card2);}
@@ -109,8 +130,8 @@ nav{flex:1;padding:10px 0;}
 .r-meta{text-align:center;min-width:80px;flex-shrink:0;}
 .r-date{font-size:11px;color:var(--t2);}
 .r-km{font-size:11px;color:var(--t3);}
-.r-cost{font-size:15px;font-weight:700;white-space:nowrap;text-align:right;flex-shrink:0;}
-.r-cost u{font-size:10px;color:var(--t2);font-weight:400;text-decoration:none;}
+.r-cost{font-size:15px;font-weight:700;white-space:nowrap;flex-shrink:0;}
+.r-cost span{font-size:10px;color:var(--t2);font-weight:400;}
 .r-btns{display:flex;gap:4px;flex-shrink:0;}
 .edit-btn2{background:none;border:none;font-size:15px;cursor:pointer;padding:5px;border-radius:7px;color:var(--t3);transition:.2s;}
 .edit-btn2:hover{color:var(--blue);background:rgba(59,130,246,.1);}
@@ -122,14 +143,14 @@ nav{flex:1;padding:10px 0;}
 .empty-ic{font-size:36px;margin-bottom:8px;}
 
 /* EXPENSE */
-.exp-type-row{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:12px;margin-bottom:8px;}
+.exp-row{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:12px;margin-bottom:8px;}
 .exp-bar-wrap{flex:1;background:var(--bg);border-radius:6px;height:8px;overflow:hidden;}
 .exp-bar{height:8px;border-radius:6px;background:var(--green);}
 
 /* MODAL */
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:300;align-items:center;justify-content:center;}
 .overlay.open{display:flex;}
-.modal{background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:26px;width:92%;max-width:500px;animation:mIn .22s ease;max-height:92vh;overflow-y:auto;}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:26px;width:92%;max-width:520px;animation:mIn .22s ease;max-height:92vh;overflow-y:auto;}
 @keyframes mIn{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
 .modal-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
 .modal-title{font-size:16px;font-weight:700;}
@@ -138,34 +159,64 @@ nav{flex:1;padding:10px 0;}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .modal-btn{width:100%;background:var(--green);color:#000;border:none;padding:12px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;margin-top:8px;transition:.2s;font-family:inherit;}
 .modal-btn:hover{background:#16a34a;}
+.modal-btn:disabled{opacity:.5;cursor:not-allowed;}
 .btn-del-modal{width:100%;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:var(--red);padding:10px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;margin-top:6px;font-family:inherit;transition:.2s;}
 .btn-del-modal:hover{background:rgba(239,68,68,.2);}
+
+/* UPGRADE MODAL */
+.upgrade-modal{max-width:560px;}
+.plan-cards{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;}
+.plan-card{background:var(--card);border:2px solid var(--border);border-radius:14px;padding:20px;cursor:pointer;transition:.2s;position:relative;}
+.plan-card:hover{border-color:var(--green);}
+.plan-card.selected{border-color:var(--yellow);background:rgba(234,179,8,.06);}
+.plan-card-ic{font-size:32px;margin-bottom:8px;}
+.plan-card-name{font-size:15px;font-weight:700;margin-bottom:4px;}
+.plan-card-price{font-size:22px;font-weight:700;color:var(--green);margin-bottom:10px;}
+.plan-card-price span{font-size:12px;color:var(--t2);font-weight:400;}
+.plan-feat{font-size:12px;color:var(--t2);display:flex;flex-direction:column;gap:5px;}
+.plan-feat li{list-style:none;display:flex;align-items:center;gap:6px;}
+.plan-feat li::before{content:'✅';font-size:11px;}
+.plan-feat li.no::before{content:'❌';}
+.plan-selected-badge{position:absolute;top:10px;right:10px;background:var(--yellow);color:#000;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;}
+.pay-methods{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;}
+.pay-method{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:.2s;}
+.pay-method:hover{border-color:var(--green);}
+.pay-method.selected{border-color:var(--green);background:rgba(34,197,94,.06);}
+.pay-method-ic{font-size:24px;}
+.pay-method-name{font-size:13px;font-weight:600;}
+.pay-method-desc{font-size:11px;color:var(--t2);}
+.pay-confirm-btn{width:100%;background:linear-gradient(135deg,#eab308,#f59e0b);color:#000;border:none;padding:13px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s;}
+.pay-confirm-btn:hover{opacity:.9;}
+.pay-confirm-btn:disabled{opacity:.5;cursor:not-allowed;}
+.divider{height:1px;background:var(--border);margin:16px 0;}
 
 /* TOAST */
 .toast{position:fixed;bottom:26px;right:26px;background:var(--card);border:1px solid var(--green);color:var(--t1);padding:11px 18px;border-radius:12px;font-size:13px;font-weight:500;z-index:999;display:none;align-items:center;gap:8px;box-shadow:0 4px 20px rgba(0,0,0,.4);}
 .toast.show{display:flex;}
 .toast.err{border-color:var(--red);}
+.toast.gold{border-color:var(--yellow);}
 
-/* BOTTOM NAV mobile */
+/* BOTTOM NAV */
 .bnav{display:none;}
-
 @media(max-width:900px){.stats-row{grid-template-columns:repeat(2,1fr);}}
 @media(max-width:700px){
-  .sidebar{display:none;}
-  .main{margin-left:0;}
-  .content{padding:16px 14px 80px;}
-  .topbar{padding:12px 14px;}
-  .stats-row{grid-template-columns:1fr 1fr;gap:10px;}
-  .sc-val{font-size:18px;}
+  .sidebar{display:none;}.main{margin-left:0;}.content{padding:16px 14px 80px;}
+  .topbar{padding:12px 14px;}.stats-row{grid-template-columns:1fr 1fr;gap:10px;}.sc-val{font-size:18px;}
+  .plan-cards{grid-template-columns:1fr;}
   .bnav{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);padding:10px 0 18px;z-index:100;}
   .bn-it{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;color:var(--t2);font-size:10px;}
-  .bn-it.on{color:var(--green);}
-  .bn-ic{font-size:20px;}
+  .bn-it.on{color:var(--green);}.bn-ic{font-size:20px;}
   .bn-add{flex:0;width:50px;height:50px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;margin-top:-20px;box-shadow:0 4px 18px rgba(34,197,94,.4);cursor:pointer;font-size:22px;color:#000;}
 }
 </style>
 </head>
 <body>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="spin"></div>
+  <span style="font-size:13px;color:var(--t2)">กำลังเชื่อมต่อ Firebase...</span>
+</div>
 
 <!-- AUTH -->
 <div id="authWrap">
@@ -179,11 +230,11 @@ nav{flex:1;padding:10px 0;}
       <button class="tab on" id="tabLogin" onclick="switchTab('login')">เข้าสู่ระบบ</button>
       <button class="tab" id="tabReg" onclick="switchTab('reg')">สมัครสมาชิก</button>
     </div>
-    <div class="fi"><label>อีเมล</label><input type="email" id="aEmail" placeholder="you@email.com" onkeydown="if(event.key==='Enter')doAuth()"></div>
-    <div class="fi"><label>รหัสผ่าน</label><input type="password" id="aPass" placeholder="อย่างน้อย 6 ตัวอักษร" onkeydown="if(event.key==='Enter')doAuth()"></div>
+    <div class="fi"><label>อีเมล</label><input type="email" id="aEmail" placeholder="you@email.com"></div>
+    <div class="fi"><label>รหัสผ่าน</label><input type="password" id="aPass" placeholder="อย่างน้อย 6 ตัวอักษร"></div>
     <div id="regFields" style="display:none">
       <div class="fi"><label>ชื่อ-นามสกุล</label><input type="text" id="aName" placeholder="คุณเจียบ"></div>
-      <div class="fi"><label>ยืนยันรหัสผ่าน</label><input type="password" id="aPass2" placeholder="พิมพ์รหัสผ่านอีกครั้ง"></div>
+      <div class="fi"><label>ยืนยันรหัสผ่าน</label><input type="password" id="aPass2" placeholder="พิมพ์อีกครั้ง"></div>
     </div>
     <div class="auth-err" id="aErr"></div>
     <button class="btn-green" id="aSubmit" onclick="doAuth()">เข้าสู่ระบบ</button>
@@ -195,18 +246,20 @@ nav{flex:1;padding:10px 0;}
   <aside class="sidebar">
     <div class="logo">
       <div class="logo-ic">🚗</div>
-      <div><div class="logo-t">Auto Expert</div><div class="logo-s">ระบบดูแลรถยนต์</div></div>
+      <div><div class="logo-t">Auto Expert</div><div class="logo-s" id="sbPlanLabel">🔥 Firebase</div></div>
     </div>
     <nav>
       <div class="nav-it on" onclick="showPage('pgHome',this,'🏠 หน้าหลัก')"><span>🏠</span> หน้าหลัก</div>
       <div class="nav-it" onclick="showPage('pgCars',this,'🚘 รถของฉัน')"><span>🚘</span> รถของฉัน</div>
       <div class="nav-it" onclick="showPage('pgRepairs',this,'🔧 ประวัติการซ่อม')"><span>🔧</span> ประวัติการซ่อม</div>
       <div class="nav-it" onclick="showPage('pgExpense',this,'💸 ค่าใช้จ่าย')"><span>💸</span> ค่าใช้จ่าย</div>
+      <div class="nav-it" onclick="openModal('mUpgrade')"><span>👑</span> อัปเกรด Premium</div>
     </nav>
     <div class="sb-bot">
       <div class="user-chip">
-        <div class="user-name-sb" id="sbName">-</div>
-        <div class="user-em-sb" id="sbEmail">-</div>
+        <div class="u-name" id="sbName">-</div>
+        <div class="u-email" id="sbEmail">-</div>
+        <div class="plan-badge plan-free" id="sbPlanBadge">⭐ Free</div>
       </div>
       <button class="btn-out" onclick="doSignOut()">🚪 ออกจากระบบ</button>
     </div>
@@ -223,66 +276,51 @@ nav{flex:1;padding:10px 0;}
 
       <!-- HOME -->
       <div class="page on" id="pgHome">
+        <div id="homePlanBanner"></div>
         <div class="stats-row">
-          <div class="stat-card">
-            <div class="sc-ic" style="background:rgba(34,197,94,.15)">🚘</div>
-            <div><div class="sc-lbl">รถทั้งหมด</div><div class="sc-val" style="color:var(--green)" id="stCars">0</div><div class="sc-unit">คัน</div></div>
-          </div>
-          <div class="stat-card">
-            <div class="sc-ic" style="background:rgba(59,130,246,.15)">🔧</div>
-            <div><div class="sc-lbl">รายการซ่อม</div><div class="sc-val" style="color:var(--blue)" id="stRepairs">0</div><div class="sc-unit">รายการ</div></div>
-          </div>
-          <div class="stat-card">
-            <div class="sc-ic" style="background:rgba(34,197,94,.15)">💰</div>
-            <div><div class="sc-lbl">ค่าใช้จ่ายปีนี้</div><div class="sc-val" style="color:var(--green)" id="stCost">0</div><div class="sc-unit">บาท</div></div>
-          </div>
-          <div class="stat-card">
-            <div class="sc-ic" style="background:rgba(249,115,22,.15)">📅</div>
-            <div><div class="sc-lbl">ซ่อมล่าสุด</div><div class="sc-val" style="color:var(--orange);font-size:15px" id="stLast">-</div><div class="sc-unit">วันที่</div></div>
-          </div>
+          <div class="stat-card"><div class="sc-ic" style="background:rgba(34,197,94,.15)">🚘</div>
+            <div><div class="sc-lbl">รถทั้งหมด</div><div class="sc-val" style="color:var(--green)" id="stCars">0</div><div class="sc-unit">คัน</div></div></div>
+          <div class="stat-card"><div class="sc-ic" style="background:rgba(59,130,246,.15)">🔧</div>
+            <div><div class="sc-lbl">รายการซ่อม</div><div class="sc-val" style="color:var(--blue)" id="stRepairs">0</div><div class="sc-unit">รายการ</div></div></div>
+          <div class="stat-card"><div class="sc-ic" style="background:rgba(34,197,94,.15)">💰</div>
+            <div><div class="sc-lbl">ค่าใช้จ่ายปีนี้</div><div class="sc-val" style="color:var(--green)" id="stCost">0</div><div class="sc-unit">บาท</div></div></div>
+          <div class="stat-card"><div class="sc-ic" style="background:rgba(249,115,22,.15)">📅</div>
+            <div><div class="sc-lbl">ซ่อมล่าสุด</div><div class="sc-val" style="color:var(--orange);font-size:15px" id="stLast">-</div><div class="sc-unit">วันที่</div></div></div>
         </div>
         <div class="sec-hdr"><div class="sec-title">🔧 การซ่อมล่าสุด 5 รายการ</div></div>
-        <div class="repair-list" id="homeList"></div>
+        <div class="repair-list" id="homeList"><div class="empty"><div class="empty-ic">🔧</div>ยังไม่มีข้อมูล</div></div>
       </div>
 
       <!-- CARS -->
-      <div class="page" id="pgCars">
-        <div class="cars-grid" id="carsGrid"></div>
-      </div>
+      <div class="page" id="pgCars"><div class="cars-grid" id="carsGrid"></div></div>
 
       <!-- REPAIRS -->
       <div class="page" id="pgRepairs">
-        <div class="car-select-bar">
-          <span>🚘 เลือกรถ:</span>
-          <div class="car-picker" id="repPicker"></div>
-        </div>
+        <div class="car-select-bar"><span>🚘 เลือกรถ:</span><div class="car-picker" id="repPicker"></div></div>
         <div class="sec-hdr">
           <div class="sec-title">📋 ประวัติการซ่อม</div>
           <button class="add-btn" onclick="openAddRepair()">+ เพิ่มรายการ</button>
         </div>
-        <div class="repair-list" id="repairList"></div>
+        <div class="repair-list" id="repairList"><div class="empty"><div class="empty-ic">⏳</div>กำลังโหลด...</div></div>
       </div>
 
-      <!-- EXPENSE -->
+<!-- EXPENSE -->
       <div class="page" id="pgExpense">
-        <div class="car-select-bar">
-          <span>🚘 เลือกรถ:</span>
-          <div class="car-picker" id="expPicker"></div>
-        </div>
-        <div id="expContent"></div>
+        <div class="car-select-bar"><span>🚘 เลือกรถ:</span><div class="car-picker" id="expPicker"></div></div>
+        <div id="expContent"><div class="empty"><div class="empty-ic">💸</div>เลือกรถเพื่อดูค่าใช้จ่าย</div></div>
       </div>
 
     </div>
   </div>
 </div>
 
-<!-- BOTTOM NAV mobile -->
+<!-- BOTTOM NAV -->
 <nav class="bnav">
   <div class="bn-it on" onclick="showPage('pgHome',null,'🏠 หน้าหลัก')"><span class="bn-ic">🏠</span><span>หน้าหลัก</span></div>
   <div class="bn-it" onclick="showPage('pgCars',null,'🚘 รถของฉัน')"><span class="bn-ic">🚘</span><span>รถ</span></div>
   <div class="bn-add" onclick="openAddRepair()">+</div>
   <div class="bn-it" onclick="showPage('pgRepairs',null,'🔧 ซ่อม')"><span class="bn-ic">🔧</span><span>ซ่อม</span></div>
-  <div class="bn-it" onclick="showPage('pgExpense',null,'💸 ค่าใช้จ่าย')"><span class="bn-ic">💸</span><span>ค่าใช้จ่าย</span></div>
+  <div class="bn-it" onclick="openModal('mUpgrade')"><span class="bn-ic">👑</span><span>Premium</span></div>
 </nav>
 
 <!-- MODAL: รถ -->
@@ -313,7 +351,7 @@ nav{flex:1;padding:10px 0;}
         </select>
       </div>
     </div>
-    <button class="modal-btn" onclick="saveCar()">💾 บันทึก</button>
+    <button class="modal-btn" id="saveCarBtn" onclick="saveCar()">💾 บันทึก</button>
     <button class="btn-del-modal" id="delCarBtn" style="display:none" onclick="deleteCar()">🗑️ ลบรถคันนี้</button>
   </div>
 </div>
@@ -325,10 +363,8 @@ nav{flex:1;padding:10px 0;}
       <div class="modal-title" id="mRepTitle">🔧 เพิ่มการซ่อม</div>
       <button class="modal-x" onclick="closeModal('mRepair')">✕</button>
     </div>
-    <!-- เลือกรถ (สำหรับ add จากหน้า home) -->
     <div class="fi" id="repCarField">
-      <label>รถ *</label>
-      <select id="rCarId"></select>
+      <label>รถ *</label><select id="rCarId"></select>
     </div>
     <div class="fi"><label>ประเภทการซ่อม *</label><input id="rType" placeholder="เช่น เปลี่ยนน้ำมันเครื่อง"></div>
     <div class="form-row">
@@ -340,468 +376,654 @@ nav{flex:1;padding:10px 0;}
       <div class="fi"><label>อู่/ศูนย์บริการ</label><input id="rShop" placeholder="Auto Expert Garage"></div>
     </div>
     <div class="fi"><label>หมายเหตุ</label><input id="rNote" placeholder="รายละเอียดเพิ่มเติม (ไม่บังคับ)"></div>
-    <button class="modal-btn" onclick="saveRepair()">💾 บันทึก</button>
-    <button class="btn-del-modal" id="delRepBtn" style="display:none" onclick="deleteRepairFromModal()">🗑️ ลบรายการนี้</button>
+    <button class="modal-btn" id="saveRepBtn" onclick="saveRepair()">💾 บันทึก</button>
+    <button class="btn-del-modal" id="delRepBtn" style="display:none" onclick="deleteRepairModal()">🗑️ ลบรายการนี้</button>
+  </div>
+</div>
+
+<!-- MODAL: UPGRADE PREMIUM -->
+<div class="overlay" id="mUpgrade">
+  <div class="modal upgrade-modal">
+    <div class="modal-hdr">
+      <div class="modal-title">👑 อัปเกรด Premium</div>
+      <button class="modal-x" onclick="closeModal('mUpgrade')">✕</button>
+    </div>
+
+    <!-- แผน -->
+    <div class="plan-cards">
+      <div class="plan-card" id="planFreeCard">
+        <div class="plan-card-ic">⭐</div>
+        <div class="plan-card-name">Free</div>
+        <div class="plan-card-price">ฟรี <span>/ ตลอดไป</span></div>
+        <ul class="plan-feat">
+          <li>รถได้สูงสุด 3 คัน</li>
+          <li>ประวัติการซ่อมไม่จำกัด</li>
+          <li>ดูค่าใช้จ่าย</li>
+          <li class="no">ไม่มีรายงาน PDF</li>
+          <li class="no">ไม่มีแจ้งเตือนอัตโนมัติ</li>
+          <li class="no">ไม่มีรถไม่จำกัด</li>
+        </ul>
+      </div>
+      <div class="plan-card selected" id="planPremiumCard" onclick="selectPlan('premium')">
+        <div class="plan-selected-badge">แนะนำ</div>
+        <div class="plan-card-ic">👑</div>
+        <div class="plan-card-name">Premium</div>
+        <div class="plan-card-price" id="premiumPrice">299 <span>บาท / เดือน</span></div>
+        <ul class="plan-feat">
+          <li>รถไม่จำกัดจำนวน</li>
+          <li>ประวัติการซ่อมไม่จำกัด</li>
+          <li>ดูค่าใช้จ่าย</li>
+          <li>รายงาน PDF</li>
+          <li>แจ้งเตือนการซ่อมอัตโนมัติ</li>
+          <li>Priority Support</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ระยะเวลา -->
+    <div style="display:flex;gap:8px;margin-bottom:16px;">
+      <button class="cpick-btn on" id="dur1" onclick="selectDur(1,299,'เดือน')">1 เดือน — 299 ฿</button>
+      <button class="cpick-btn" id="dur3" onclick="selectDur(3,799,'3 เดือน')">3 เดือน — 799 ฿</button>
+      <button class="cpick-btn" id="dur12" onclick="selectDur(12,2499,'ปี')">1 ปี — 2,499 ฿</button>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ช่องทางชำระเงิน -->
+    <div style="font-size:13px;font-weight:700;margin-bottom:10px;">💳 เลือกช่องทางชำระเงิน</div>
+    <div class="pay-methods">
+      <div class="pay-method selected" id="payPromptpay" onclick="selectPay('promptpay')">
+        <div class="pay-method-ic">📱</div>
+        <div><div class="pay-method-name">พร้อมเพย์ / QR Code</div><div class="pay-method-desc">สแกน QR ผ่านแอปธนาคาร</div></div>
+      </div>
+      <div class="pay-method" id="payTransfer" onclick="selectPay('transfer')">
+        <div class="pay-method-ic">🏦</div>
+        <div><div class="pay-method-name">โอนเงินธนาคาร</div><div class="pay-method-desc">กสิกร / SCB / กรุงไทย</div></div>
+      </div>
+      <div class="pay-method" id="payCard" onclick="selectPay('card')">
+        <div class="pay-method-ic">💳</div>
+        <div><div class="pay-method-name">บัตรเครดิต / เดบิต</div><div class="pay-method-desc">Visa, Mastercard, JCB</div></div>
+      </div>
+    </div>
+
+    <!-- สรุป -->
+    <div style="background:var(--card);border-radius:12px;padding:14px;margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;">
+        <span style="color:var(--t2)">แผน</span><span id="summaryPlan">Premium 1 เดือน</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;">
+        <span style="color:var(--t2)">ช่องทาง</span><span id="summaryPay">พร้อมเพย์ / QR Code</span>
+      </div>
+      <div style="height:1px;background:var(--border);margin:8px 0;"></div>
+      <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:700;">
+        <span>ยอดรวม</span><span style="color:var(--yellow)" id="summaryTotal">299 บาท</span>
+      </div>
+    </div>
+
+    <button class="pay-confirm-btn" id="payConfirmBtn" onclick="confirmUpgrade()">
+      👑 ยืนยันการอัปเกรด Premium
+    </button>
+    <p style="font-size:11px;color:var(--t3);text-align:center;margin-top:10px;">
+      * สำหรับการทดสอบ กดยืนยันเพื่อเปิดใช้งาน Premium ได้เลย
+    </p>
   </div>
 </div>
 
 <!-- TOAST -->
 <div class="toast" id="toast"><span id="toastMsg"></span></div>
-<script>
-// ══════════════════════════════════════════
-//  STATE  (In-memory, no Firebase)
-// ══════════════════════════════════════════
-let users   = JSON.parse(localStorage.getItem('ae_users')   || '{}');
-let carsDB  = JSON.parse(localStorage.getItem('ae_cars')    || '{}'); // { uid: [car,...] }
-let repDB   = JSON.parse(localStorage.getItem('ae_repairs') || '{}'); // { uid: [rep,...] }
 
-let currentUser = null;   // { uid, email, name }
-let selCarId    = null;   // repairs page
-let expCarId    = null;   // expense page
-let editCarId   = null;
-let editRepId   = null;
+<!-- ════════════════════════════════════════
+     FIREBASE + APP LOGIC
+════════════════════════════════════════ -->
+<script type="module">
+import { initializeApp }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged,
+         signInWithEmailAndPassword,
+         createUserWithEmailAndPassword,
+         updateProfile, signOut }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, doc,
+         addDoc, setDoc, getDoc, getDocs, deleteDoc,
+         query, orderBy, where, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const save = () => {
-  localStorage.setItem('ae_users',   JSON.stringify(users));
-  localStorage.setItem('ae_cars',    JSON.stringify(carsDB));
-  localStorage.setItem('ae_repairs', JSON.stringify(repDB));
+// ── Config ───────────────────────────────
+const firebaseConfig = {
+  apiKey:            "AIzaSyDAfm7eDJPFiWrUK_U0aqS7yl2Wt_PpjmA",
+  authDomain:        "garage-system-41587.firebaseapp.com",
+  projectId:         "garage-system-41587",
+  storageBucket:     "garage-system-41587.firebasestorage.app",
+  messagingSenderId: "688480145767",
+  appId:             "1:688480145767:web:9bfba3df045ca434d91fc2",
+  measurementId:     "G-30329DLNXE"
 };
-const uid  = () => currentUser.uid;
-const myCars   = () => carsDB[uid()]  || [];
-const myReps   = () => repDB[uid()]   || [];
-const setMyCars = v => { carsDB[uid()]  = v; save(); };
-const setMyReps = v => { repDB[uid()]   = v; save(); };
-const newId = () => '_' + Math.random().toString(36).slice(2,10);
-const today = () => new Date().toISOString().split('T')[0];
 
-// ══════════════════════════════════════════
+const fbApp = initializeApp(firebaseConfig);
+const auth  = getAuth(fbApp);
+const db    = getFirestore(fbApp);
+
+// ── State ─────────────────────────────────
+let UID          = null;
+let userPlan     = 'free';   // 'free' | 'premium'
+let carsCache    = [];
+let repsCache    = [];
+let selCarId     = null;
+let expCarId     = null;
+let editCarId    = null;
+let editRepId    = null;
+let editRepCarId = null;
+
+const FREE_CAR_LIMIT = 3;
+
+// ── Firestore helpers ─────────────────────
+const uCol = (s)    => collection(db,'users',UID,s);
+const uDoc = (s,id) => doc(db,'users',UID,s,id);
+const uPro = ()     => doc(db,'users',UID);
+
+// ── UI helpers ────────────────────────────
+let _tt;
+function toast(msg,type=''){
+  const el=document.getElementById('toast');
+  el.className='toast show'+(type?' '+type:'');
+  document.getElementById('toastMsg').textContent=msg;
+  clearTimeout(_tt); _tt=setTimeout(()=>el.classList.remove('show'),3200);
+}
+function busy(id,on,txt='💾 บันทึก'){
+  const b=document.getElementById(id); if(!b)return;
+  b.disabled=on; b.textContent=on?'⏳ กำลังบันทึก...':txt;
+}
+const today=()=>new Date().toISOString().split('T')[0];
+const CAR_IC=['🚗','🚙','🛻','🚐','🏎️','🚕','🚌','🏍️','🚑','🚒'];
+const REP_IC=['🛢️','🔧','🔋','🔘','💨','⚙️','🚿','🛞','🔩','🪛'];
+const isPremium=()=>userPlan==='premium';
+
+// ════════════════════════════════════════
 //  AUTH
-// ══════════════════════════════════════════
-let authMode = 'login';
-function switchTab(m) {
-  authMode = m;
-  document.getElementById('tabLogin').classList.toggle('on', m==='login');
-  document.getElementById('tabReg').classList.toggle('on', m==='reg');
-  document.getElementById('aSubmit').textContent = m==='login' ? 'เข้าสู่ระบบ' : 'สมัครสมาชิก';
-  document.getElementById('regFields').style.display = m==='reg' ? 'block' : 'none';
-  document.getElementById('aErr').textContent = '';
+// ════════════════════════════════════════
+let authMode='login';
+window.switchTab=m=>{
+  authMode=m;
+  document.getElementById('tabLogin').classList.toggle('on',m==='login');
+  document.getElementById('tabReg').classList.toggle('on',m==='reg');
+  document.getElementById('aSubmit').textContent=m==='login'?'เข้าสู่ระบบ':'สมัครสมาชิก';
+  document.getElementById('regFields').style.display=m==='reg'?'block':'none';
+  document.getElementById('aErr').textContent='';
+};
+
+window.doAuth=async()=>{
+  const email=document.getElementById('aEmail').value.trim();
+  const pass =document.getElementById('aPass').value;
+  const err  =document.getElementById('aErr');
+  err.textContent='';
+  if(!email||!pass){err.textContent='กรุณากรอกอีเมลและรหัสผ่าน';return;}
+  const MAP={
+    'auth/user-not-found':'ไม่พบบัญชีนี้',
+    'auth/wrong-password':'รหัสผ่านไม่ถูกต้อง',
+    'auth/invalid-credential':'อีเมลหรือรหัสผ่านไม่ถูกต้อง',
+    'auth/email-already-in-use':'อีเมลนี้มีผู้ใช้งานแล้ว',
+    'auth/weak-password':'รหัสผ่านต้องมีอย่างน้อย 6 ตัว',
+    'auth/invalid-email':'รูปแบบอีเมลไม่ถูกต้อง',
+    'auth/too-many-requests':'พยายามเข้าระบบบ่อยเกินไป รอสักครู่',
+  };
+  document.getElementById('aSubmit').disabled=true;
+  try{
+    if(authMode==='reg'){
+      const name=document.getElementById('aName').value.trim()||email.split('@')[0];
+      const p2  =document.getElementById('aPass2').value;
+      if(pass!==p2){err.textContent='รหัสผ่านไม่ตรงกัน';return;}
+      const c=await createUserWithEmailAndPassword(auth,email,pass);
+      await updateProfile(c.user,{displayName:name});
+      await setDoc(uPro.call({UID:c.user.uid}),{name,email,plan:'free',createdAt:serverTimestamp()});
+    }else{
+      await signInWithEmailAndPassword(auth,email,pass);
+    }
+  }catch(e){err.textContent=MAP[e.code]||e.message;}
+  finally{document.getElementById('aSubmit').disabled=false;}
+};
+
+window.doSignOut=async()=>{
+  await signOut(auth);
+  carsCache=[];repsCache=[];selCarId=null;expCarId=null;userPlan='free';
+  toast('👋 ออกจากระบบแล้ว');
+};
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&document.getElementById('authWrap').style.display==='flex') window.doAuth();
+});
+
+// ── Auth state ────────────────────────────
+onAuthStateChanged(auth,async user=>{
+  document.getElementById('loader').style.display='none';
+  if(user){
+    UID=user.uid;
+    const name=user.displayName||user.email.split('@')[0];
+    document.getElementById('authWrap').style.display='none';
+    document.getElementById('app').style.display='block';
+    document.getElementById('sbName').textContent=name;
+    document.getElementById('sbEmail').textContent=user.email;
+    document.getElementById('pgSub').textContent=`ยินดีต้อนรับ, ${name}`;
+    await loadUserPlan();
+    await loadAll();
+  }else{
+    UID=null;
+    document.getElementById('authWrap').style.display='flex';
+    document.getElementById('app').style.display='none';
+  }
+});
+
+// ════════════════════════════════════════
+//  PLAN
+// ════════════════════════════════════════
+async function loadUserPlan(){
+  try{
+    const snap=await getDoc(doc(db,'users',UID));
+    if(snap.exists()) userPlan=snap.data().plan||'free';
+    else{ await setDoc(doc(db,'users',UID),{plan:'free',createdAt:serverTimestamp()}); userPlan='free'; }
+  }catch(e){ userPlan='free'; }
+  updatePlanUI();
 }
 
-function doAuth() {
-  const email = document.getElementById('aEmail').value.trim();
-  const pass  = document.getElementById('aPass').value;
-  const errEl = document.getElementById('aErr');
-  errEl.textContent = '';
-  if (!email || !pass) { errEl.textContent = 'กรุณากรอกอีเมลและรหัสผ่าน'; return; }
-
-  if (authMode === 'reg') {
-    const name  = document.getElementById('aName').value.trim() || email.split('@')[0];
-    const pass2 = document.getElementById('aPass2').value;
-    if (pass.length < 6) { errEl.textContent = 'รหัสผ่านต้องมีอย่างน้อย 6 ตัว'; return; }
-    if (pass !== pass2)  { errEl.textContent = 'รหัสผ่านไม่ตรงกัน'; return; }
-    if (Object.values(users).find(u => u.email === email)) { errEl.textContent = 'อีเมลนี้มีผู้ใช้งานแล้ว'; return; }
-    const uid = newId();
-    users[uid] = { uid, email, name, pass };
-    save();
-    loginAs(users[uid]);
-  } else {
-    const user = Object.values(users).find(u => u.email === email);
-    if (!user)           { errEl.textContent = 'ไม่พบบัญชีนี้'; return; }
-    if (user.pass !== pass) { errEl.textContent = 'รหัสผ่านไม่ถูกต้อง'; return; }
-    loginAs(user);
+function updatePlanUI(){
+  const badge=document.getElementById('sbPlanBadge');
+  const label=document.getElementById('sbPlanLabel');
+  if(isPremium()){
+    badge.className='plan-badge plan-premium'; badge.textContent='👑 Premium';
+    label.textContent='👑 Premium Member';
+  }else{
+    badge.className='plan-badge plan-free'; badge.textContent='⭐ Free';
+    label.textContent='🔥 Firebase Connected';
   }
 }
 
-function loginAs(user) {
-  currentUser = user;
-  function loginAs(user) {
-  currentUser = user;
-
-  localStorage.setItem('ae_current_user', user.uid);
-
-  document.getElementById('authWrap').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-
-  ...
+function renderPlanBanner(){
+  const el=document.getElementById('homePlanBanner');
+  if(isPremium()){
+    el.innerHTML=`<div class="plan-banner premium">
+      <div class="plan-banner-left">
+        <div class="plan-banner-ic">👑</div>
+        <div><div class="plan-banner-title">Premium Member</div>
+        <div class="plan-banner-sub">คุณใช้งาน Premium อยู่ — รถไม่จำกัด ฟีเจอร์ครบ</div></div>
+      </div>
+    </div>`;
+  }else{
+    const used=carsCache.length;
+    el.innerHTML=`<div class="plan-banner">
+      <div class="plan-banner-left">
+        <div class="plan-banner-ic">⭐</div>
+        <div><div class="plan-banner-title">แผน Free — ใช้รถแล้ว ${used}/${FREE_CAR_LIMIT} คัน</div>
+        <div class="plan-banner-sub">อัปเกรด Premium เพื่อเพิ่มรถไม่จำกัด + ฟีเจอร์พิเศษ</div></div>
+      </div>
+      <button class="upgrade-btn" onclick="openModal('mUpgrade')">👑 อัปเกรดเลย</button>
+    </div>`;
   }
-  document.getElementById('authWrap').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  document.getElementById('sbName').textContent  = user.name || user.email.split('@')[0];
-  document.getElementById('sbEmail').textContent = user.email;
-  document.getElementById('pgSub').textContent   = `ยินดีต้อนรับ, ${user.name || user.email.split('@')[0]}`;
-  if (!carsDB[uid()]) setMyCars([]);
-  if (!repDB[uid()])  setMyReps([]);
-  if (myCars().length) { selCarId = myCars()[0].id; expCarId = myCars()[0].id; }
+}
+
+// ── Upgrade state ─────────────────────────
+let selectedPlan='premium';
+let selectedDur=1;
+let selectedDurPrice=299;
+let selectedDurLabel='เดือน';
+let selectedPay='promptpay';
+const payLabels={'promptpay':'พร้อมเพย์ / QR Code','transfer':'โอนเงินธนาคาร','card':'บัตรเครดิต / เดบิต'};
+
+window.selectPlan=p=>{selectedPlan=p;};
+window.selectDur=(months,price,label)=>{
+  selectedDur=months; selectedDurPrice=price; selectedDurLabel=label;
+  ['dur1','dur3','dur12'].forEach(id=>document.getElementById(id).classList.remove('on'));
+  document.getElementById('dur'+months).classList.add('on');
+  document.getElementById('premiumPrice').innerHTML=`${price.toLocaleString()} <span>บาท / ${label}</span>`;
+  updateSummary();
+};
+window.selectPay=p=>{
+  selectedPay=p;
+  document.querySelectorAll('.pay-method').forEach(el=>el.classList.remove('selected'));
+  document.getElementById('pay'+p.charAt(0).toUpperCase()+p.slice(1)).classList.add('selected');
+  updateSummary();
+};
+function updateSummary(){
+  document.getElementById('summaryPlan').textContent=`Premium ${selectedDurLabel}`;
+  document.getElementById('summaryPay').textContent=payLabels[selectedPay];
+  document.getElementById('summaryTotal').textContent=`${selectedDurPrice.toLocaleString()} บาท`;
+}
+
+window.confirmUpgrade=async()=>{
+  const btn=document.getElementById('payConfirmBtn');
+  btn.disabled=true; btn.textContent='⏳ กำลังดำเนินการ...';
+  try{
+    // คำนวณวันหมดอายุ
+    const exp=new Date();
+    exp.setMonth(exp.getMonth()+selectedDur);
+    await setDoc(doc(db,'users',UID),{
+      plan:'premium',
+      planExpire:exp.toISOString(),
+      planDuration:selectedDur,
+      planPrice:selectedDurPrice,
+      payMethod:selectedPay,
+      upgradedAt:serverTimestamp()
+    },{merge:true});
+    userPlan='premium';
+    updatePlanUI();
+    renderPlanBanner();
+    renderCarsGrid();
+    closeModal('mUpgrade');
+    toast('🎉 ยินดีด้วย! อัปเกรดเป็น Premium แล้ว!','gold');
+  }catch(e){ toast('❌ '+e.message,'err'); }
+  btn.disabled=false; btn.textContent='👑 ยืนยันการอัปเกรด Premium';
+};
+
+// ════════════════════════════════════════
+//  LOAD
+// ════════════════════════════════════════
+async function loadAll(){
+  await Promise.all([loadCars(),loadRepairs()]);
   renderAll();
 }
-function doSignOut() {
-
-  localStorage.removeItem('ae_current_user');
-
-  currentUser = null;
-  selCarId = null;
-  expCarId = null;
-
-  document.getElementById('app').style.display = 'none';
-  document.getElementById('authWrap').style.display = 'flex';
-
-  ...
+async function loadCars(){
+  const s=await getDocs(query(uCol('cars'),orderBy('createdAt','asc')));
+  carsCache=s.docs.map(d=>({id:d.id,...d.data()}));
+  if(carsCache.length&&!selCarId) selCarId=carsCache[0].id;
+  if(carsCache.length&&!expCarId) expCarId=carsCache[0].id;
 }
-function doSignOut() {
-  currentUser = null; selCarId = null; expCarId = null;
-  document.getElementById('app').style.display  = 'none';
-  document.getElementById('authWrap').style.display = 'flex';
-  document.getElementById('aEmail').value = '';
-  document.getElementById('aPass').value  = '';
-  document.getElementById('aErr').textContent = '';
-  toast('👋 ออกจากระบบแล้ว');
+async function loadRepairs(){
+  const s=await getDocs(query(uCol('repairs'),orderBy('date','desc')));
+  repsCache=s.docs.map(d=>({id:d.id,...d.data()}));
 }
 
-// ══════════════════════════════════════════
-//  RENDER ALL
-// ══════════════════════════════════════════
-function renderAll() {
-  renderHome();
-  renderCarsGrid();
-  renderPickers();
-  renderRepairList();
-  renderExpense();
+// ════════════════════════════════════════
+//  RENDER
+// ════════════════════════════════════════
+function renderAll(){
+  renderHome(); renderCarsGrid(); renderPickers(); renderRepairList(); renderExpense();
 }
 
-// ══════════════════════════════════════════
-//  HOME
-// ══════════════════════════════════════════
-function renderHome() {
-  const reps  = myReps();
-  const cars  = myCars();
-  const yr    = new Date().getFullYear().toString();
-  const cost  = reps.filter(r => (r.date||'').startsWith(yr)).reduce((s,r) => s+Number(r.cost||0), 0);
-  document.getElementById('stCars').textContent    = cars.length;
-  document.getElementById('stRepairs').textContent = reps.length;
-  document.getElementById('stCost').textContent    = cost.toLocaleString();
-  document.getElementById('stLast').textContent    = reps.length ? reps[reps.length-1].date||'-' : '-';
-
-  const top5 = [...reps].reverse().slice(0,5);
-  const icons = ['🛢️','🔧','🔋','🔘','💨'];
-  const list  = document.getElementById('homeList');
-  if (!top5.length) { list.innerHTML='<div class="empty"><div class="empty-ic">🔧</div>ยังไม่มีข้อมูลการซ่อม</div>'; return; }
-  list.innerHTML = top5.map((r,i) => {
-    const car = cars.find(c=>c.id===r.carId);
-    return `<div class="repair-item">
-      <div class="r-ic">${icons[i%icons.length]}</div>
-      <div class="r-main">
-        <div class="r-name">${r.type||'-'}</div>
-        <div class="r-shop">${car ? car.brand+' '+car.model : ''} ${r.shop ? '· '+r.shop : ''}</div>
-      </div>
+function renderHome(){
+  renderPlanBanner();
+  const yr=new Date().getFullYear().toString();
+  const cost=repsCache.filter(r=>(r.date||'').startsWith(yr)).reduce((s,r)=>s+Number(r.cost||0),0);
+  document.getElementById('stCars').textContent=carsCache.length;
+  document.getElementById('stRepairs').textContent=repsCache.length;
+  document.getElementById('stCost').textContent=cost.toLocaleString();
+  document.getElementById('stLast').textContent=repsCache.length?repsCache[0].date||'-':'-';
+  const top5=repsCache.slice(0,5);
+  const list=document.getElementById('homeList');
+  if(!top5.length){list.innerHTML='<div class="empty"><div class="empty-ic">🔧</div>ยังไม่มีข้อมูลการซ่อม</div>';return;}
+  list.innerHTML=top5.map((r,i)=>{
+    const car=carsCache.find(c=>c.id===r.carId);
+    return`<div class="repair-item">
+      <div class="r-ic">${REP_IC[i%REP_IC.length]}</div>
+      <div class="r-main"><div class="r-name">${r.type||'-'}</div>
+      <div class="r-shop">${car?car.brand+' '+car.model:''}${r.shop?' · '+r.shop:''}</div></div>
       <div class="r-meta"><div class="r-date">${r.date||'-'}</div></div>
-      <div class="r-cost">${Number(r.cost||0).toLocaleString()} <u>บาท</u></div>
+      <div class="r-cost">${Number(r.cost||0).toLocaleString()} <span>บาท</span></div>
     </div>`;
   }).join('');
 }
 
-// ══════════════════════════════════════════
-//  CARS
-// ══════════════════════════════════════════
-const carIcons = ['🚗','🚙','🛻','🚐','🏎️','🚕','🚌','🚑'];
-function renderCarsGrid() {
-  const g = document.getElementById('carsGrid');
-  g.innerHTML = '';
-  myCars().forEach((c,i) => {
-    const d = document.createElement('div');
-    d.className = 'car-card';
-    d.innerHTML = `
-      <div class="car-actions">
-        <button class="ic-btn" title="แก้ไข" onclick="openEditCar('${c.id}',event)">✏️</button>
-      </div>
-      <div class="car-ic-big">${carIcons[i%carIcons.length]}</div>
+function renderCarsGrid(){
+  const g=document.getElementById('carsGrid'); g.innerHTML='';
+  carsCache.forEach((c,i)=>{
+    const d=document.createElement('div'); d.className='car-card';
+    d.innerHTML=`
+      <div class="car-actions"><button class="ic-btn" onclick="openEditCar('${c.id}',event)">✏️</button></div>
+      <div class="car-ic-big">${CAR_IC[i%CAR_IC.length]}</div>
       <h3>${c.brand||''} ${c.model||''}</h3>
       <div class="plate-tag">🚘 ${c.plate||'-'} ${c.province||''}</div>
       <div class="car-meta">ปี ${c.year||'-'} · ${c.fuel||'-'}</div>
-      <div class="car-meta">เลขไมล์: ${c.mileage ? Number(c.mileage).toLocaleString()+' กม.' : '-'}</div>
-    `;
+      <div class="car-meta">เลขไมล์: ${c.mileage?Number(c.mileage).toLocaleString()+' กม.':'-'}</div>`;
     g.appendChild(d);
   });
-  const add = document.createElement('div');
-  add.className = 'add-car-card';
-  add.onclick = openAddCar;
-  add.innerHTML = `<div class="plus-ic">➕</div><span>เพิ่มรถคันใหม่</span>`;
+
+    // ปุ่มเพิ่มรถ
+  const canAdd = isPremium() || carsCache.length < FREE_CAR_LIMIT;
+  const add=document.createElement('div');
+  if(canAdd){
+    add.className='add-car-card'; add.onclick=openAddCar;
+    add.innerHTML='<div style="font-size:32px">➕</div><span>เพิ่มรถคันใหม่</span>';
+  }else{
+    add.className='add-car-card locked'; add.onclick=()=>openModal('mUpgrade');
+    add.innerHTML=`<div class="lock-ic">🔒</div>
+      <span style="font-weight:600;color:var(--yellow)">ครบ ${FREE_CAR_LIMIT} คันแล้ว</span>
+      <span style="font-size:12px;color:var(--t2)">อัปเกรด Premium เพื่อเพิ่มรถได้ไม่จำกัด</span>
+      <button style="background:linear-gradient(135deg,#eab308,#f59e0b);color:#000;border:none;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;margin-top:4px">👑 อัปเกรดเลย</button>`;
+  }
   g.appendChild(add);
 }
 
-function openAddCar() {
-  editCarId = null;
-  document.getElementById('mCarTitle').textContent = '🚘 เพิ่มรถใหม่';
-  document.getElementById('delCarBtn').style.display = 'none';
-  ['cBrand','cModel','cYear','cColor','cPlate','cProvince','cMile'].forEach(id => document.getElementById(id).value='');
-  document.getElementById('cFuel').value = 'เบนซิน';
-  openModal('mCar');
-}
-
-function openEditCar(id, e) {
-  e && e.stopPropagation();
-  const c = myCars().find(x=>x.id===id);
-  if (!c) return;
-  editCarId = id;
-  document.getElementById('mCarTitle').textContent = '✏️ แก้ไขข้อมูลรถ';
-  document.getElementById('delCarBtn').style.display = 'block';
-  document.getElementById('cBrand').value    = c.brand||'';
-  document.getElementById('cModel').value    = c.model||'';
-  document.getElementById('cYear').value     = c.year||'';
-  document.getElementById('cColor').value    = c.color||'';
-  document.getElementById('cPlate').value    = c.plate||'';
-  document.getElementById('cProvince').value = c.province||'';
-  document.getElementById('cMile').value     = c.mileage||'';
-  document.getElementById('cFuel').value     = c.fuel||'เบนซิน';
-  openModal('mCar');
-}
-
- function saveCar(){
-
-  const cars = carsDB[currUid] || [];
-
-  
-  const brand = document.getElementById('cBrand').value.trim();
-  const model = document.getElementById('cModel').value.trim();
-  if (!brand||!model) { toast('⚠️ กรุณากรอกยี่ห้อและรุ่น', true); return; }
-  const data = {
-    brand, model,
-    year:     document.getElementById('cYear').value,
-    color:    document.getElementById('cColor').value,
-    plate:    document.getElementById('cPlate').value,
-    province: document.getElementById('cProvince').value,
-    mileage:  Number(document.getElementById('cMile').value)||0,
-    fuel:     document.getElementById('cFuel').value,
-  };
-  let cars = myCars();
-  if (editCarId) {
-    cars = cars.map(c => c.id===editCarId ? {...c,...data} : c);
-    toast('✅ อัปเดตข้อมูลรถแล้ว');
-  } else {
-    data.id = newId();
-    cars.push(data);
-    if (!selCarId) selCarId = data.id;
-    if (!expCarId) expCarId = data.id;
-    toast('✅ เพิ่มรถใหม่แล้ว');
+window.openAddCar=()=>{
+  if(!isPremium()&&carsCache.length>=FREE_CAR_LIMIT){
+    toast('🔒 ครบ 3 คันแล้ว อัปเกรด Premium เพื่อเพิ่มรถได้ไม่จำกัด','err');
+    openModal('mUpgrade'); return;
   }
-  setMyCars(cars);
-  closeModal('mCar');
-  renderAll();
-}
+  editCarId=null;
+  document.getElementById('mCarTitle').textContent='🚘 เพิ่มรถใหม่';
+  document.getElementById('delCarBtn').style.display='none';
+  ['cBrand','cModel','cYear','cColor','cPlate','cProvince','cMile'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('cFuel').value='เบนซิน';
+  openModal('mCar');
+};
 
-function deleteCar() {
-  if (!editCarId) return;
-  if (!confirm('ลบรถคันนี้? ประวัติการซ่อมทั้งหมดของรถคันนี้จะถูกลบด้วย')) return;
-  setMyCars(myCars().filter(c=>c.id!==editCarId));
-  setMyReps(myReps().filter(r=>r.carId!==editCarId));
-  if (selCarId===editCarId) selCarId = myCars()[0]?.id||null;
-  if (expCarId===editCarId) expCarId = myCars()[0]?.id||null;
-  toast('🗑️ ลบรถแล้ว');
-  closeModal('mCar');
-  renderAll();
-}
+window.openEditCar=(id,e)=>{
+  e&&e.stopPropagation();
+  const c=carsCache.find(x=>x.id===id); if(!c)return;
+  editCarId=id;
+  document.getElementById('mCarTitle').textContent='✏️ แก้ไขข้อมูลรถ';
+  document.getElementById('delCarBtn').style.display='block';
+  document.getElementById('cBrand').value=c.brand||'';
+  document.getElementById('cModel').value=c.model||'';
+  document.getElementById('cYear').value=c.year||'';
+  document.getElementById('cColor').value=c.color||'';
+  document.getElementById('cPlate').value=c.plate||'';
+  document.getElementById('cProvince').value=c.province||'';
+  document.getElementById('cMile').value=c.mileage||'';
+  document.getElementById('cFuel').value=c.fuel||'เบนซิน';
+  openModal('mCar');
+};
 
-// ══════════════════════════════════════════
-//  PICKERS
-// ══════════════════════════════════════════
-function renderPickers() {
-  renderPicker('repPicker', false);
-  renderPicker('expPicker', true);
-}
+window.saveCar=async()=>{
+  const brand=document.getElementById('cBrand').value.trim();
+  const model=document.getElementById('cModel').value.trim();
+  if(!brand||!model){toast('⚠️ กรุณากรอกยี่ห้อและรุ่น','err');return;}
+  if(!editCarId&&!isPremium()&&carsCache.length>=FREE_CAR_LIMIT){
+    toast('🔒 ครบ 3 คันแล้ว อัปเกรด Premium','err');
+    openModal('mUpgrade'); return;
+  }
+  busy('saveCarBtn',true);
+  const data={brand,model,
+    year:document.getElementById('cYear').value,
+    color:document.getElementById('cColor').value,
+    plate:document.getElementById('cPlate').value,
+    province:document.getElementById('cProvince').value,
+    mileage:Number(document.getElementById('cMile').value)||0,
+    fuel:document.getElementById('cFuel').value};
+  try{
+    if(editCarId){
+      await setDoc(uDoc('cars',editCarId),{...data,updatedAt:serverTimestamp()},{merge:true});
+      toast('✅ อัปเดตข้อมูลรถแล้ว');
+    }else{
+      const ref=await addDoc(uCol('cars'),{...data,createdAt:serverTimestamp()});
+      if(!selCarId)selCarId=ref.id;
+      if(!expCarId)expCarId=ref.id;
+      toast('✅ เพิ่มรถใหม่แล้ว');
+    }
+    closeModal('mCar'); await loadCars(); renderAll();
+  }catch(e){toast('❌ '+e.message,'err');}
+  busy('saveCarBtn',false);
+};
 
-function renderPicker(pid, isExp) {
-  const p = document.getElementById(pid);
-  p.innerHTML = '';
-  const cars = myCars();
-  if (!cars.length) { p.innerHTML='<span style="color:var(--t3);font-size:12px">ยังไม่มีรถ กรุณาเพิ่มรถก่อน</span>'; return; }
-  cars.forEach(c => {
-    const btn = document.createElement('button');
-    btn.className = 'cpick-btn' + (c.id===(isExp?expCarId:selCarId)?' on':'');
-    btn.textContent = `${c.brand} ${c.model} (${c.plate||'-'})`;
-    btn.onclick = () => {
-      if (isExp) { expCarId = c.id; renderExpense(); }
-      else       { selCarId = c.id; renderRepairList(); }
-      renderPicker(pid, isExp);
-    };
-    p.appendChild(btn);
+window.deleteCar=async()=>{
+  if(!editCarId)return;
+  if(!confirm('ลบรถคันนี้? ประวัติการซ่อมของรถคันนี้จะถูกลบทั้งหมด'))return;
+  try{
+    const s=await getDocs(query(uCol('repairs'),where('carId','==',editCarId)));
+    await Promise.all(s.docs.map(d=>deleteDoc(uDoc('repairs',d.id))));
+    await deleteDoc(uDoc('cars',editCarId));
+    if(selCarId===editCarId)selCarId=null;
+    if(expCarId===editCarId)expCarId=null;
+    toast('🗑️ ลบรถแล้ว');
+    closeModal('mCar'); await loadAll();
+  }catch(e){toast('❌ '+e.message,'err');}
+};
+
+// PICKERS
+function renderPickers(){_p('repPicker',false);_p('expPicker',true);}
+function _p(pid,isExp){
+  const p=document.getElementById(pid); p.innerHTML='';
+  if(!carsCache.length){p.innerHTML='<span style="color:var(--t3);font-size:12px">ยังไม่มีรถ กรุณาเพิ่มรถก่อน</span>';return;}
+  carsCache.forEach(c=>{
+    const b=document.createElement('button');
+    b.className='cpick-btn'+(c.id===(isExp?expCarId:selCarId)?' on':'');
+    b.textContent=`${c.brand} ${c.model} (${c.plate||'-'})`;
+    b.onclick=()=>{if(isExp){expCarId=c.id;renderExpense();}else{selCarId=c.id;renderRepairList();}_p(pid,isExp);};
+    p.appendChild(b);
   });
 }
 
-// ══════════════════════════════════════════
-//  REPAIRS
-// ══════════════════════════════════════════
-const repIcons = ['🛢️','🔧','🔋','🔘','💨','⚙️','🚿','🛞','🔩','🪛'];
-
-function renderRepairList() {
-  const list = document.getElementById('repairList');
-  const reps = selCarId ? myReps().filter(r=>r.carId===selCarId) : myReps();
-  if (!reps.length) { list.innerHTML='<div class="empty"><div class="empty-ic">🔧</div>ยังไม่มีประวัติการซ่อม</div>'; return; }
-  list.innerHTML = [...reps].reverse().map((r,i) => `
+// REPAIRS
+function renderRepairList(){
+  const list=document.getElementById('repairList');
+  const data=selCarId?repsCache.filter(r=>r.carId===selCarId):repsCache;
+  if(!data.length){list.innerHTML='<div class="empty"><div class="empty-ic">🔧</div>ยังไม่มีประวัติการซ่อม</div>';return;}
+  list.innerHTML=data.map((r,i)=>`
     <div class="repair-item">
-      <div class="r-ic">${repIcons[i%repIcons.length]}</div>
-      <div class="r-main">
-        <div class="r-name">${r.type||'-'}</div>
+      <div class="r-ic">${REP_IC[i%REP_IC.length]}</div>
+      <div class="r-main"><div class="r-name">${r.type||'-'}</div>
         <div class="r-shop">${r.shop||''}</div>
-        ${r.note ? `<div class="r-note">${r.note}</div>` : ''}
+        ${r.note?`<div class="r-note">${r.note}</div>`:''}
       </div>
-      <div class="r-meta">
-        <div class="r-date">${r.date||'-'}</div>
-        <div class="r-km">${r.km ? Number(r.km).toLocaleString()+' กม.' : ''}</div>
-      </div>
-      <div class="r-cost">${Number(r.cost||0).toLocaleString()} <u>บาท</u></div>
+      <div class="r-meta"><div class="r-date">${r.date||'-'}</div>
+        <div class="r-km">${r.km?Number(r.km).toLocaleString()+' กม.':''}</div></div>
+      <div class="r-cost">${Number(r.cost||0).toLocaleString()} <span>บาท</span></div>
       <div class="r-btns">
-        <button class="edit-btn2" title="แก้ไข" onclick="openEditRepair('${r.id}')">✏️</button>
-        <button class="del-btn"   title="ลบ"    onclick="deleteRepair('${r.id}')">🗑️</button>
+        <button class="edit-btn2" onclick="openEditRepair('${r.id}')">✏️</button>
+        <button class="del-btn" onclick="confirmDelRepair('${r.id}')">🗑️</button>
       </div>
-    </div>
-  `).join('');
+    </div>`).join('');
 }
 
-function openAddRepair() {
-  if (!myCars().length) { toast('⚠️ กรุณาเพิ่มรถก่อน', true); return; }
-  editRepId = null;
-  document.getElementById('mRepTitle').textContent = '🔧 เพิ่มการซ่อม';
-  document.getElementById('delRepBtn').style.display = 'none';
-  document.getElementById('repCarField').style.display = 'block';
-  // fill car select
-  const sel = document.getElementById('rCarId');
-  sel.innerHTML = myCars().map(c=>`<option value="${c.id}">${c.brand} ${c.model} (${c.plate||'-'})</option>`).join('');
-  if (selCarId) sel.value = selCarId;
-  ['rType','rKm','rCost','rShop','rNote'].forEach(id => document.getElementById(id).value='');
-  document.getElementById('rDate').value = today();
+window.openAddRepair=()=>{
+  if(!carsCache.length){toast('⚠️ กรุณาเพิ่มรถก่อน','err');return;}
+  editRepId=null; editRepCarId=null;
+  document.getElementById('mRepTitle').textContent='🔧 เพิ่มการซ่อม';
+  document.getElementById('delRepBtn').style.display='none';
+  document.getElementById('repCarField').style.display='block';
+  const sel=document.getElementById('rCarId');
+  sel.innerHTML=carsCache.map(c=>`<option value="${c.id}">${c.brand} ${c.model} (${c.plate||'-'})</option>`).join('');
+  if(selCarId)sel.value=selCarId;
+  ['rType','rKm','rCost','rShop','rNote'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('rDate').value=today();
   openModal('mRepair');
-}
+};
 
-function openEditRepair(id) {
-  const r = myReps().find(x=>x.id===id);
-  if (!r) return;
-  editRepId = id;
-  document.getElementById('mRepTitle').textContent = '✏️ แก้ไขการซ่อม';
-  document.getElementById('delRepBtn').style.display = 'block';
-  document.getElementById('repCarField').style.display = 'none';
-  document.getElementById('rType').value  = r.type||'';
-  document.getElementById('rDate').value  = r.date||'';
-  document.getElementById('rKm').value    = r.km||'';
-  document.getElementById('rCost').value  = r.cost||'';
-  document.getElementById('rShop').value  = r.shop||'';
-  document.getElementById('rNote').value  = r.note||'';
+window.openEditRepair=id=>{
+  const r=repsCache.find(x=>x.id===id); if(!r)return;
+  editRepId=id; editRepCarId=r.carId;
+  document.getElementById('mRepTitle').textContent='✏️ แก้ไขการซ่อม';
+  document.getElementById('delRepBtn').style.display='block';
+  document.getElementById('repCarField').style.display='none';
+  document.getElementById('rType').value=r.type||'';
+  document.getElementById('rDate').value=r.date||'';
+  document.getElementById('rKm').value=r.km||'';
+  document.getElementById('rCost').value=r.cost||'';
+  document.getElementById('rShop').value=r.shop||'';
+  document.getElementById('rNote').value=r.note||'';
   openModal('mRepair');
-}
+};
 
-function saveRepair() {
-  const type = document.getElementById('rType').value.trim();
-  const cost = document.getElementById('rCost').value;
-  const date = document.getElementById('rDate').value;
-  if (!type) { toast('⚠️ กรุณากรอกประเภทการซ่อม', true); return; }
-  if (!cost) { toast('⚠️ กรุณากรอกค่าใช้จ่าย', true); return; }
-  const data = {
-    type, date,
-    cost:  Number(cost)||0,
-    km:    Number(document.getElementById('rKm').value)||0,
-    shop:  document.getElementById('rShop').value||'',
-    note:  document.getElementById('rNote').value||'',
-    carId: editRepId ? myReps().find(r=>r.id===editRepId)?.carId : document.getElementById('rCarId').value,
-  };
-  let reps = myReps();
-  if (editRepId) {
-    reps = reps.map(r => r.id===editRepId ? {...r,...data} : r);
-    toast('✅ อัปเดตการซ่อมแล้ว');
-  } else {
-    data.id = newId();
-    reps.push(data);
-    toast('✅ บันทึกการซ่อมแล้ว');
-  }
-  setMyReps(reps);
-  closeModal('mRepair');
-  renderAll();
-}
+window.saveRepair=async()=>{
+  const type=document.getElementById('rType').value.trim();
+  const cost=document.getElementById('rCost').value;
+  const date=document.getElementById('rDate').value;
+  if(!type){toast('⚠️ กรุณากรอกประเภทการซ่อม','err');return;}
+  if(!cost){toast('⚠️ กรุณากรอกค่าใช้จ่าย','err');return;}
+  busy('saveRepBtn',true);
+  const data={type,date,
+    cost:Number(cost)||0,km:Number(document.getElementById('rKm').value)||0,
+    shop:document.getElementById('rShop').value||'',
+    note:document.getElementById('rNote').value||'',
+    carId:editRepId?editRepCarId:document.getElementById('rCarId').value};
+  try{
+    if(editRepId){
+      await setDoc(uDoc('repairs',editRepId),{...data,updatedAt:serverTimestamp()},{merge:true});
+      toast('✅ อัปเดตการซ่อมแล้ว');
+    }else{
+      await addDoc(uCol('repairs'),{...data,createdAt:serverTimestamp()});
+      toast('✅ บันทึกการซ่อมแล้ว');
+    }
+    closeModal('mRepair'); await loadRepairs(); renderAll();
+  }catch(e){toast('❌ '+e.message,'err');}
+  busy('saveRepBtn',false);
+};
 
-function deleteRepair(id) {
-  if (!confirm('ลบรายการซ่อมนี้?')) return;
-  setMyReps(myReps().filter(r=>r.id!==id));
-  toast('🗑️ ลบรายการแล้ว');
-  renderAll();
-}
+window.confirmDelRepair=async id=>{
+  if(!confirm('ลบรายการซ่อมนี้?'))return;
+  try{
+    await deleteDoc(uDoc('repairs',id));
+    toast('🗑️ ลบรายการแล้ว'); await loadRepairs(); renderAll();
+  }catch(e){toast('❌ '+e.message,'err');}
+};
 
-function deleteRepairFromModal() {
-  if (!editRepId) return;
-  if (!confirm('ลบรายการซ่อมนี้?')) return;
-  setMyReps(myReps().filter(r=>r.id!==editRepId));
-  toast('🗑️ ลบรายการแล้ว');
-  closeModal('mRepair');
-  renderAll();
-}
+window.deleteRepairModal=async()=>{
+  if(!editRepId)return;
+  if(!confirm('ลบรายการซ่อมนี้?'))return;
+  try{
+    await deleteDoc(uDoc('repairs',editRepId));
+    toast('🗑️ ลบรายการแล้ว'); closeModal('mRepair'); await loadRepairs(); renderAll();
+  }catch(e){toast('❌ '+e.message,'err');}
+};
 
-// ══════════════════════════════════════════
-//  EXPENSE
-// ══════════════════════════════════════════
-function renderExpense() {
-  const el   = document.getElementById('expContent');
-  const reps = expCarId ? myReps().filter(r=>r.carId===expCarId) : [];
-  if (!expCarId||!reps.length) {
-    el.innerHTML='<div class="empty"><div class="empty-ic">💸</div>ไม่มีข้อมูลค่าใช้จ่าย</div>'; return;
-  }
-  const total = reps.reduce((s,r)=>s+Number(r.cost||0),0);
-  const avg   = Math.round(total/reps.length);
-  const yr    = new Date().getFullYear().toString();
-  const yrCost = reps.filter(r=>(r.date||'').startsWith(yr)).reduce((s,r)=>s+Number(r.cost||0),0);
-  const byType = {};
-  reps.forEach(r=>{ byType[r.type]=(byType[r.type]||0)+Number(r.cost||0); });
-  const sorted = Object.entries(byType).sort((a,b)=>b[1]-a[1]);
-  el.innerHTML = `
+// EXPENSE
+function renderExpense(){
+  const el=document.getElementById('expContent');
+  const data=expCarId?repsCache.filter(r=>r.carId===expCarId):[];
+  if(!expCarId||!data.length){el.innerHTML='<div class="empty"><div class="empty-ic">💸</div>ไม่มีข้อมูลค่าใช้จ่าย</div>';return;}
+  const total=data.reduce((s,r)=>s+Number(r.cost||0),0);
+  const avg=Math.round(total/data.length);
+  const yr=new Date().getFullYear().toString();
+  const yrC=data.filter(r=>(r.date||'').startsWith(yr)).reduce((s,r)=>s+Number(r.cost||0),0);
+  const byType={};
+  data.forEach(r=>{byType[r.type]=(byType[r.type]||0)+Number(r.cost||0);});
+  const sorted=Object.entries(byType).sort((a,b)=>b[1]-a[1]);
+  el.innerHTML=`
     <div class="stats-row" style="margin-bottom:18px">
       <div class="stat-card"><div class="sc-ic" style="background:rgba(34,197,94,.15)">💰</div>
         <div><div class="sc-lbl">รวมทั้งหมด</div><div class="sc-val" style="color:var(--green)">${total.toLocaleString()}</div><div class="sc-unit">บาท</div></div></div>
       <div class="stat-card"><div class="sc-ic" style="background:rgba(59,130,246,.15)">📅</div>
-        <div><div class="sc-lbl">ปีนี้</div><div class="sc-val" style="color:var(--blue)">${yrCost.toLocaleString()}</div><div class="sc-unit">บาท</div></div></div>
+        <div><div class="sc-lbl">ปีนี้</div><div class="sc-val" style="color:var(--blue)">${yrC.toLocaleString()}</div><div class="sc-unit">บาท</div></div></div>
       <div class="stat-card"><div class="sc-ic" style="background:rgba(249,115,22,.15)">📊</div>
         <div><div class="sc-lbl">เฉลี่ยต่อครั้ง</div><div class="sc-val" style="color:var(--orange)">${avg.toLocaleString()}</div><div class="sc-unit">บาท</div></div></div>
       <div class="stat-card"><div class="sc-ic" style="background:rgba(168,85,247,.15)">🔧</div>
-        <div><div class="sc-lbl">จำนวนครั้ง</div><div class="sc-val" style="color:var(--purple)">${reps.length}</div><div class="sc-unit">ครั้ง</div></div></div>
+        <div><div class="sc-lbl">จำนวนครั้ง</div><div class="sc-val" style="color:var(--purple)">${data.length}</div><div class="sc-unit">ครั้ง</div></div></div>
     </div>
     <div class="sec-hdr"><div class="sec-title">📊 แยกตามประเภท</div></div>
     ${sorted.map(([type,cost])=>`
-      <div class="exp-type-row">
-        <div style="font-size:13px;font-weight:600;width:180px;flex-shrink:0">${type}</div>
+      <div class="exp-row">
+        <div style="font-size:13px;font-weight:600;width:170px;flex-shrink:0">${type}</div>
         <div class="exp-bar-wrap"><div class="exp-bar" style="width:${Math.round(cost/total*100)}%"></div></div>
-        <div style="font-size:12px;color:var(--t2);width:40px;text-align:right">${Math.round(cost/total*100)}%</div>
-        <div style="font-size:14px;font-weight:700;color:var(--green);width:100px;text-align:right">${cost.toLocaleString()} <span style="font-size:10px;color:var(--t2);font-weight:400">บาท</span></div>
-      </div>
-    `).join('')}
-  `;
+        <div style="font-size:12px;color:var(--t2);width:38px;text-align:right">${Math.round(cost/total*100)}%</div>
+        <div style="font-size:14px;font-weight:700;color:var(--green);width:110px;text-align:right">${cost.toLocaleString()} <span style="font-size:10px;color:var(--t2);font-weight:400">บาท</span></div>
+      </div>`).join('')}`;
 }
 
-// ══════════════════════════════════════════
-//  UTILS
-// ══════════════════════════════════════════
-function showPage(pgId, navEl, title) {
+// PAGE NAV
+window.showPage=(pgId,navEl,title)=>{
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.nav-it').forEach(n=>n.classList.remove('on'));
   document.querySelectorAll('.bn-it').forEach(n=>n.classList.remove('on'));
   document.getElementById(pgId).classList.add('on');
-  if (navEl) navEl.classList.add('on');
-  document.getElementById('pgTitle').textContent = title||pgId;
-  if (pgId==='pgRepairs') { renderPickers(); renderRepairList(); }
-  if (pgId==='pgExpense') { renderPickers(); renderExpense(); }
-  if (pgId==='pgCars')    renderCarsGrid();
-  if (pgId==='pgHome')    renderHome();
-}
+  if(navEl)navEl.classList.add('on');
+  document.getElementById('pgTitle').textContent=title||pgId;
+  if(pgId==='pgRepairs'){renderPickers();renderRepairList();}
+  if(pgId==='pgExpense'){renderPickers();renderExpense();}
+  if(pgId==='pgCars')renderCarsGrid();
+  if(pgId==='pgHome')renderHome();
+};
 
-function openModal(id)  { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-document.querySelectorAll('.overlay').forEach(o => o.addEventListener('click', e => { if(e.target===o) o.classList.remove('open'); }));
-
-let toastTimer;
-function toast(msg, err=false) {
-  const el = document.getElementById('toast');
-  el.className = 'toast show' + (err?' err':'');
-  document.getElementById('toastMsg').textContent = msg;
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(()=>el.classList.remove('show'), 3000);
-}
-
-// ── Demo account hint ──
-document.getElementById('aEmail').value = '';
-document.getElementById('aPass').value  = '';
+// MODAL
+window.openModal =id=>document.getElementById(id).classList.add('open');
+window.closeModal=id=>document.getElementById(id).classList.remove('open');
+document.querySelectorAll('.overlay').forEach(o=>
+  o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
 </script>
 </body>
 </html>
