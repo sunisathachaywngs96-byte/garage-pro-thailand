@@ -402,7 +402,7 @@ nav{flex:1;padding:10px 0;overflow-y:auto;}
         <div class="plan-card-name">Free</div>
         <div class="plan-card-price">ฟรี <span>/ ตลอดไป</span></div>
         <ul class="plan-feat">
-          <li>รถได้สูงสุด 2 คัน</li>
+          <li>รถได้สูงสุด 3 คัน</li>
           <li>ประวัติการซ่อมไม่จำกัด</li>
           <li>ดูค่าใช้จ่าย</li>
           <li class="no">ไม่มีรายงาน PDF</li>
@@ -414,7 +414,7 @@ nav{flex:1;padding:10px 0;overflow-y:auto;}
         <div class="plan-selected-badge">แนะนำ</div>
         <div class="plan-card-ic">👑</div>
         <div class="plan-card-name">Premium</div>
-        <div class="plan-card-price" id="premiumPrice">99 <span>บาท / เดือน</span></div>
+        <div class="plan-card-price" id="premiumPrice">299 <span>บาท / เดือน</span></div>
         <ul class="plan-feat">
           <li>รถไม่จำกัดจำนวน</li>
           <li>ประวัติการซ่อมไม่จำกัด</li>
@@ -428,9 +428,9 @@ nav{flex:1;padding:10px 0;overflow-y:auto;}
 
     <!-- ระยะเวลา -->
     <div style="display:flex;gap:8px;margin-bottom:16px;">
-      <button class="cpick-btn on" id="dur1" onclick="selectDur(1,299,'เดือน')">1 เดือน — 99 ฿</button>
-      <button class="cpick-btn" id="dur3" onclick="selectDur(3,799,'3 เดือน')">3 เดือน — 299 ฿</button>
-      <button class="cpick-btn" id="dur12" onclick="selectDur(12,2499,'ปี')">1 ปี — 499 ฿</button>
+      <button class="cpick-btn on" id="dur1" onclick="selectDur(1,299,'เดือน')">1 เดือน — 299 ฿</button>
+      <button class="cpick-btn" id="dur3" onclick="selectDur(3,799,'3 เดือน')">3 เดือน — 499 ฿</button>
+      <button class="cpick-btn" id="dur12" onclick="selectDur(12,2499,'ปี')">1 ปี — 2499 ฿</button>
     </div>
 
     <div class="divider"></div>
@@ -669,7 +669,7 @@ function renderPlanBanner(){
 // ── Upgrade state ─────────────────────────
 let selectedPlan='premium';
 let selectedDur=1;
-let selectedDurPrice=99;
+let selectedDurPrice=299;
 let selectedDurLabel='เดือน';
 let selectedPay='promptpay';
 const payLabels={'promptpay':'พร้อมเพย์ / QR Code','transfer':'โอนเงินธนาคาร','card':'บัตรเครดิต / เดบิต'};
@@ -832,7 +832,7 @@ window.saveCar=async()=>{
   const model=document.getElementById('cModel').value.trim();
   if(!brand||!model){toast('⚠️ กรุณากรอกยี่ห้อและรุ่น','err');return;}
   if(!editCarId&&!isPremium()&&carsCache.length>=FREE_CAR_LIMIT){
-    toast('🔒 ครบ 2 คันแล้ว อัปเกรด Premium','err');
+    toast('🔒 ครบ 3 คันแล้ว อัปเกรด Premium','err');
     openModal('mUpgrade'); return;
   }
   busy('saveCarBtn',true);
