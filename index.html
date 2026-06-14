@@ -434,7 +434,19 @@ function loginAs(user) {
   if (myCars().length) { selCarId = myCars()[0].id; expCarId = myCars()[0].id; }
   renderAll();
 }
+function doSignOut() {
 
+  localStorage.removeItem('ae_current_user');
+
+  currentUser = null;
+  selCarId = null;
+  expCarId = null;
+
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('authWrap').style.display = 'flex';
+
+  ...
+}
 function doSignOut() {
   currentUser = null; selCarId = null; expCarId = null;
   document.getElementById('app').style.display  = 'none';
