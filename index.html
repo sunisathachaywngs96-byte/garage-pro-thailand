@@ -414,6 +414,16 @@ function doAuth() {
 
 function loginAs(user) {
   currentUser = user;
+  function loginAs(user) {
+  currentUser = user;
+
+  localStorage.setItem('ae_current_user', user.uid);
+
+  document.getElementById('authWrap').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+
+  ...
+  }
   document.getElementById('authWrap').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   document.getElementById('sbName').textContent  = user.name || user.email.split('@')[0];
