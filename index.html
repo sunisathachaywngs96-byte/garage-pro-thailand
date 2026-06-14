@@ -559,24 +559,6 @@ window.switchTab=m=>{
 
 window.doAuth=async()=>{
   async function doAuth() {
-   // login / register
-}
-
-async function resetPassword() {
-  const email = document.getElementById('aEmail').value.trim();
-
-  if (!email) {
-    alert('กรุณากรอกอีเมลก่อน');
-    return;
-  }
-
-  try {
-    await sendPasswordResetEmail(auth, email);
-    alert('ส่งลิงก์รีเซ็ตรหัสผ่านไปยังอีเมลแล้ว');
-  } catch (err) {
-    alert(err.message);
-  }
-}
   const email=document.getElementById('aEmail').value.trim();
   const pass =document.getElementById('aPass').value;
   const err  =document.getElementById('aErr');
