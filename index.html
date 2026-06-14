@@ -236,9 +236,15 @@ nav{flex:1;padding:10px 0;overflow-y:auto;}
       <div class="fi"><label>ชื่อ-นามสกุล</label><input type="text" id="aName" placeholder="คุณเจียบ"></div>
       <div class="fi"><label>ยืนยันรหัสผ่าน</label><input type="password" id="aPass2" placeholder="พิมพ์อีกครั้ง"></div>
     </div>
-    <div class="auth-err" id="aErr"></div>
-    <button class="btn-green" id="aSubmit" onclick="doAuth()">เข้าสู่ระบบ</button>
-  </div>
+<div class="auth-err" id="aErr"></div>
+
+<div style="text-align:right;margin:10px 0;">
+  <a href="#" onclick="resetPassword()">
+    ลืมรหัสผ่าน?
+  </a>
+</div>
+
+<button class="btn-green" id="aSubmit" onclick="doAuth()">เข้าสู่ระบบ</button>
 </div>
 
 <!-- APP -->
@@ -552,6 +558,25 @@ window.switchTab=m=>{
 };
 
 window.doAuth=async()=>{
+  async function doAuth() {
+   // login / register
+}
+
+async function resetPassword() {
+  const email = document.getElementById('aEmail').value.trim();
+
+  if (!email) {
+    alert('กรุณากรอกอีเมลก่อน');
+    return;
+  }
+
+  try {
+    await sendPasswordResetEmail(auth, email);
+    alert('ส่งลิงก์รีเซ็ตรหัสผ่านไปยังอีเมลแล้ว');
+  } catch (err) {
+    alert(err.message);
+  }
+}
   const email=document.getElementById('aEmail').value.trim();
   const pass =document.getElementById('aPass').value;
   const err  =document.getElementById('aErr');
